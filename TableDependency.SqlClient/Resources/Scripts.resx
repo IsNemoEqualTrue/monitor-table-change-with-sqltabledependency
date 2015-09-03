@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CreateContract" xml:space="preserve">
+    <value>CREATE CONTRACT [{0}] ([{0}_Deleted] SENT BY INITIATOR, [{0}_Inserted] SENT BY INITIATOR, [{0}_Updated] SENT BY INITIATOR)</value>
+  </data>
+  <data name="CreateMessageDeleted" xml:space="preserve">
+    <value>CREATE MESSAGE TYPE [{0}_Deleted] VALIDATION = NONE</value>
+  </data>
+  <data name="CreateMessageInserted" xml:space="preserve">
+    <value>CREATE MESSAGE TYPE [{0}_Inserted] VALIDATION = NONE</value>
+  </data>
+  <data name="CreateMessageUpdated" xml:space="preserve">
+    <value>CREATE MESSAGE TYPE [{0}_Updated] VALIDATION = NONE</value>
+  </data>
+  <data name="CreateProcedureQueueActivation" xml:space="preserve">
+    <value>CREATE PROCEDURE [{0}_QueueActivation] AS 
+BEGIN 
+	BEGIN TRANSACTION
+
+	IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}')
+	BEGIN
+		IF (SELECT COUNT(*) FROM [{0}] WHERE message_type_name = 'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer') &gt; 0 
+		BEGIN 
+			{1}
+		END 
+	END
+
+	COMMIT TRANSACTION
+END</value>
+  </data>
+  <data name="CreateQueue" xml:space="preserve">
+    <value>CREATE QUEUE [{0}] 
+WITH STATUS = ON, 
+RETENTION = OFF, 
+POISON_MESSAGE_HANDLING (STATUS = OFF), 
+ACTIVATION (STATUS = ON, PROCEDURE_NAME = [{0}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)</value>
+  </data>
+  <data name="CreateService" xml:space="preserve">
+    <value>CREATE SERVICE [{0}] ON QUEUE [{0}] ([{0}])</value>
+  </data>
+  <data name="CreateTrigger" xml:space="preserve">
+    <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER INSERT, DELETE, UPDATE AS 
+BEGIN
+	-- stop if no row was affected
+	IF @@ROWCOUNT = 0 RETURN
+
+	-- Turn off rows affected messages
+	SET NOCOUNT ON;
+
+	DECLARE @h AS UNIQUEIDENTIFIER
+	DECLARE @records XML
+	DECLARE @message NVARCHAR(MAX)
+	DECLARE @dmlType NVARCHAR(10)
+	DECLARE @rowsToProcess INT
+	DECLARE @currentRow INT = 0
+	DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
+	
+	IF NOT EXISTS(SELECT * FROM INSERTED)
+	BEGIN
+		SET @dmlType = 'DELETE'
+		INSERT INTO @modifiedRecordsTable SELECT * FROM DELETED AS [{1}]
+	END
+	ELSE
+	BEGIN
+		IF NOT EXISTS(SELECT * FROM DELETED)
+		BEGIN
+			SET @dmlType = 'INSERT'
+			INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{1}]
+		END
+		ELSE
+		BEGIN
+			{4}
+		END
+	END
+
+	BEGIN
+		SET @rowsToProcess = @@ROWCOUNT
+		IF @rowsToProcess &lt; 1 RETURN
+
+		BEGIN DIALOG CONVERSATION @h
+		FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE'
+		ON CONTRACT [{0}]
+		WITH ENCRYPTION = OFF;
+
+		IF @dmlType = 'INSERT' 
+		BEGIN
+			WHILE @currentRow &lt; @rowsToProcess
+			BEGIN
+				SET @currentRow = @currentRow + 1						
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SET @message = CAST(@records AS NVARCHAR(MAX))
+
+				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Inserted] (@message)
+			END
+		END
+		
+		IF @dmlType = 'UPDATE'
+		BEGIN
+			WHILE @currentRow &lt; @rowsToProcess
+			BEGIN
+				SET @currentRow = @currentRow + 1						
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SET @message = CAST(@records AS NVARCHAR(MAX))
+
+				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Updated] (@message)
+			END
+		END
+
+		IF @dmlType = 'DELETE'
+		BEGIN
+			WHILE @currentRow &lt; @rowsToProcess
+			BEGIN
+				SET @currentRow = @currentRow + 1						
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SET @message = CAST(@records AS NVARCHAR(MAX))
+	
+				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Deleted] (@message)
+			END
+		END
+
+		IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+		BEGIN
+			RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+		END
+		ELSE
+		BEGIN
+			END CONVERSATION @h WITH CLEANUP
+		END
+	END
+END</value>
+  </data>
+  <data name="ScriptDropAll" xml:space="preserve">
+    <value>IF EXISTS (SELECT * FROM sys.objects WHERE name = N'tr_{0}') DROP TRIGGER [tr_{0}];
+IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
+IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}') DROP QUEUE [{0}];
+IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N'{0}') DROP CONTRACT [{0}];
+IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Deleted') DROP MESSAGE TYPE [{0}_Deleted];
+IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Inserted') DROP MESSAGE TYPE [{0}_Inserted];
+IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Updated') DROP MESSAGE TYPE [{0}_Updated];
+IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP PROCEDURE [{0}_QueueActivation];</value>
+  </data>
+  <data name="TriggerUpdateWithColumns" xml:space="preserve">
+    <value>IF ({0})
+			BEGIN
+				SET @dmlType = 'UPDATE'
+				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{1}]
+			END
+			ELSE
+			BEGIN
+				RETURN
+			END</value>
+  </data>
+  <data name="TriggerUpdateWithoutColuns" xml:space="preserve">
+    <value>
+				SET @dmlType = 'UPDATE'
+				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{0}]
+</value>
+  </data>
+</root>

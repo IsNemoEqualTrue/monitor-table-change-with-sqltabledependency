@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CreateProcedureDequeueMessage" xml:space="preserve">
+    <value>CREATE OR REPLACE PROCEDURE DEQ_{0}
+(
+    messageType OUT VARCHAR2,
+    messageContent OUT XMLType
+)
+AS
+    dequeue_options      dbms_aq.dequeue_options_t;
+    message_properties   dbms_aq.message_properties_t;
+    message_handle       RAW(16);
+    message              TYPE_{0};
+    no_messages          EXCEPTION;
+    PRAGMA EXCEPTION_INIT(no_messages, -25228);
+BEGIN
+    dequeue_options.CONSUMER_NAME           := NULL;
+    dequeue_options.DEQUEUE_MODE            := DBMS_AQ.REMOVE;
+    dequeue_options.NAVIGATION              := DBMS_AQ.NEXT_MESSAGE;
+    dequeue_options.VISIBILITY              := DBMS_AQ.IMMEDIATE;
+    dequeue_options.WAIT                    := {1};
+    dequeue_options.MSGID                   := NULL;
+
+    BEGIN
+        DBMS_AQ.DEQUEUE (
+            queue_name         =&gt; 'QUE_{0}'
+            , dequeue_options    =&gt; dequeue_options
+            , message_properties =&gt; message_properties
+            , payload            =&gt; message
+            , msgid              =&gt; message_handle);
+
+        messageType := message.MESSAGE_TYPE; 
+        messageContent := message.MESSAGE_CONTENT;
+    EXCEPTION
+        WHEN no_messages THEN
+            messageType := '{2}';
+    END;
+END;</value>
+  </data>
+  <data name="CreateQueue" xml:space="preserve">
+    <value>BEGIN
+    DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=&gt; 'QT_{0}', queue_payload_type=&gt; 'TYPE_{0}', multiple_consumers =&gt; FALSE, auto_commit =&gt; TRUE);
+    DBMS_AQADM.CREATE_QUEUE(queue_name =&gt; 'QUE_{0}', queue_table =&gt; 'QT_{0}');
+    DBMS_AQADM.START_QUEUE(queue_name=&gt; 'QUE_{0}');
+END;</value>
+  </data>
+  <data name="CreateTriggerEnqueueMessage" xml:space="preserve">
+    <value>CREATE OR REPLACE TRIGGER TR_{0}
+AFTER DELETE OR INSERT OR UPDATE{7} ON {1}
+REFERENCING OLD AS OLD NEW AS NEW 
+FOR EACH ROW
+BEGIN
+  DECLARE
+    enqueue_options dbms_aq.enqueue_options_t;
+    message_properties dbms_aq.message_properties_t;
+    message_handle RAW(16);
+    message TYPE_{0}; 
+    messageType VARCHAR2(50);
+    messageContent XMLType;
+  BEGIN
+    IF INSERTING THEN
+      messageType := '{2}';
+      messageContent := XMLType.CreateXML({5});
+    ELSIF UPDATING THEN
+      messageType := '{3}';
+      messageContent := XMLType.CreateXML({5});
+    ELSIF DELETING THEN      
+      messageType := '{4}';
+      messageContent := XMLType.CreateXML({6});
+    END IF;
+
+    message := TYPE_{0}(messageType, messageContent);
+    enqueue_options.VISIBILITY := DBMS_AQ.ON_COMMIT;
+    enqueue_options.SEQUENCE_DEVIATION := NULL;
+    message_properties.DELAY := DBMS_AQ.NO_DELAY;
+    message_properties.EXPIRATION := DBMS_AQ.NEVER;
+
+    DBMS_AQ.ENQUEUE (
+          queue_name         =&gt; 'QUE_{0}'
+        , enqueue_options    =&gt; enqueue_options
+        , message_properties =&gt; message_properties
+        , payload            =&gt; message
+        , msgid              =&gt; message_handle);
+  END;
+END;</value>
+  </data>
+  <data name="CreateTypeMessage" xml:space="preserve">
+    <value>CREATE TYPE TYPE_{0} AS OBJECT (MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT XMLType);</value>
+  </data>
+  <data name="ScriptDropAll" xml:space="preserve">
+    <value>BEGIN
+    DECLARE
+      v_object_type2 VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type2 
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'TRIGGER' AND UPPER(OBJECT_NAME) = 'TR_{0}';
+
+      EXECUTE IMMEDIATE 'DROP TRIGGER TR_{0}';
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        NULL;
+    END;
+
+    DECLARE
+      v_object_type3 VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type3 
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'PROCEDURE' AND UPPER(OBJECT_NAME) = 'DEQ_{0}';
+
+      EXECUTE IMMEDIATE 'DROP PROCEDURE DEQ_{0}';
+    EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      NULL;
+    END;
+
+    DECLARE
+      v_object_type4 VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type4 
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'QUEUE' AND UPPER(OBJECT_NAME) = 'QUE_{0}';
+
+      DBMS_AQADM.STOP_QUEUE('QUE_{0}'); 
+      DBMS_AQADM.DROP_QUEUE(queue_name =&gt; 'QUE_{0}');
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        NULL;
+    END;
+
+    DECLARE
+      v_object_type5 VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type5 
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{0}';
+
+      DBMS_AQADM.DROP_QUEUE_TABLE(queue_table =&gt; 'QT_{0}', force =&gt; TRUE); 
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        NULL;
+    END;
+
+    DECLARE
+      v_object_type6 VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type6
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TYPE_{0}';
+
+      EXECUTE IMMEDIATE 'DROP TYPE TYPE_{0}';
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        NULL;
+    END;
+END;</value>
+  </data>
+  <data name="ScriptJobCreate" xml:space="preserve">
+    <value>BEGIN
+  DBMS_SCHEDULER.CREATE_JOB(
+    JOB_NAME =&gt; 'JOB_{0}',
+    JOB_TYPE =&gt; 'PLSQL_BLOCK',
+    JOB_ACTION =&gt; '{2}',
+    START_DATE =&gt; SYSTIMESTAMP + INTERVAL '{1}' MINUTE,
+    END_DATE =&gt; NULL,
+    ENABLED =&gt; FALSE,
+    AUTO_DROP =&gt; TRUE);
+  
+  DBMS_SCHEDULER.SET_ATTRIBUTE(
+    NAME =&gt; 'JOB_{0}', 
+    ATTRIBUTE =&gt; 'restartable', 
+    VALUE =&gt; TRUE);
+END;</value>
+  </data>
+  <data name="ScriptJobDisable" xml:space="preserve">
+    <value>BEGIN
+  DBMS_SCHEDULER.DISABLE('JOB_{0}', TRUE);
+  DBMS_SCHEDULER.SET_ATTRIBUTE_NULL('JOB_{0}', 'START_DATE');
+END;</value>
+  </data>
+  <data name="ScriptJobEnable" xml:space="preserve">
+    <value>BEGIN
+  DBMS_SCHEDULER.SET_ATTRIBUTE('JOB_{0}', 'START_DATE', SYSTIMESTAMP + INTERVAL '{1}' MINUTE);
+  DBMS_SCHEDULER.ENABLE('JOB_{0}');
+END;</value>
+  </data>
+</root>

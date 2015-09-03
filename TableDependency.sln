@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency", "TableDependency\TableDependency.csproj", "{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.OracleClient", "TableDependency.OracleClient\TableDependency.OracleClient.csproj", "{41F1E2B4-5F77-4F40-A511-2F90C8DFDB12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient", "TableDependency.SqlClient\TableDependency.SqlClient.csproj", "{3B201820-CB8F-41A1-8430-0C806BCF7494}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.IntegrationTest", "TableDependency.SqlClient.IntegrationTest\TableDependency.SqlClient.IntegrationTest.csproj", "{F050B8DC-2E3F-42DC-829B-76DD5732E434}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.OracleClient.IntegrationTest", "TableDependency.OracleClient.IntegrationTest\TableDependency.OracleClient.IntegrationTest.csproj", "{BB357B14-7A97-4AB4-B18A-51642D156CB1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41F1E2B4-5F77-4F40-A511-2F90C8DFDB12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41F1E2B4-5F77-4F40-A511-2F90C8DFDB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41F1E2B4-5F77-4F40-A511-2F90C8DFDB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41F1E2B4-5F77-4F40-A511-2F90C8DFDB12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F050B8DC-2E3F-42DC-829B-76DD5732E434}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F050B8DC-2E3F-42DC-829B-76DD5732E434}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F050B8DC-2E3F-42DC-829B-76DD5732E434}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F050B8DC-2E3F-42DC-829B-76DD5732E434}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB357B14-7A97-4AB4-B18A-51642D156CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB357B14-7A97-4AB4-B18A-51642D156CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB357B14-7A97-4AB4-B18A-51642D156CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB357B14-7A97-4AB4-B18A-51642D156CB1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
