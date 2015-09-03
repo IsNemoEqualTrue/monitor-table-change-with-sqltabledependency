@@ -22,10 +22,6 @@ namespace TableDependency.OracleClient
     /// <summary>
     /// OracleTableDependency class.
     /// </summary>
-    /// <remarks>
-    /// ORACLE version 11g
-    /// .NET 4.5
-    /// </remarks>
     public class OracleTableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
         #region Private variables
