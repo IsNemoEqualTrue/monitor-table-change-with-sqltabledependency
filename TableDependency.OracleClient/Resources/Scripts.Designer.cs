@@ -39,7 +39,7 @@ namespace TableDependency.OracleClient.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TableDependency.OracleClient.Resources.Scripts", typeof(Scripts).Assembly);
+                    var temp = new global::System.Resources.ResourceManager("TableDependency.OracleClient.Resources.Scripts", typeof(Scripts).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

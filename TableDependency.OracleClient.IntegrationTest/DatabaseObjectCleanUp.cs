@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Security.Policy;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
@@ -16,11 +15,10 @@ namespace TableDependency.OracleClient.IntegrationTest
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {
-            AppDomainSetup domaininfo = new AppDomainSetup();
-            domaininfo.ApplicationBase = Environment.CurrentDirectory;
-            Evidence adevidence = AppDomain.CurrentDomain.Evidence;
-            AppDomain domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
-            RunsInAnotherAppDomain otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
+            var domaininfo = new AppDomainSetup {ApplicationBase = Environment.CurrentDirectory};
+            var adevidence = AppDomain.CurrentDomain.Evidence;
+            var domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
+            var otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
             var dbObjectsNaming = otherDomainObject.RunTableDependency(ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString, ConfigurationManager.AppSettings.Get("tableName"));           
             otherDomainObject.StopTableDependency();
 
@@ -46,7 +44,9 @@ namespace TableDependency.OracleClient.IntegrationTest
 
             public void StopTableDependency()
             {
+#if DEBUG
                 _tableDependency.StopMantainingDatabaseObjects();
+#endif
             }
 
             private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)

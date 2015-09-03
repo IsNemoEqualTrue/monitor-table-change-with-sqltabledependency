@@ -20,11 +20,11 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {
-            AppDomainSetup domaininfo = new AppDomainSetup();
+            var domaininfo = new AppDomainSetup();
             domaininfo.ApplicationBase = Environment.CurrentDirectory;
-            Evidence adevidence = AppDomain.CurrentDomain.Evidence;
-            AppDomain domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
-            RunsInAnotherAppDomain otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
+            var adevidence = AppDomain.CurrentDomain.Evidence;
+            var domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
+            var otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
             _dbObjectsNaming = otherDomainObject.RunTableDependency(_connectionString, _tableName);
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
