@@ -56,6 +56,7 @@
     <Compile Include="EventForAllColumns.cs" />
     <Compile Include="EventForSpecificColumns.cs" />
     <Compile Include="Helpers\Helper.cs" />
+    <Compile Include="LoadAndCount.cs" />
     <Compile Include="Model\Customer.cs" />
     <Compile Include="PreliminaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
