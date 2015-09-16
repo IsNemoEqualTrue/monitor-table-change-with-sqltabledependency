@@ -174,7 +174,7 @@ namespace TableDependency.OracleClient
         }
 #endif
 
-#endregion
+        #endregion
 
         #region Private methods
 
