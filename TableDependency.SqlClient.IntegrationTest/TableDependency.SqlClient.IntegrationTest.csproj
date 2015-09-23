@@ -47,7 +47,9 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
+          <Private>False</Private>
+        </Reference>
       </ItemGroup>
     </Otherwise>
   </Choose>
@@ -61,6 +63,7 @@
     <Compile Include="PreliminaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskCancellation.cs" />
+    <Compile Include="Issues\Issue_3.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
