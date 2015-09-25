@@ -7,10 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
-    public class DealWithUnmanagedColumnsType
+    public class Issue_0002
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private const string TableName = "NotManagedColumns";
@@ -25,7 +25,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             try
             {
                 tableDependency = new SqlTableDependency<TableWithNotManagedColumns>(_connectionString, TableName, columnsToMonitorDuringUpdate: interestedColumnsList);
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();                
 
                 Thread.Sleep(5000);
@@ -39,12 +39,12 @@ namespace TableDependency.SqlClient.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(_counter == 3);
+            Assert.IsTrue(this._counter == 3);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<TableWithNotManagedColumns> e)
         {
-            _counter++;
+            this._counter++;
         }
 
         private static void ModifyTableContent()
