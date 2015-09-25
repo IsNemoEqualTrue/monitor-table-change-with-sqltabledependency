@@ -29,7 +29,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM [dbo].[Customer]";
+                    sqlCommand.CommandText = "DELETE FROM [Customer]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -104,15 +104,15 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [dbo].[Customer] ([First Name], [Second Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Surname}')";
+                    sqlCommand.CommandText = $"INSERT INTO [Customer] ([First Name], [Second Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [dbo].[Customer] SET [First Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}', [Second Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Surname}'";
+                    sqlCommand.CommandText = $"UPDATE [Customer] SET [First Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}', [Second Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Surname}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = "DELETE FROM [dbo].[Customer]";
+                    sqlCommand.CommandText = "DELETE FROM [Customer]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }

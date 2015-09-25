@@ -26,7 +26,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM [dbo].[Customer]";
+                    sqlCommand.CommandText = "DELETE FROM [Customer]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -53,7 +53,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                     {
                         if (_counter <= counterUpTo)
                         {
-                            sqlCommand.CommandText = $"INSERT INTO [dbo].[Customer] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
+                            sqlCommand.CommandText = $"INSERT INTO [Customer] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
                             sqlCommand.ExecuteNonQuery();
                             _counter++;
                         }

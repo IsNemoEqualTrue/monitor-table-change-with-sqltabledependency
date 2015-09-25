@@ -4,16 +4,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.Mappers;
+using TableDependency.SqlClient.IntegrationTest.Helpers;
+using TableDependency.SqlClient.IntegrationTest.Model;
 
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Issue_3
+    public class ColumnsTests
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "BiddingTextDependancy";
+        private const string TableName = "Columns";
 
+        /// <summary>
+        /// Gets or sets the test context which provides information about and functionality for the current test run.
+        /// </summary>
+        /// <value>
+        /// The test context.
+        /// </value>
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
@@ -24,29 +31,25 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DROP TABLE BiddingTextDependancy";
-                    sqlCommand.ExecuteNonQuery();
-
-                    sqlCommand.CommandText = "CREATE TABLE BiddingTextDependancy ([id][int] IDENTITY(1, 1) NOT NULL, [full_text] [NVARCHAR](100) NOT NULL, [saleid] [NVARCHAR](100) NOT NULL)";
+                    sqlCommand.CommandText = "DELETE FROM [Columns]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
         }
 
         [TestMethod]
-        public void ModelToTableMapper_only_seems_to_work_with_strings()
+        public void ColumnsSizeTest()
         {
-            SqlTableDependency<BiddingTextDependancyDto> tableDependency = null;
+            SqlTableDependency<Columns> tableDependency = null;
+            string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<BiddingTextDependancyDto>();
-                mapper.AddMapping(c => c.Id, "id").AddMapping(c => c.Text, "full_text").AddMapping(c => c.SaleId, "saleid");
-
-                tableDependency = new SqlTableDependency<BiddingTextDependancyDto>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<Columns>(_connectionString, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
-                
+                naming = tableDependency.DataBaseObjectsNamingConvention;
+
                 Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
@@ -57,11 +60,13 @@ namespace TableDependency.SqlClient.IntegrationTest
             {
                 tableDependency?.Dispose();
             }
+
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<BiddingTextDependancyDto> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Columns> e)
         {
-            this.TestContext.WriteLine(e.ChangeType + ": " + e.Entity.Id + " " + e.Entity.Text + " " + e.Entity.SaleId);
+            TestContext.WriteLine($"{e.ChangeType}: {e.Entity.VarcharColumn}");
         }
 
         private static void ModifyTableContent()
@@ -71,26 +76,19 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [dbo].[BiddingTextDependancy] ([full_text], [saleid]) VALUES ('BBBBBBBBBB', 987)";
+                    sqlCommand.CommandText = $"INSERT INTO [Columns] ([VarcharColumn]) VALUES ('La pizza Margherita è una tipica pizza napoletana condita con pomodoro, mozzarella, basilico fresco, sale ed olio. La mozzarella, nella pizza Margherita tradizionale, non è quella di bufala, ma il fior di latte. È, assieme alla pizza marinara, la più popolare pizza napoletana.')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [dbo].[BiddingTextDependancy] SET [full_text] = 'AAAAAAAAAAAA', [saleid] = 123";
+                    sqlCommand.CommandText = $"UPDATE [Columns] SET [VarcharColumn] = 'MARGHERITA'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = "DELETE FROM [dbo].[BiddingTextDependancy]";
+                    sqlCommand.CommandText = "DELETE FROM [Columns]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }
             }
-        }
-
-        public class BiddingTextDependancyDto
-        {
-            public long Id { get; set; }
-            public string Text { get; set; }
-            public int SaleId { get; set; }
         }
     }
 }

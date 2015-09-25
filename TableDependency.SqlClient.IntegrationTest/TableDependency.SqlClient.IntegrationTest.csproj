@@ -59,11 +59,15 @@
     <Compile Include="EventForSpecificColumns.cs" />
     <Compile Include="Helpers\Helper.cs" />
     <Compile Include="LoadAndCount.cs" />
+    <Compile Include="Model\Columns.cs" />
     <Compile Include="Model\Customer.cs" />
+    <Compile Include="Model\TableWithNotManagedColumns.cs" />
     <Compile Include="PreliminaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DealWithUnmanagedColumnsType.cs" />
+    <Content Include="SqlScripts\CreateTables.sql" />
     <Compile Include="TaskCancellation.cs" />
-    <Compile Include="Issues\Issue_3.cs" />
+    <Compile Include="ColumnsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
@@ -78,6 +82,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

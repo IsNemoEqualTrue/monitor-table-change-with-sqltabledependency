@@ -175,14 +175,14 @@ BEGIN
 	IF NOT EXISTS(SELECT * FROM INSERTED)
 	BEGIN
 		SET @dmlType = 'DELETE'
-		INSERT INTO @modifiedRecordsTable SELECT * FROM DELETED AS [{1}]
+		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED AS [{1}]
 	END
 	ELSE
 	BEGIN
 		IF NOT EXISTS(SELECT * FROM DELETED)
 		BEGIN
 			SET @dmlType = 'INSERT'
-			INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{1}]
+			INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED AS [{1}]
 		END
 		ELSE
 		BEGIN
@@ -260,7 +260,7 @@ IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP P
     <value>IF ({0})
 			BEGIN
 				SET @dmlType = 'UPDATE'
-				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{1}]
+				INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
 			END
 			ELSE
 			BEGIN
@@ -270,7 +270,7 @@ IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP P
   <data name="TriggerUpdateWithoutColuns" xml:space="preserve">
     <value>
 				SET @dmlType = 'UPDATE'
-				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{0}]
+				INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
 </value>
   </data>
 </root>

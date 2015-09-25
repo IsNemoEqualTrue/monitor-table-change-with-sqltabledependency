@@ -39,7 +39,7 @@ namespace TableDependency.SqlClient.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    var temp = new global::System.Resources.ResourceManager("TableDependency.SqlClient.Resources.Scripts", typeof(Scripts).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TableDependency.SqlClient.Resources.Scripts", typeof(Scripts).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -185,7 +185,7 @@ namespace TableDependency.SqlClient.Resources {
         ///   Looks up a localized string similar to IF ({0})
         ///			BEGIN
         ///				SET @dmlType = &apos;UPDATE&apos;
-        ///				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{1}]
+        ///				INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
         ///			END
         ///			ELSE
         ///			BEGIN
@@ -201,7 +201,7 @@ namespace TableDependency.SqlClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to 
         ///				SET @dmlType = &apos;UPDATE&apos;
-        ///				INSERT INTO @modifiedRecordsTable SELECT * FROM INSERTED AS [{0}]
+        ///				INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
         ///.
         /// </summary>
         internal static string TriggerUpdateWithoutColuns {

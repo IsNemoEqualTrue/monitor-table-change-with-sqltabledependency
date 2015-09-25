@@ -43,14 +43,14 @@ namespace TableDependency.SqlClient
         private readonly IList<string> _processableMessages;
         private readonly string _tableColumns;
         private readonly string _selectColumns;
-        private readonly string _updateColumns;
+        private readonly string _updateOfColumns;
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Return the database objects naming convention. 
+        /// Return the database objects naming convention used for objects created to receive notifications. 
         /// </summary>
         /// <value>
         /// The data base objects naming.
@@ -62,7 +62,7 @@ namespace TableDependency.SqlClient
         #region Events
 
         /// <summary>
-        /// Occurs when an error happen during listening changes on monitored table.
+        /// Occurs when an error happen during listening for changes on monitored table.
         /// </summary>
         public event ErrorEventHandler OnError;
 
@@ -95,15 +95,17 @@ namespace TableDependency.SqlClient
             _tableName = tableName;
             this._dataBaseObjectsNamingConvention = $"{tableName}_{Guid.NewGuid()}";
 
-            var tableColumnsList = GetTableColumnsAndCheckForAdmittedTypes(connectionString, tableName);
-            var columnsList = tableColumnsList as Tuple<string, string, int>[] ?? tableColumnsList.ToArray();
-            if (columnsList.Length == 0) throw new NoColumnsException(tableName);
+            var tableColumnsList = GetTableColumnsList(_connectionString, _tableName);
+            if (!tableColumnsList.Any()) throw new NoColumnsException(tableName);
 
-            if (_modelToTableMapper != null) CheckModelToTableMapperConsistency(columnsList);
+            CheckColumnsToMonitorDuringUpdateConsistency(tableColumnsList, columnsToMonitorDuringUpdate);
+            CheckModelToTableMapperConsistency(tableColumnsList);
+            var tableColumnsListToUseCreatingTrigger = FilterColumnToUseBaseOnColumnsToMonitorDuringUpdateList(tableColumnsList, columnsToMonitorDuringUpdate);
+            CheckIfRequiredColumnsCanBeManaged(tableColumnsListToUseCreatingTrigger);
 
-            _tableColumns = string.Join(", ", columnsList.Select(c => (c.Item3 > 0) ? $"[{c.Item1}] {c.Item2.ToUpper()}({c.Item3.ToString()})" : $"[{c.Item1}] {c.Item2.ToUpper()}").ToList());
-            _selectColumns = string.Join(", ", columnsList.Select(c => $"[{c.Item1}]").ToList());
-            _updateColumns = columnsToMonitorDuringUpdate != null ? GetTableColumnsUpdate(columnsList, columnsToMonitorDuringUpdate) : null;
+            _tableColumns = string.Join(", ", tableColumnsListToUseCreatingTrigger.Select(c => (!string.IsNullOrWhiteSpace(c.Item3) ? $"[{c.Item1}] {c.Item2.ToUpper()}({c.Item3.ToString()})" : $"[{c.Item1}] {c.Item2.ToUpper()}")).ToList());
+            _selectColumns = string.Join(", ", tableColumnsListToUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
+            _updateOfColumns = columnsToMonitorDuringUpdate != null ? string.Join(" OR ", columnsToMonitorDuringUpdate.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
 
             _processableMessages = new List<string>()
             {
@@ -140,7 +142,7 @@ namespace TableDependency.SqlClient
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
 
-            CreateDatabaseObjects(_connectionString, _tableName, this._dataBaseObjectsNamingConvention, _tableColumns, _selectColumns, _updateColumns);
+            CreateDatabaseObjects(_connectionString, _tableName, this._dataBaseObjectsNamingConvention, _tableColumns, _selectColumns, _updateOfColumns);
             _dialogHandle = GetConversationHandle(_connectionString, this._dataBaseObjectsNamingConvention);
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -150,7 +152,7 @@ namespace TableDependency.SqlClient
         }
 
         /// <summary>
-        /// Stops monitoring change in the table contents.
+        /// Stops monitoring change in content's table.
         /// </summary>
         public void Stop()
         {
@@ -304,48 +306,87 @@ namespace TableDependency.SqlClient
 
             foreach (var dlg in delegates.Where(d => d != null))
             {
-                dlg.Method.Invoke(dlg.Target, message != null && message.IsNull == false
-                        ? new object[] { null, new SqlRecordChangedEventArgs<T>(databaseObjectsNaming, messageType, message, modelMapper) }
-                        : new object[] { null, new SqlRecordChangedEventArgs<T>(messageType) });
+                dlg.Method.Invoke(dlg.Target, message != null && message.IsNull == false 
+                    ? new object[] { null, new SqlRecordChangedEventArgs<T>(databaseObjectsNaming, messageType, message, modelMapper) }
+                    : new object[] { null, new SqlRecordChangedEventArgs<T>(messageType) });
             }
         }
 
-        private static IEnumerable<Tuple<string, string, int>> GetTableColumnsAndCheckForAdmittedTypes(string connectionString, string tableName)
+        private static string PrepareSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
-            var columnsList = new List<Tuple<string, string, int>>();
+            switch (dataType.ToLower())
+            {
+                case "varchar":
+                case "nvarchar":
+                    return characterMaximumLength == "-1" ? "MAX" : characterMaximumLength;
+
+                case "decimal":
+                    return $"{numericPrecision},{numericScale}";
+
+                case "numeric":
+                    return $"{numericPrecision},{numericScale}";
+
+                case "datetime2":                    
+                case "datetimeoffset":
+                case "time":
+                    return $"{dateTimePrecisione}";
+
+                default:
+                    return string.Empty;
+            }            
+        }
+
+        private static string GetString(SqlDataReader reader, int index)
+        {
+            return !reader.IsDBNull(index) ? Convert.ChangeType(reader[index], typeof(string)) as string : null;
+        }
+
+        private static IEnumerable<Tuple<string, string, string>> GetTableColumnsList(string connectionString, string tableName)
+        {
+            var columnsList = new List<Tuple<string, string, string>>();
 
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, ISNULL(CHARACTER_MAXIMUM_LENGTH, 0) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY ORDINAL_POSITION";
+                    sqlCommand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY ORDINAL_POSITION";
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
                     {
                         var name = reader.GetString(0);
                         var type = reader.GetString(1);
-                        var size = reader.GetInt32(2);
-
-                        switch (type.ToLower())
-                        {
-                            case "xml":
-                            case "table":
-                            case "text":
-                            case "ntext":
-                            case "image":
-                            case "binary":
-                            case "varbinary":
-                            case "sql_variant":
-                                throw new ColumnTypeNotSupportedException(tableName, type);
-                        }
-
-                        columnsList.Add(new Tuple<string, string, int>(name, type, size));
+                        var size = PrepareSize(type, GetString(reader, 2), GetString(reader, 3), GetString(reader, 4), GetString(reader, 5));
+                        columnsList.Add(new Tuple<string, string, string>(name, type, size));
                     }
-                }
+                }    
             }
 
             return columnsList;
+        }
+
+        private static void CheckIfRequiredColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumns)
+        {
+            foreach (var tableColumn in tableColumns)
+            {
+                switch (tableColumn.Item2.ToLower())
+                {
+                    case "varchar":
+                    case "nvarchar":
+                        if (tableColumn.Item3 == "MAX") throw new ColumnTypeNotSupportedException("VARCHAR(MAX) column is not an admitted type for SqlTableDependency because the maximum size of a message that can be transferred is 2 GB.");
+                        break;
+
+                    case "xml":
+                    case "text":
+                    case "ntext":
+                    case "table":
+                    case "image":
+                    case "binary":
+                    case "varbinary":
+                    case "sql_variant":
+                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} column is not an admitted type for SqlTableDependency because the maximum size of a message that can be transferred is 2 GB.");
+                }
+            }
         }
 
         private static void CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns)
@@ -382,7 +423,7 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = string.Format(Scripts.CreateService, databaseObjectsNaming);
                         sqlCommand.ExecuteNonQuery();
 
-                        var bodyForUpdate = !string.IsNullOrEmpty(updateColumns) ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, tableName) : string.Format(Scripts.TriggerUpdateWithoutColuns, tableName);
+                        var bodyForUpdate = !string.IsNullOrEmpty(updateColumns) ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, tableName, selectColumns) : string.Format(Scripts.TriggerUpdateWithoutColuns, tableName, selectColumns);
                         sqlCommand.CommandText = string.Format(Scripts.CreateTrigger, databaseObjectsNaming, tableName, tableColumns, selectColumns, bodyForUpdate);
                         sqlCommand.ExecuteNonQuery();
                     }
@@ -476,35 +517,63 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private void CheckModelToTableMapperConsistency(IEnumerable<Tuple<string, string, int>> tableColumnsList)
+        private void CheckModelToTableMapperConsistency(IEnumerable<Tuple<string, string, string>> tableColumnsList)
         {
-            if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
+            if (_modelToTableMapper != null)
+            { 
+                if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
 
-            var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
+                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
 
-            if (_modelToTableMapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLower())))
-            {
-                throw new ModelToTableMapperException();
+                if (_modelToTableMapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLower())))
+                {
+                    throw new ModelToTableMapperException();
+                }
             }
         }
 
-        private string GetTableColumnsUpdate(IEnumerable<Tuple<string, string, int>> tableColumnsList, IEnumerable<string> columnsUpdateMonitoring)
+        private static IEnumerable<Tuple<string, string, string>> FilterColumnToUseBaseOnColumnsToMonitorDuringUpdateList(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> insterestedColumnList)
         {
-            var columnsToMonitorDuringUpdate = columnsUpdateMonitoring as string[] ?? columnsUpdateMonitoring.ToArray();
-            if (!columnsToMonitorDuringUpdate.Any()) throw new UpdateOfException("columnsToMonitorDuringUpdate parameter is empty.");
-
-            if (columnsToMonitorDuringUpdate.Any(string.IsNullOrWhiteSpace))
+            if (insterestedColumnList != null && insterestedColumnList.Any())
             {
-                throw new UpdateOfException("columnsToMonitorDuringUpdate parameter contains a null or empty value.");
+                List<Tuple<string, string, string>> filteredList = new List<Tuple<string, string, string>>();
+
+                foreach (var tableColumn in tableColumnsList)
+                {
+                    foreach (var interestedColumn in insterestedColumnList)
+                    {
+                        if (string.Equals(tableColumn.Item1.ToLower(), interestedColumn.ToLower(), StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            filteredList.Add(tableColumn);
+                            break;
+                        }
+                    }
+                }
+
+                return filteredList;
             }
 
-            var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
-            foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
-            {
-                throw new UpdateOfException($"Column {columnToMonitorDuringUpdate} does not exists");
-            }
+            return tableColumnsList;
+        }
 
-            return string.Join(" OR ", columnsToMonitorDuringUpdate.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList());
+        private static void CheckColumnsToMonitorDuringUpdateConsistency(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> insterestedColumnList)
+        {
+            if (insterestedColumnList != null)
+            {
+                var columnsToMonitorDuringUpdate = insterestedColumnList as string[] ?? insterestedColumnList.ToArray();
+                if (!columnsToMonitorDuringUpdate.Any()) throw new UpdateOfException("columnsToMonitorDuringUpdate parameter is empty.");
+
+                if (columnsToMonitorDuringUpdate.Any(string.IsNullOrWhiteSpace))
+                {
+                    throw new UpdateOfException("columnsToMonitorDuringUpdate parameter contains a null or empty value.");
+                }
+
+                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
+                foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
+                {
+                    throw new UpdateOfException($"Column {columnToMonitorDuringUpdate} does not exists");
+                }
+            }
         }
 
         #endregion
