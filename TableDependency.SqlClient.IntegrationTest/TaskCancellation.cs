@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
@@ -12,20 +13,42 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class TaskCancellation
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Customer";
+        private const string TableName = "Issue0000";
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText =
+                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL); END";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
 
         [TestMethod]
         public void TaskCancellationTest()
         {
             string naming = null;
-            SqlTableDependency<Customer> tableDependency = null;
+            SqlTableDependency<Issue_0000_Model> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Customer>();
+                var mapper = new ModelToTableMapper<Issue_0000_Model>();
                 mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Customer>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<Issue_0000_Model>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -44,7 +67,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
         {
         }
     }

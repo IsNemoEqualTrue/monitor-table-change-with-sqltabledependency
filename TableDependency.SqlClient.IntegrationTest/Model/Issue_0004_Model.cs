@@ -2,7 +2,7 @@
 
 namespace TableDependency.SqlClient.IntegrationTest.Model
 {
-    public class Columns
+    public class Issue_0004_Model
     {
         public int Id { get; set; }
         public string VarcharColumn { get; set; }

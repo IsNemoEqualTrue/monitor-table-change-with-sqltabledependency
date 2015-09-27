@@ -1,4 +1,5 @@
 ﻿using TableDependency.Delegates;
+using TableDependency.Enums;
 
 namespace TableDependency
 {
@@ -9,5 +10,6 @@ namespace TableDependency
 
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
         void Stop();
+        TableDependencyStatus Status { get; }
     }
 }

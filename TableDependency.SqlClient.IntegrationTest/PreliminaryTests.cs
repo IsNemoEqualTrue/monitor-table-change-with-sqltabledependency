@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
+using System.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Exceptions;
 using TableDependency.Mappers;
@@ -11,20 +12,18 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class PreliminaryTests
     {
         private string ValidConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string ValidTableName = "Customer";
+        private const string ValidTableName = "Issue0000";
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";
 
-        [TestInitialize]
-        public void TestInitialize()
-        {
-        }
+
+
 
         [TestMethod]
         [ExpectedException(typeof(InvalidConnectionStringException))]
         public void InvalidConnectionStringTest()
         {
-            using (new SqlTableDependency<Customer>(InvalidValidConnectionString, ValidTableName))
+            using (new SqlTableDependency<Issue_0000_Model>(InvalidValidConnectionString, ValidTableName))
             {
             }
         }
@@ -33,7 +32,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
         {
-            using (new SqlTableDependency<Customer>(ValidConnectionString, InvalidTableName))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, InvalidTableName))
             {
             }
         }
@@ -42,9 +41,9 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void EmptyMappertTest()
         {
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
 
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -53,10 +52,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithNullTest()
         {
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, null);
 
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -65,10 +64,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithEmptyTest()
         {
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, string.Empty);
 
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -77,10 +76,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void InvalidMappertTest()
         {
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Not Exist");
 
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -89,7 +88,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
         {
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, columnsToMonitorDuringUpdate: new List<string>()))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>()))
             {
             }
         }
@@ -98,7 +97,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
         {
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, columnsToMonitorDuringUpdate: new List<string>() { "Second Name", null }))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", null }))
             {
             }
         }
@@ -107,7 +106,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
         {
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, columnsToMonitorDuringUpdate: new List<string>() { "Second Name", string.Empty }))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", string.Empty }))
             {
             }
         }
@@ -116,7 +115,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
         {
-            using (new SqlTableDependency<Customer>(ValidConnectionString, ValidTableName, columnsToMonitorDuringUpdate: new List<string>() { "Not exists" }))
+            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Not exists" }))
             {
             }                             
         }

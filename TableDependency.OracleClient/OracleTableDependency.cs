@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OracleClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using Oracle.DataAccess.Client;
 using Oracle.DataAccess.Types;
 using TableDependency.Delegates;
+using TableDependency.Enums;
 using TableDependency.Exceptions;
 using TableDependency.Extensions;
 using TableDependency.EventArgs;
@@ -16,6 +18,11 @@ using TableDependency.OracleClient.EventArgs;
 using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.MessageTypes;
 using TableDependency.OracleClient.Resources;
+using OracleCommand = Oracle.DataAccess.Client.OracleCommand;
+using OracleConnection = Oracle.DataAccess.Client.OracleConnection;
+using OracleConnectionStringBuilder = Oracle.DataAccess.Client.OracleConnectionStringBuilder;
+using OracleException = Oracle.DataAccess.Client.OracleException;
+using OracleParameter = Oracle.DataAccess.Client.OracleParameter;
 
 namespace TableDependency.OracleClient
 {
@@ -33,7 +40,7 @@ namespace TableDependency.OracleClient
         private readonly string _updateOf;
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly string _messagePayloadForInsertUpdate;
+        private readonly string _messagePayloadForInsertAndUpdate;
         private readonly string _messagePayloadForDelete;
         private bool _disposed;
 
@@ -48,6 +55,14 @@ namespace TableDependency.OracleClient
         /// The data base objects naming.
         /// </value>
         public string DataBaseObjectsNamingConvention => string.Copy(this._dataBaseObjectsNamingConvention);
+
+        /// <summary>
+        /// Gets the SqlTableDependency status.
+        /// </summary>
+        /// <value>
+        /// The TableDependencyStatus enumeration status.
+        /// </value>
+        public TableDependencyStatus Status { get; private set; }
 
         #endregion
 
@@ -72,27 +87,25 @@ namespace TableDependency.OracleClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="modelToTableMapper">The model to columns table mapper.</param>
-        /// <param name="updateOfList">List containing column names for which the trigger should insert a message in the queue when its value is updated.</param>
-        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> modelToTableMapper = null, IEnumerable<string> updateOfList = null)
+        /// <param name="mapper">The model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null)
         {
             PreliminaryChecks(connectionString, tableName);
 
-            _modelToTableMapper = modelToTableMapper;
+            _modelToTableMapper = mapper;
             _connectionString = connectionString;
             _tableName = tableName;
             _dataBaseObjectsNamingConvention = Get24DigitsGuid();
 
-            var tableColumnsList = GetTableColumnsAndCheckForAdmittedTypes(connectionString, tableName);
-            var columnsList = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
-            if (columnsList.Length == 0) throw new NoColumnsException(tableName);
+            var columnsToUseCreatingTrigger = GetColumnsToUseForCreationDbObjects(updateOf);
+            var toUseCreatingTrigger = columnsToUseCreatingTrigger as Tuple<string, string, string>[] ?? columnsToUseCreatingTrigger.ToArray();
 
-            if (modelToTableMapper != null) CheckModelToTableMapperConsistency(columnsList);
+            _messagePayloadForInsertAndUpdate = PrepareTSqlTriggerPartialBody(tableName, toUseCreatingTrigger, "NEW");
+            _messagePayloadForDelete = PrepareTSqlTriggerPartialBody(tableName, toUseCreatingTrigger, "OLD");
+            _updateOf = GetUpdateOf(updateOf);
 
-            _messagePayloadForInsertUpdate = PrepareTSqlTriggerPartialBody(tableName, columnsList, "NEW");
-            _messagePayloadForDelete = PrepareTSqlTriggerPartialBody(tableName, columnsList, "OLD");
-
-            _updateOf = updateOfList != null ? GetUpdateOf(columnsList, updateOfList) : null;
+            this.Status = TableDependencyStatus.WaitingToStart;
         }
 
         #endregion
@@ -121,18 +134,23 @@ namespace TableDependency.OracleClient
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
 
-            CreateDatabaseObjects(_connectionString, _tableName, _messagePayloadForInsertUpdate, _messagePayloadForDelete, _updateOf, _dataBaseObjectsNamingConvention, timeOut, watchDogTimeOut);
+            this.Status = TableDependencyStatus.Starting;
+
+            CreateDatabaseObjects(_connectionString, _tableName, this._messagePayloadForInsertAndUpdate, _messagePayloadForDelete, _updateOf, _dataBaseObjectsNamingConvention, timeOut, watchDogTimeOut);
 
             _cancellationTokenSource = new CancellationTokenSource();
 
-            _task = Task.Factory.StartNew(() => WaitForNotification(
-                _cancellationTokenSource.Token, onChangedSubscribedList,
-                onErrorSubscribedList,
-                _connectionString,
-                _dataBaseObjectsNamingConvention,
-                watchDogTimeOut,
-                _modelToTableMapper),
-             _cancellationTokenSource.Token);
+            _task = Task.Factory.StartNew(() => 
+                WaitForNotification(
+                    _cancellationTokenSource.Token, 
+                    onChangedSubscribedList,
+                    onErrorSubscribedList,
+                    OnStatusChanged,
+                    _connectionString,
+                    _dataBaseObjectsNamingConvention,
+                    watchDogTimeOut,
+                    _modelToTableMapper),
+                _cancellationTokenSource.Token);
 
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
         }
@@ -182,6 +200,7 @@ namespace TableDependency.OracleClient
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
+            Action<TableDependencyStatus> setStatus,
             string connectionString,
             string databaseObjectsNaming,
             int timeOutWatchDog,
@@ -190,6 +209,8 @@ namespace TableDependency.OracleClient
             OracleCommand watchDogEnableCommand = null;
             OracleCommand watchDogDisableCommand = null;
             OracleCommand getQueueMessageCommand = null;
+
+            setStatus(TableDependencyStatus.Started);
 
             try
             {
@@ -208,6 +229,8 @@ namespace TableDependency.OracleClient
                     {
                         try
                         {
+                            setStatus(TableDependencyStatus.ListenerForNotification);
+
                             await watchDogEnableCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
                             await getQueueMessageCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
                             await watchDogDisableCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
@@ -228,10 +251,12 @@ namespace TableDependency.OracleClient
             }
             catch (OperationCanceledException)
             {
+                setStatus(TableDependencyStatus.StoppedDueToCancellation);
                 Debug.WriteLine("OracleTableDependency: Operation canceled.");
             }
             catch (Exception exception)
             {
+                setStatus(TableDependencyStatus.StoppedDueToError);
                 Debug.WriteLine("OracleTableDependency: Exception " + exception.Message + ".");
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
             }
@@ -241,6 +266,11 @@ namespace TableDependency.OracleClient
                 watchDogDisableCommand?.Dispose();
                 getQueueMessageCommand?.Dispose();
             }
+        }
+
+        private void OnStatusChanged(TableDependencyStatus status)
+        {
+            this.Status = status;
         }
 
         private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
@@ -441,43 +471,6 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static IEnumerable<Tuple<string, string, string>> GetTableColumnsAndCheckForAdmittedTypes(string connectionString, string tableName)
-        {
-            var columnsList = new List<Tuple<string, string, string>>();
-
-            using (var connection = new OracleConnection(connectionString))
-            {
-                connection.Open();
-                using (var cmmand = connection.CreateCommand())
-                {
-                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, TO_CHAR(NVL(CHAR_LENGTH, 0)) AS CHAR_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY COLUMN_ID";
-                    var reader = cmmand.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        var name = reader.GetString(0);
-                        var type = reader.GetString(1);
-                        var size = reader.GetString(2);
-
-                        switch (type.ToUpper())
-                        {
-                            case "LOB":
-                            case "BLOB":
-                            case "CLOB":
-                            case "NCLOB":
-                            case "BFILE":
-                            case "XMLTYPE":
-                            case "URITYPE":
-                                throw new ColumnTypeNotSupportedException(tableName, type);
-                        }
-
-                        columnsList.Add(new Tuple<string, string, string>("\"" + name + "\"", type, size));
-                    }
-                }
-            }
-
-            return columnsList;
-        }
-
         private static string Get24DigitsGuid()
         {
             return Guid.NewGuid().ToString().Substring(5, 20).Replace("-", "_").ToUpper();
@@ -498,37 +491,136 @@ namespace TableDependency.OracleClient
             return string.Format("'<?xml version=\"1.0\"?><{0}>' || {1} || '</{0}>'", tableName.ToLower(), columns);
         }
 
-        private void CheckModelToTableMapperConsistency(IEnumerable<Tuple<string, string, string>> tableColumnsList)
+        private string GetUpdateOf(IEnumerable<string> columnsUpdateOf)
         {
-            if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
-
-            // With ORACLE when define an column with "" it become case sensitive.
-            var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
-            var mappingNames = _modelToTableMapper.GetMappings().Select(t => "\"" + t.Value + "\"").ToList();
-
-            mappingNames.ForEach<string>(mapping =>
-            {
-                if (dbColumnNames.Contains(mapping) == false) throw new ModelToTableMapperException();
-            });
+            return columnsUpdateOf != null
+                ? " OF " + string.Join(", ", columnsUpdateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"\"{c}\"").ToList())
+                : null;
         }
 
-        private string GetUpdateOf(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> columnsUpdateOf)
+        private IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreationDbObjects(IEnumerable<string> updateOf)
         {
-            var updateMonitoring = columnsUpdateOf as string[] ?? columnsUpdateOf.ToArray();
-            if (!updateMonitoring.Any()) throw new UpdateOfException("updateOfList parameter is empty.");
+            var tableColumnsList = GetTableColumnsList(_connectionString, _tableName);
+            var columnsList = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
+            if (!columnsList.Any()) throw new NoColumnsException(_tableName);
+            CheckMapperValidity(columnsList);
 
-            if (updateMonitoring.Any(string.IsNullOrWhiteSpace))
+            IEnumerable<Tuple<string, string, string>> columnsToUse = null;
+            if (updateOf != null)
             {
-                throw new UpdateOfException("updateOfList parameter contains a null or empty value.");
+                var insterestedColumnList = updateOf as string[] ?? updateOf.ToArray();
+                CheckUpdateOfValidity(columnsList, insterestedColumnList);
+                columnsToUse = FilterColumnBaseOnUpdateOf(columnsList, insterestedColumnList);
+            }
+            else
+            {
+                columnsToUse = tableColumnsList;
             }
 
-            var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
-            foreach (var columnToMonitor in updateMonitoring.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor + "\"")))
+            CheckColumnsManageability(columnsToUse);
+
+            return columnsToUse;
+        }
+
+        private void CheckColumnsManageability(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
+        {
+            foreach (var tableColumn in tableColumnsToUse)
             {
-                throw new UpdateOfException($"Column {columnToMonitor} does not exists");
+                switch (tableColumn.Item2.ToUpper())
+                {
+                    case "BFILE":
+                    case "BLOB":
+                    case "CLOB":
+                    case "RAW":
+                        throw new ColumnTypeNotSupportedException(_tableName, tableColumn.Item2);
+                }
+            }
+        }
+
+        private static IEnumerable<Tuple<string, string, string>> FilterColumnBaseOnUpdateOf(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
+        {
+            if (updateOf != null && updateOf.Any())
+            {
+                var filteredList = new List<Tuple<string, string, string>>();
+
+                foreach (var tableColumn in tableColumnsList)
+                {
+                    foreach (var interestedColumn in updateOf)
+                    {
+                        if (string.Equals(tableColumn.Item1.ToLower(), "\"" + interestedColumn.ToLower() + "\"", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            filteredList.Add(tableColumn);
+                            break;
+                        }
+                    }
+                }
+
+                return filteredList;
             }
 
-            return " OF " + string.Join(", ", updateMonitoring.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"\"{c}\"").ToList());
+            return tableColumnsList;
+        }
+
+        private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
+        {
+            if (updateOf != null)
+            {
+                var columnsToMonitorDuringUpdate = updateOf as string[] ?? updateOf.ToArray();
+                if (!columnsToMonitorDuringUpdate.Any()) throw new UpdateOfException("updateOf parameter is empty.");
+
+                if (columnsToMonitorDuringUpdate.Any(string.IsNullOrWhiteSpace))
+                {
+                    throw new UpdateOfException("updateOf parameter contains a null or empty value.");
+                }
+
+                var tableColumns = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
+                var dbColumnNames = tableColumns.Select(t => t.Item1.ToLower()).ToList();
+                foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor.ToLower() + "\"")))
+                {
+                    throw new UpdateOfException($"Column {columnToMonitorDuringUpdate} does not exists");
+                }
+            }
+        }
+
+        private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
+        {
+            if (_modelToTableMapper != null)
+            {
+                if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
+
+                // With ORACLE when define an column with "" it become case sensitive.
+                var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
+                var mappingNames = _modelToTableMapper.GetMappings().Select(t => "\"" + t.Value + "\"").ToList();
+
+                mappingNames.ForEach<string>(mapping =>
+                {
+                    if (dbColumnNames.Contains(mapping) == false) throw new ModelToTableMapperException();
+                });
+            }
+        }
+
+        private static IEnumerable<Tuple<string, string, string>> GetTableColumnsList(string connectionString, string tableName)
+        {
+            var columnsList = new List<Tuple<string, string, string>>();
+
+            using (var connection = new OracleConnection(connectionString))
+            {
+                connection.Open();
+                using (var cmmand = connection.CreateCommand())
+                {
+                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, TO_CHAR(NVL(CHAR_LENGTH, 0)) AS CHAR_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY COLUMN_ID";
+                    var reader = cmmand.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var name = reader.GetString(0);
+                        var type = reader.GetString(1);
+                        var size = reader.GetString(2);
+                        columnsList.Add(new Tuple<string, string, string>("\"" + name + "\"", type, size));
+                    }
+                }
+            }
+
+            return columnsList;
         }
 
         #endregion

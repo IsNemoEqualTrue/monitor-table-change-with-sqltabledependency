@@ -204,7 +204,7 @@ BEGIN
 			WHILE @currentRow &lt; @rowsToProcess
 			BEGIN
 				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
 				SET @message = CAST(@records AS NVARCHAR(MAX))
 
 				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Inserted] (@message)
@@ -216,7 +216,7 @@ BEGIN
 			WHILE @currentRow &lt; @rowsToProcess
 			BEGIN
 				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
 				SET @message = CAST(@records AS NVARCHAR(MAX))
 
 				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Updated] (@message)
@@ -228,7 +228,7 @@ BEGIN
 			WHILE @currentRow &lt; @rowsToProcess
 			BEGIN
 				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO)
+				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
 				SET @message = CAST(@records AS NVARCHAR(MAX))
 	
 				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Deleted] (@message)

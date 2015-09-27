@@ -12,6 +12,9 @@ namespace TableDependency.OracleClient.IntegrationTest
     [TestClass]
     public class DatabaseObjectCleanUp
     {
+        /// <summary>
+        /// THIS TEST MUST BE EXECUTED IN Debug RELEASE !!!
+        /// </summary>
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {

@@ -10,10 +10,10 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
-    public class Issue_0004
+    public class Issue_0003
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Issue0004";
+        private const string TableName = "Issue0003";
         private int _counter;
 
         [TestInitialize]
@@ -25,14 +25,12 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
+                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}](" +
                         "[Id][int] IDENTITY(1, 1) NOT NULL," +
-                        "[VarcharColumn] [nvarchar](4000) NULL," +
-                        "[VarcharColumn2] [nvarchar](4000) NULL," +
-                        "[DatetimeOffsetColumn] [datetimeoffset](7) NULL," + 
-                        "[TimeColumn] [time](7) NULL," +
-                        "[XmlColumn] [xml] NULL," +
-                        "[TimeStampColumn] [timestamp] NULL) END;";
+                        "[FirstName] [varchar](4000) NOT NULL," +
+                        "[SecondName] [nvarchar](4000) NOT NULL," +
+                        "[NotManagedColumnBecauseIsVarcharMAX] [nvarchar](MAX) NULL," +
+                        "[NotManagedColumnBecauseIsXml] XML NULL) END;";
                     sqlCommand.ExecuteNonQuery();
 
                     sqlCommand.CommandText = $"DELETE FROM {TableName}";
@@ -42,10 +40,10 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
         }
 
         [TestMethod]
-        public void ProblemWithXmlTest()
+        public void DealWithUnmanagedColumnsTypeTest()
         {
             SqlTableDependency<Issue_0003_Model> tableDependency = null;
-            var interestedColumnsList = new List<string>() { "VarcharColumn", "DatetimeOffsetColumn", "TimeColumn", "TimeStampColumn" };
+            var interestedColumnsList = new List<string>() { "FirstName", "SecondName" };
 
             try
             {
@@ -64,7 +62,7 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(this._counter == 4);
+            Assert.IsTrue(this._counter == 3);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0003_Model> e)
@@ -79,15 +77,15 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([VarcharColumn]) VALUES ('Valentina')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([FirstName],[SecondName],[NotManagedColumnBecauseIsVarcharMAX]) VALUES ('Valentina', 'Del Bianco', 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [VarcharColumn] = 'Aurelia'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [FirstName] = 'ntina'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [VarcharColumn2] = '<names><name>Valentina Del Bianco</name></names>'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [NotManagedColumnBecauseIsVarcharMAX] = 'Valentina Del Bianco'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 

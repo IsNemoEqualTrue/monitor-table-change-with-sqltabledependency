@@ -33,7 +33,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, InvalidTableName))
+            using (new OracleTableDependency<Item>(ValidConnectionString, InvalidTableName))
             {
             }
         }
@@ -44,7 +44,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         {
             var mapper = new ModelToTableMapper<Item>();
 
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, mapper))
+            using (new OracleTableDependency<Item>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -89,7 +89,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOfList: new List<string>()))
+            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>()))
             {
             }
         }
@@ -98,7 +98,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOfList: new List<string>() { "NAME", null }))
+            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "NAME", null }))
             {
             }
         }
@@ -107,7 +107,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOfList: new List<string>() { "NAME", string.Empty }))
+            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "NAME", string.Empty }))
             {
             }
         }
@@ -116,7 +116,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOfList: new List<string>() { "Not exists" }))
+            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Not exists" }))
             {
             }                             
         }

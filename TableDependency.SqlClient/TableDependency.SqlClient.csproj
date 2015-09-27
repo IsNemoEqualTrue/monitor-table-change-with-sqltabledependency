@@ -45,6 +45,8 @@
     <Compile Include="Exceptions\ServiceBrokerErrorMessageException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotEnabledException.cs" />
     <Compile Include="Exceptions\UserWithNoPermissionException.cs" />
+    <Compile Include="Extensions\SqlDataReaderExtension.cs" />
+    <Compile Include="Extensions\StringExtension.cs" />
     <Compile Include="MessageTypes\CustomMessageTypes.cs" />
     <Compile Include="MessageTypes\SqlMessageTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

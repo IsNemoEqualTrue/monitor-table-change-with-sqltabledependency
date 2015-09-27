@@ -46,7 +46,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                 var mapper = new ModelToTableMapper<Item>();
                 mapper.AddMapping(c => c.Description, "Long Description");
 
-                tableDependency = new OracleTableDependency<Item>(_connectionString, TableName, mapper, updateOfList: new List<string>() { "NAME" });
+                tableDependency = new OracleTableDependency<Item>(_connectionString, TableName, mapper, new List<string>() { "NAME" });
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -64,9 +64,9 @@ namespace TableDependency.OracleClient.IntegrationTest
 
             Assert.AreEqual(_counter, 2);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Description, _checkValues[ChangeType.Insert.ToString()].Item1.Description);
+            Assert.IsNull(_checkValues[ChangeType.Insert.ToString()].Item2.Description);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Description, _checkValues[ChangeType.Delete.ToString()].Item1.Description);
+            Assert.IsNull(_checkValues[ChangeType.Delete.ToString()].Item2.Description);
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 

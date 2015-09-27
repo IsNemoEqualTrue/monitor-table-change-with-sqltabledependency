@@ -15,7 +15,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class LoadAndCount
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "Customer";
+        private static string _tableName = "Issue0000";
         private int _counter = 1;
 
         [TestInitialize]
@@ -26,7 +26,15 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM [Customer]";
+                    sqlCommand.CommandText =
+                        $"IF OBJECT_ID('{_tableName}', 'U') IS NULL BEGIN CREATE TABLE [{_tableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL); END";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"DELETE FROM [{_tableName}]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -39,7 +47,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             var token = cts.Token;
 
             var counterUpTo = 1000;
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
             var listenerTask = Task.Factory.StartNew(() => new Listener(ConnectionString, _tableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
@@ -53,7 +61,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                     {
                         if (_counter <= counterUpTo)
                         {
-                            sqlCommand.CommandText = $"INSERT INTO [Customer] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
+                            sqlCommand.CommandText = $"INSERT INTO [{_tableName}] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
                             sqlCommand.ExecuteNonQuery();
                             _counter++;
                         }
@@ -79,20 +87,20 @@ namespace TableDependency.SqlClient.IntegrationTest
 
     public class Listener
     {
-        readonly SqlTableDependency<Customer> _tableDependency;
+        readonly SqlTableDependency<Issue_0000_Model> _tableDependency;
         readonly ListenerResult _listenerResult = new ListenerResult();
 
         public string ObjectNaming{ get; private set; }
 
-        public Listener(string connectionString, string tableName, ModelToTableMapper<Customer> mapper)
+        public Listener(string connectionString, string tableName, ModelToTableMapper<Issue_0000_Model> mapper)
         {
-            _tableDependency = new SqlTableDependency<Customer>(connectionString, tableName, mapper);
+            _tableDependency = new SqlTableDependency<Issue_0000_Model>(connectionString, tableName, mapper);
             _tableDependency.OnChanged += TableDependency_OnChanged;
             _tableDependency.Start(60, 120);
             _listenerResult.ObjectNaming = _tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Customer> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
         {
             _listenerResult.Counter = _listenerResult.Counter + 1;
             if (_listenerResult.Counter.ToString() != e.Entity.Surname)

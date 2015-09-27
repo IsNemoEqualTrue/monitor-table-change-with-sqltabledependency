@@ -17,9 +17,9 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class EventForSpecificColumns
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Customer";
-        private static int _counter = 0;
-        private static Dictionary<string, Tuple<Customer, Customer>> _checkValues = new Dictionary<string, Tuple<Customer, Customer>>();
+        private const string TableName = "Issue0000";
+        private static int _counter;
+        private static Dictionary<string, Tuple<Issue_0000_Model, Issue_0000_Model>> _checkValues = new Dictionary<string, Tuple<Issue_0000_Model, Issue_0000_Model>>();
 
         [TestInitialize]
         public void TestInitialize()
@@ -29,7 +29,15 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM [Customer]";
+                    sqlCommand.CommandText =
+                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL); END";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -38,15 +46,15 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestMethod]
         public void EventForSpecificColumnsTest()
         {
-            SqlTableDependency<Customer> tableDependency = null;
+            SqlTableDependency<Issue_0000_Model> tableDependency = null;
             string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Customer>();
+                var mapper = new ModelToTableMapper<Issue_0000_Model>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Customer>(_connectionString, TableName, mapper, columnsToMonitorDuringUpdate: new List<string>() { "second name" });
+                tableDependency = new SqlTableDependency<Issue_0000_Model>(_connectionString, TableName, mapper, new List<string>() { "second name" });
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -70,7 +78,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
         {
             _counter++;
 
@@ -89,24 +97,24 @@ namespace TableDependency.SqlClient.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Customer, Customer>(new Customer { Name = "Christian", Surname = "Del Bianco" }, new Customer()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Customer, Customer>(new Customer { Name = "Velia" }, new Customer()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Customer, Customer>(new Customer { Name = "Velia", Surname = "Del Bianco" }, new Customer()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Christian", Surname = "Del Bianco" }, new Issue_0000_Model()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Velia" }, new Issue_0000_Model()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Velia", Surname = "Del Bianco" }, new Issue_0000_Model()));
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [Customer] ([First Name], [Second Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Surname}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [Customer] SET [First Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = "DELETE FROM [Customer]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }

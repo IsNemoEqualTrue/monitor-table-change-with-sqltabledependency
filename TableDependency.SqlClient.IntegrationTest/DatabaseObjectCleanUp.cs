@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.Security.Policy;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,7 +16,29 @@ namespace TableDependency.SqlClient.IntegrationTest
     {
         private static string _dbObjectsNaming;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "Customer";
+        private static string _tableName = "Issue0000";
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText =
+                        $"IF OBJECT_ID('{_tableName}', 'U') IS NULL BEGIN CREATE TABLE [{_tableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL); END";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"DELETE FROM [{_tableName}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
 
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
@@ -38,16 +61,16 @@ namespace TableDependency.SqlClient.IntegrationTest
     {
         public string RunTableDependency(string connectionString, string tableName)
         {
-            var mapper = new ModelToTableMapper<Customer>();
+            var mapper = new ModelToTableMapper<Issue_0000_Model>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<Customer>(connectionString, tableName, mapper);
+            var tableDependency = new SqlTableDependency<Issue_0000_Model>(connectionString, tableName, mapper);
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
         {
         }
     }
