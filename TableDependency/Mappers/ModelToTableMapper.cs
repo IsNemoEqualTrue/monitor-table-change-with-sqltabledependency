@@ -56,21 +56,13 @@ namespace TableDependency.Mappers
             return _mappings.Count;
         }
 
-        /// <summary>
-        /// Given the specified model property info return the table column name associated.
-        /// </summary>
-        /// <param name="propertyInfo">The property information.</param>
-        /// <returns></returns>
+        #region Internal methods
+
         internal string GetMapping(PropertyInfo propertyInfo)
         {
             return _mappings.ContainsKey(propertyInfo) ? _mappings[propertyInfo] : null;
         }
 
-        /// <summary>
-        /// Given the specified table column name, return the model property associated.
-        /// </summary>
-        /// <param name="tableColumnName">Name of the table column.</param>
-        /// <returns></returns>
         internal string GetMapping(string tableColumnName)
         {
             if (GetMappings().Any(kvp => kvp.Value != null && string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0))
@@ -86,5 +78,7 @@ namespace TableDependency.Mappers
         {
             return _mappings;
         }
+
+        #endregion
     }
 }

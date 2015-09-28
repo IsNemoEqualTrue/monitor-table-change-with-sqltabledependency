@@ -16,7 +16,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     {
         private static string _dbObjectsNaming;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "Issue0000";
+        private static string _tableName = "TestTable";
 
         [TestInitialize]
         public void TestInitialize()
@@ -61,16 +61,16 @@ namespace TableDependency.SqlClient.IntegrationTest
     {
         public string RunTableDependency(string connectionString, string tableName)
         {
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<Issue_0000_Model>(connectionString, tableName, mapper);
+            var tableDependency = new SqlTableDependency<TestTable>(connectionString, tableName, mapper);
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
         {
         }
     }

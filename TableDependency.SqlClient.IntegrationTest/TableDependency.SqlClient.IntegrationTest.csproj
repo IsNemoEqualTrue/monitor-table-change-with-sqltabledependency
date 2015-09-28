@@ -60,8 +60,9 @@
     <Compile Include="Helpers\Helper.cs" />
     <Compile Include="Issues\Issue_0004.cs" />
     <Compile Include="LoadAndCount.cs" />
+    <Compile Include="Model\Issue_0002_Model.cs" />
     <Compile Include="Model\Issue_0004_Model.cs" />
-    <Compile Include="Model\Issue_0000_Model.cs" />
+    <Compile Include="Model\TestTable.cs" />
     <Compile Include="Model\Issue_0003_Model.cs" />
     <Compile Include="PreliminaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

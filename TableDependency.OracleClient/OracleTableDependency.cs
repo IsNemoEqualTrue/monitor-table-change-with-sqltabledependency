@@ -21,6 +21,7 @@ using TableDependency.OracleClient.EventArgs;
 using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.MessageTypes;
 using TableDependency.OracleClient.Resources;
+using TableDependency.Utilities;
 using OracleCommand = Oracle.DataAccess.Client.OracleCommand;
 using OracleConnection = Oracle.DataAccess.Client.OracleConnection;
 using OracleConnectionStringBuilder = Oracle.DataAccess.Client.OracleConnectionStringBuilder;
@@ -39,7 +40,7 @@ namespace TableDependency.OracleClient
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource;
         private readonly string _dataBaseObjectsNamingConvention;
-        private readonly ModelToTableMapper<T> _modelToTableMapper;
+        private readonly ModelToTableMapper<T> _mapper;
         private readonly string _updateOf;
         private readonly string _connectionString;
         private readonly string _tableName;
@@ -96,12 +97,12 @@ namespace TableDependency.OracleClient
         {
             PreliminaryChecks(connectionString, tableName);
 
-            _modelToTableMapper = mapper;
+            _mapper = mapper;
             _connectionString = connectionString;
             _tableName = tableName;
             _dataBaseObjectsNamingConvention = Get24DigitsGuid();
 
-            var columnsToUseCreatingTrigger = GetColumnsToUseForCreationDbObjects(updateOf);
+            var columnsToUseCreatingTrigger = GetColumnsToUseForCreatingDbObjects(updateOf);
             var toUseCreatingTrigger = columnsToUseCreatingTrigger as Tuple<string, string, string>[] ?? columnsToUseCreatingTrigger.ToArray();
 
             _messagePayloadForInsertAndUpdate = PrepareTSqlTriggerPartialBody(tableName, toUseCreatingTrigger, "NEW");
@@ -152,7 +153,7 @@ namespace TableDependency.OracleClient
                     _connectionString,
                     _dataBaseObjectsNamingConvention,
                     watchDogTimeOut,
-                    _modelToTableMapper),
+                    _mapper),
                 _cancellationTokenSource.Token);
 
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
@@ -501,31 +502,21 @@ namespace TableDependency.OracleClient
                 : null;
         }
 
-        private IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreationDbObjects(IEnumerable<string> updateOf)
+        private IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
         {
             var tableColumnsList = GetTableColumnsList(_connectionString, _tableName);
             var columnsList = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
             if (!columnsList.Any()) throw new NoColumnsException(_tableName);
+
+            CheckUpdateOfValidity(columnsList, updateOf);
             CheckMapperValidity(columnsList);
 
-            IEnumerable<Tuple<string, string, string>> columnsToUse = null;
-            if (updateOf != null)
-            {
-                var insterestedColumnList = updateOf as string[] ?? updateOf.ToArray();
-                CheckUpdateOfValidity(columnsList, insterestedColumnList);
-                columnsToUse = FilterColumnBaseOnUpdateOf(columnsList, insterestedColumnList);
-            }
-            else
-            {
-                columnsToUse = tableColumnsList;
-            }
-
-            CheckColumnsManageability(columnsToUse);
-
-            return columnsToUse;
+            var userIterestedColumns = this.GetUserInterestedColumns(columnsList);
+            CheckIfUserInterestedColumnsCanBeManaged(userIterestedColumns);
+            return userIterestedColumns;
         }
 
-        private void CheckColumnsManageability(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
+        private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
         {
             foreach (var tableColumn in tableColumnsToUse)
             {
@@ -540,28 +531,27 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static IEnumerable<Tuple<string, string, string>> FilterColumnBaseOnUpdateOf(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
+        private IEnumerable<Tuple<string, string, string>> GetUserInterestedColumns(IEnumerable<Tuple<string, string, string>> tableColumnsList)
         {
-            if (updateOf != null && updateOf.Any())
-            {
-                var filteredList = new List<Tuple<string, string, string>>();
+            var tableColumnsListFiltered = new List<Tuple<string, string, string>>();
 
+            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
+            {
+                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
+
+                // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    foreach (var interestedColumn in updateOf)
+                    if (string.Equals(tableColumn.Item1.ToLower(), "\"" + propertyName.ToLower() + "\"", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (string.Equals(tableColumn.Item1.ToLower(), "\"" + interestedColumn.ToLower() + "\"", StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            filteredList.Add(tableColumn);
-                            break;
-                        }
+                        tableColumnsListFiltered.Add(tableColumn);
+                        break;
                     }
                 }
-
-                return filteredList;
             }
 
-            return tableColumnsList;
+            return tableColumnsListFiltered;
         }
 
         private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
@@ -587,13 +577,13 @@ namespace TableDependency.OracleClient
 
         private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
         {
-            if (_modelToTableMapper != null)
+            if (_mapper != null)
             {
-                if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
+                if (_mapper.Count() < 1) throw new ModelToTableMapperException();
 
                 // With ORACLE when define an column with "" it become case sensitive.
                 var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
-                var mappingNames = _modelToTableMapper.GetMappings().Select(t => "\"" + t.Value + "\"").ToList();
+                var mappingNames = _mapper.GetMappings().Select(t => "\"" + t.Value + "\"").ToList();
 
                 mappingNames.ForEach<string>(mapping =>
                 {

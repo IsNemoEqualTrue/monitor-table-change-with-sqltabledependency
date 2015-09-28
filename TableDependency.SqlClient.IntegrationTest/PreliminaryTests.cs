@@ -12,7 +12,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class PreliminaryTests
     {
         private string ValidConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string ValidTableName = "Issue0000";
+        private const string ValidTableName = "TestTable";
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";
 
@@ -23,7 +23,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(InvalidConnectionStringException))]
         public void InvalidConnectionStringTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(InvalidValidConnectionString, ValidTableName))
+            using (new SqlTableDependency<TestTable>(InvalidValidConnectionString, ValidTableName))
             {
             }
         }
@@ -32,7 +32,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, InvalidTableName))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, InvalidTableName))
             {
             }
         }
@@ -41,9 +41,9 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void EmptyMappertTest()
         {
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
 
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -52,10 +52,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithNullTest()
         {
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, null);
 
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -64,10 +64,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithEmptyTest()
         {
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, string.Empty);
 
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -76,10 +76,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void InvalidMappertTest()
         {
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Not Exist");
 
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, mapper))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, mapper))
             {
             }
         }
@@ -88,7 +88,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>()))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, updateOf: new List<string>()))
             {
             }
         }
@@ -97,7 +97,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", null }))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", null }))
             {
             }
         }
@@ -106,7 +106,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", string.Empty }))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Second Name", string.Empty }))
             {
             }
         }
@@ -115,7 +115,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
         {
-            using (new SqlTableDependency<Issue_0000_Model>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Not exists" }))
+            using (new SqlTableDependency<TestTable>(ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Not exists" }))
             {
             }                             
         }

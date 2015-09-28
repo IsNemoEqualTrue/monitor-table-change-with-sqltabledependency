@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Security.Permissions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ using TableDependency.SqlClient.EventArgs;
 using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.MessageTypes;
 using TableDependency.SqlClient.Resources;
+using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient
 {
@@ -38,7 +40,7 @@ namespace TableDependency.SqlClient
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource;
         private readonly string _dataBaseObjectsNamingConvention;
-        private readonly ModelToTableMapper<T> _modelToTableMapper;
+        private readonly ModelToTableMapper<T> _mapper;
         private readonly string _connectionString;
         private Guid _dialogHandle = Guid.Empty;
         private bool _disposed;
@@ -99,9 +101,9 @@ namespace TableDependency.SqlClient
 
             _connectionString = connectionString;
             _tableName = tableName;
-            _modelToTableMapper = mapper;
+            _mapper = mapper;
                        
-            var columnsToUseCreatingTrigger = GetColumnsToUseForCreationDbObjects(updateOf);
+            var columnsToUseCreatingTrigger = this.GetColumnsToUseForCreatingDbObjects(updateOf);
             var toUseCreatingTrigger = columnsToUseCreatingTrigger as Tuple<string, SqlDbType, string>[] ?? columnsToUseCreatingTrigger.ToArray();
             _tableColumns = PrepareColumnListForTableVariable(toUseCreatingTrigger);
             _selectColumns = string.Join(", ", toUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
@@ -163,7 +165,7 @@ namespace TableDependency.SqlClient
                     timeOut, 
                     watchDogTimeOut, 
                     _processableMessages, 
-                    _modelToTableMapper), 
+                    _mapper), 
                 _cancellationTokenSource.Token);
 
             Debug.WriteLine("SqlTableDependency: Started waiting for notification.");
@@ -416,31 +418,38 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        private IEnumerable<Tuple<string, SqlDbType, string>> GetColumnsToUseForCreationDbObjects(IEnumerable<string> updateOf)
+        private IEnumerable<Tuple<string, SqlDbType, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
         {
-            var tableColumnsList = GetTableColumnsList(_connectionString, _tableName);
-            var columnsList = tableColumnsList as Tuple<string, SqlDbType, string>[] ?? tableColumnsList.ToArray();
-            if (!columnsList.Any()) throw new NoColumnsException(_tableName);
-            CheckMapperValidity(columnsList);
+            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
+            var tableColumnsList = tableColumns as Tuple<string, SqlDbType, string>[] ?? tableColumns.ToArray();
+            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
 
-            IEnumerable<Tuple<string, SqlDbType, string>> columnsToUse = null;
-            if (updateOf != null)
-            {
-                var insterestedColumnList = updateOf as string[] ?? updateOf.ToArray();
-                CheckUpdateOfValidity(columnsList, insterestedColumnList);
-                columnsToUse = FilterColumnBaseOnUpdateOf(columnsList, insterestedColumnList);
-            }
-            else
-            {
-                columnsToUse = tableColumnsList;
-            }
+            CheckUpdateOfValidity(tableColumnsList, updateOf);
+            CheckMapperValidity(tableColumnsList);
 
-            CheckColumnsManageability(columnsToUse);
+            var userIterestedColumns = this.GetUserInterestedColumns(tableColumnsList);
 
-            return columnsToUse;
+            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, SqlDbType, string>[] ?? userIterestedColumns.ToArray();
+            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
+            return columnsToUseForCreatingDbObjects;
         }
 
-        private void CheckColumnsManageability(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsToUse)
+        private void CheckMapperValidity(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList)
+        {
+            if (_mapper != null)
+            {
+                if (_mapper.Count() < 1) throw new ModelToTableMapperException();
+
+                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
+
+                if (_mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLower())))
+                {
+                    throw new ModelToTableMapperException();
+                }
+            }
+        }
+
+        private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsToUse)
         {
             foreach (var tableColumn in tableColumnsToUse)
             {
@@ -448,11 +457,11 @@ namespace TableDependency.SqlClient
                 {
                     case SqlDbType.VarChar:
                     case SqlDbType.NVarChar:
-                        if (tableColumn.Item3 == Max) throw new ColumnTypeNotSupportedException("VARCHAR(MAX) column is not an admitted type for SqlTableDependency because the maximum size of a message that can be transferred is 2 GB.");
+                        if (tableColumn.Item3 == Max) throw new ColumnTypeNotSupportedException("VARCHAR(MAX) column is not an admitted type for SqlTableDependency because the maximum Service Broker message size is 2 GB.");
                         break;
 
                     case SqlDbType.VarBinary:
-                        if (tableColumn.Item3 == Max) throw new ColumnTypeNotSupportedException("VARBINARY(MAX) column is not an admitted type for SqlTableDependency because the maximum size of a message that can be transferred is 2 GB.");
+                        if (tableColumn.Item3 == Max) throw new ColumnTypeNotSupportedException("VARBINARY(MAX) column is not an admitted type for SqlTableDependency because the maximum Service Broker message size is 2 GB.");
                         break;
 
                     case SqlDbType.Xml:
@@ -460,7 +469,7 @@ namespace TableDependency.SqlClient
                     case SqlDbType.NText:
                     case SqlDbType.Image:
                     case SqlDbType.Variant:
-                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} column is not an admitted type for SqlTableDependency because the maximum size of a message that can be transferred is 2 GB.");
+                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} column is not an admitted type for SqlTableDependency because the maximum Service Broker message size is 2 GB.");
                 }
             }
         }
@@ -593,43 +602,27 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private void CheckMapperValidity(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList)
+        private IEnumerable<Tuple<string, SqlDbType, string>> GetUserInterestedColumns(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList)
         {
-            if (_modelToTableMapper != null)
-            { 
-                if (_modelToTableMapper.Count() < 1) throw new ModelToTableMapperException();
+            var tableColumnsListFiltered = new List<Tuple<string, SqlDbType, string>>();
 
-                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToLower()).ToList();
-
-                if (_modelToTableMapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLower())))
-                {
-                    throw new ModelToTableMapperException();
-                }
-            }
-        }
-
-        private static IEnumerable<Tuple<string, SqlDbType, string>> FilterColumnBaseOnUpdateOf(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList, IEnumerable<string> updateOf)
-        {
-            if (updateOf != null && updateOf.Any())
+            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
-                var filteredList = new List<Tuple<string, SqlDbType, string>>();
-
+                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;                
+                
+                // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    foreach (var interestedColumn in updateOf)
+                    if (string.Equals(tableColumn.Item1.ToLower(), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase))
                     {
-                        if (string.Equals(tableColumn.Item1.ToLower(), interestedColumn.ToLower(), StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            filteredList.Add(tableColumn);
-                            break;
-                        }
+                        tableColumnsListFiltered.Add(tableColumn);
+                        break;
                     }
                 }
-
-                return filteredList;
             }
 
-            return tableColumnsList;
+            return tableColumnsListFiltered;
         }
 
         private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList, IEnumerable<string> updateOf)

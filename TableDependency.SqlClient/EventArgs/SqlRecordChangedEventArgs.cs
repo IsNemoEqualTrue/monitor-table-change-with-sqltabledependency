@@ -13,6 +13,7 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.SqlClient.MessageTypes;
+using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
 {
@@ -22,19 +23,6 @@ namespace TableDependency.SqlClient.EventArgs
 
         private const string Space = " ";
         private static readonly IEnumerable<PropertyInfo> _entiyProperiesInfo;
-
-        private static readonly IList<Type> _types = new List<Type>()
-        {
-            typeof (string),
-            typeof (short), typeof (short?),
-            typeof (int), typeof (int?),
-            typeof (long), typeof (long?),       
-            typeof (decimal), typeof (decimal?),
-            typeof (float), typeof (float?),
-            typeof (DateTime), typeof (DateTime?),
-            typeof (double), typeof (double?),
-            typeof (bool), typeof (bool?)
-        };
 
         #endregion
 
@@ -70,10 +58,7 @@ namespace TableDependency.SqlClient.EventArgs
 
         static SqlRecordChangedEventArgs()
         {
-            _entiyProperiesInfo = typeof(T)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)
-                .Where(propertyInfo => _types.Contains(propertyInfo.PropertyType) || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                .ToArray();
+            _entiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
         }
 
         internal SqlRecordChangedEventArgs(string messageType)

@@ -12,6 +12,7 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.OracleClient.MessageTypes;
+using TableDependency.Utilities;
 
 namespace TableDependency.OracleClient.EventArgs
 {
@@ -20,19 +21,6 @@ namespace TableDependency.OracleClient.EventArgs
         #region Member variables
 
         private static readonly IEnumerable<PropertyInfo> _entiyProperiesInfo;
-
-        private static readonly IList<Type> _types = new List<Type>()
-        {
-            typeof (string),
-            typeof (short), typeof (short?),
-            typeof (int), typeof (int?),
-            typeof (long), typeof (long?),       
-            typeof (decimal), typeof (decimal?),
-            typeof (float), typeof (float?),
-            typeof (DateTime), typeof (DateTime?),
-            typeof (double), typeof (double?),
-            typeof (bool), typeof (bool?)
-        };
 
         #endregion
 
@@ -68,10 +56,7 @@ namespace TableDependency.OracleClient.EventArgs
 
         static OracleRecordChangedEventArgs()
         {
-            _entiyProperiesInfo = typeof(T)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)
-                .Where(propertyInfo => _types.Contains(propertyInfo.PropertyType) || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                .ToArray();
+            _entiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
         }
 
         internal OracleRecordChangedEventArgs(string messageType, string message, ModelToTableMapper<T> mapper)

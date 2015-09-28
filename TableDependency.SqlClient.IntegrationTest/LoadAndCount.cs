@@ -15,7 +15,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class LoadAndCount
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "Issue0000";
+        private static string _tableName = "TestTable";
         private int _counter = 1;
 
         [TestInitialize]
@@ -47,7 +47,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             var token = cts.Token;
 
             var counterUpTo = 1000;
-            var mapper = new ModelToTableMapper<Issue_0000_Model>();
+            var mapper = new ModelToTableMapper<TestTable>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
             var listenerTask = Task.Factory.StartNew(() => new Listener(ConnectionString, _tableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
@@ -87,20 +87,20 @@ namespace TableDependency.SqlClient.IntegrationTest
 
     public class Listener
     {
-        readonly SqlTableDependency<Issue_0000_Model> _tableDependency;
+        readonly SqlTableDependency<TestTable> _tableDependency;
         readonly ListenerResult _listenerResult = new ListenerResult();
 
         public string ObjectNaming{ get; private set; }
 
-        public Listener(string connectionString, string tableName, ModelToTableMapper<Issue_0000_Model> mapper)
+        public Listener(string connectionString, string tableName, ModelToTableMapper<TestTable> mapper)
         {
-            _tableDependency = new SqlTableDependency<Issue_0000_Model>(connectionString, tableName, mapper);
+            _tableDependency = new SqlTableDependency<TestTable>(connectionString, tableName, mapper);
             _tableDependency.OnChanged += TableDependency_OnChanged;
             _tableDependency.Start(60, 120);
             _listenerResult.ObjectNaming = _tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<TestTable> e)
         {
             _listenerResult.Counter = _listenerResult.Counter + 1;
             if (_listenerResult.Counter.ToString() != e.Entity.Surname)

@@ -14,8 +14,8 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class Status
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Issue0000";
-        private SqlTableDependency<Issue_0000_Model> _tableDependency = null;
+        private const string TableName = "TestTable";
+        private SqlTableDependency<TestTable> _tableDependency = null;
         
         [TestInitialize]
         public void TestInitialize()
@@ -44,10 +44,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         {
             try
             {
-                var mapper = new ModelToTableMapper<Issue_0000_Model>();
+                var mapper = new ModelToTableMapper<TestTable>();
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
-                _tableDependency = new SqlTableDependency<Issue_0000_Model>(_connectionString, TableName, mapper);
+                _tableDependency = new SqlTableDependency<TestTable>(_connectionString, TableName, mapper);
                 _tableDependency.OnChanged += TableDependency_Changed;
 
                 Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.WaitingToStart);
@@ -69,7 +69,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             }
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
         {
             Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.ListenerForNotification);
         }

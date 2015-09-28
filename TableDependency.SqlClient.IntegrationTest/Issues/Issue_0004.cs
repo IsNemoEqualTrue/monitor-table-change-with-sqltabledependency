@@ -24,18 +24,16 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}]";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]( " +
                         "[Id][int] IDENTITY(1, 1) NOT NULL," +
                         "[VarcharColumn] [nvarchar](4000) NULL," +
                         "[VarcharColumn2] [nvarchar](4000) NULL," +
                         "[DatetimeOffsetColumn] [datetimeoffset](7) NULL," + 
                         "[TimeColumn] [time](7) NULL," +
-                        "[XmlColumn] [xml] NULL," +
-                        "[TimeStampColumn] [timestamp] NULL) END;";
-                    sqlCommand.ExecuteNonQuery();
-
-                    sqlCommand.CommandText = $"DELETE FROM {TableName}";
+                        "[TimeStampColumn] [timestamp] NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -44,12 +42,12 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
         [TestMethod]
         public void ProblemWithXmlTest()
         {
-            SqlTableDependency<Issue_0003_Model> tableDependency = null;
+            SqlTableDependency<Issue_0004_Model> tableDependency = null;
             var interestedColumnsList = new List<string>() { "VarcharColumn", "DatetimeOffsetColumn", "TimeColumn", "TimeStampColumn" };
 
             try
             {
-                tableDependency = new SqlTableDependency<Issue_0003_Model>(_connectionString, TableName, updateOf: interestedColumnsList);
+                tableDependency = new SqlTableDependency<Issue_0004_Model>(_connectionString, TableName, updateOf: interestedColumnsList);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
 
@@ -67,7 +65,7 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
             Assert.IsTrue(this._counter == 4);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0003_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0004_Model> e)
         {
             this._counter++;
         }

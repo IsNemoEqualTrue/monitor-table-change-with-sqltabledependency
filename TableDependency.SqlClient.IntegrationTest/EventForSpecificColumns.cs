@@ -17,9 +17,9 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class EventForSpecificColumns
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Issue0000";
+        private const string TableName = "TestTable";
         private static int _counter;
-        private static Dictionary<string, Tuple<Issue_0000_Model, Issue_0000_Model>> _checkValues = new Dictionary<string, Tuple<Issue_0000_Model, Issue_0000_Model>>();
+        private static Dictionary<string, Tuple<TestTable, TestTable>> _checkValues = new Dictionary<string, Tuple<TestTable, TestTable>>();
 
         [TestInitialize]
         public void TestInitialize()
@@ -46,15 +46,18 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestMethod]
         public void EventForSpecificColumnsTest()
         {
-            SqlTableDependency<Issue_0000_Model> tableDependency = null;
+            SqlTableDependency<TestTable> tableDependency = null;
             string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Issue_0000_Model>();
+                var mapper = new ModelToTableMapper<TestTable>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Issue_0000_Model>(_connectionString, TableName, mapper, new List<string>() { "second name" });
+                tableDependency = new SqlTableDependency<TestTable>(
+                    _connectionString, 
+                    TableName, 
+                    mapper, new List<string>() { "second name" });
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -71,14 +74,15 @@ namespace TableDependency.SqlClient.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 2);
-            Assert.IsNull(_checkValues[ChangeType.Insert.ToString()].Item2.Name);
+            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Surname, _checkValues[ChangeType.Insert.ToString()].Item1.Surname);
-            Assert.IsNull(_checkValues[ChangeType.Delete.ToString()].Item2.Name);
+
+            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, _checkValues[ChangeType.Delete.ToString()].Item1.Surname);
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
         {
             _counter++;
 
@@ -97,9 +101,9 @@ namespace TableDependency.SqlClient.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Christian", Surname = "Del Bianco" }, new Issue_0000_Model()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Velia" }, new Issue_0000_Model()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Issue_0000_Model, Issue_0000_Model>(new Issue_0000_Model { Name = "Velia", Surname = "Del Bianco" }, new Issue_0000_Model()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<TestTable, TestTable>(new TestTable { Name = "Christian", Surname = "Del Bianco" }, new TestTable()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<TestTable, TestTable>(new TestTable { Name = "Velia" }, new TestTable()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<TestTable, TestTable>(new TestTable { Name = "Velia", Surname = "Del Bianco" }, new TestTable()));
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {

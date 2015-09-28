@@ -64,9 +64,10 @@ namespace TableDependency.OracleClient.IntegrationTest
 
             Assert.AreEqual(_counter, 2);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
-            Assert.IsNull(_checkValues[ChangeType.Insert.ToString()].Item2.Description);
+            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Description, _checkValues[ChangeType.Insert.ToString()].Item1.Description);
+
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.IsNull(_checkValues[ChangeType.Delete.ToString()].Item2.Description);
+            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Description, _checkValues[ChangeType.Delete.ToString()].Item1.Description);
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 

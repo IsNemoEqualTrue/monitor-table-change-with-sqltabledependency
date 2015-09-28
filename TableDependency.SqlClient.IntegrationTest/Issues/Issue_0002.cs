@@ -31,17 +31,13 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL," +
-                        "[VarcharColumn] [nvarchar](4000) NULL," +
-                        "[DateTime2Column] [datetime2](7) NULL," +
-                        "[DatetimeOffsetColumn] [datetimeoffset](7) NULL," +
-                        "[TimeColumn] [time](7) NULL," +
-                        "[TimeStampColumn] [timestamp] NULL) END;";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.CommandText = 
+                        $"CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL," +
+                        "[VarcharColumn] [nvarchar](4000) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -50,12 +46,12 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
         [TestMethod]
         public void ColumnsSizeTest()
         {
-            SqlTableDependency<Model.Issue_0004_Model> tableDependency = null;
+            SqlTableDependency<Model.Issue_0002_Model> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Model.Issue_0004_Model>(_connectionString, TableName);
+                tableDependency = new SqlTableDependency<Model.Issue_0002_Model>(_connectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -75,7 +71,7 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Model.Issue_0004_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Model.Issue_0002_Model> e)
         {
             _counter++;
             this.TestContext.WriteLine($"{e.ChangeType}: {e.Entity.VarcharColumn}");

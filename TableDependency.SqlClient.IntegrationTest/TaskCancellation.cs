@@ -13,7 +13,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class TaskCancellation
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Issue0000";
+        private const string TableName = "TestTable";
 
         [TestInitialize]
         public void TestInitialize()
@@ -41,14 +41,14 @@ namespace TableDependency.SqlClient.IntegrationTest
         public void TaskCancellationTest()
         {
             string naming = null;
-            SqlTableDependency<Issue_0000_Model> tableDependency = null;
+            SqlTableDependency<TestTable> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Issue_0000_Model>();
+                var mapper = new ModelToTableMapper<TestTable>();
                 mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Issue_0000_Model>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<TestTable>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -67,7 +67,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue_0000_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
         {
         }
     }

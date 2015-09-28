@@ -56,6 +56,7 @@
     <Compile Include="Delegates\ChangedEventHandler.cs" />
     <Compile Include="Mappers\ModelToTableMapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\ModelUtil.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
