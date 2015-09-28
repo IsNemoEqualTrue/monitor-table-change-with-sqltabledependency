@@ -1,4 +1,8 @@
-﻿namespace TableDependency.OracleClient.MessageTypes
+﻿////////////////////////////////////////////////////////////////////////////////
+//   TableDependency, SqlTableDependency, OracleTableDependency
+//   Copyright (c) Christian Del Bianco.  All rights reserved.
+////////////////////////////////////////////////////////////////////////////////
+namespace TableDependency.OracleClient.MessageTypes
 {
     public static class CustomMessageTypes
     {

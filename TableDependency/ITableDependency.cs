@@ -1,4 +1,8 @@
-﻿using TableDependency.Delegates;
+﻿////////////////////////////////////////////////////////////////////////////////
+//   TableDependency, SqlTableDependency, OracleTableDependency
+//   Copyright (c) Christian Del Bianco.  All rights reserved.
+////////////////////////////////////////////////////////////////////////////////
+using TableDependency.Delegates;
 using TableDependency.Enums;
 
 namespace TableDependency

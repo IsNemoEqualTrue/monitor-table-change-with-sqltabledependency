@@ -1,4 +1,8 @@
-﻿using TableDependency.Exceptions;
+﻿////////////////////////////////////////////////////////////////////////////////
+//   TableDependency, SqlTableDependency, OracleTableDependency
+//   Copyright (c) Christian Del Bianco.  All rights reserved.
+////////////////////////////////////////////////////////////////////////////////
+using TableDependency.Exceptions;
 
 namespace TableDependency.OracleClient.Exceptions
 {

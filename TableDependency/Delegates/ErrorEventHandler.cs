@@ -1,4 +1,8 @@
-﻿using TableDependency.EventArgs;
+﻿////////////////////////////////////////////////////////////////////////////////
+//   TableDependency, SqlTableDependency, OracleTableDependency
+//   Copyright (c) Christian Del Bianco.  All rights reserved.
+////////////////////////////////////////////////////////////////////////////////
+using TableDependency.EventArgs;
 
 namespace TableDependency.Delegates
 {

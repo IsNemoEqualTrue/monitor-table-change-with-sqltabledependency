@@ -1,7 +1,10 @@
-﻿using System;
+﻿////////////////////////////////////////////////////////////////////////////////
+//   TableDependency, SqlTableDependency, OracleTableDependency
+//   Copyright (c) Christian Del Bianco.  All rights reserved.
+////////////////////////////////////////////////////////////////////////////////
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.OracleClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
