@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Security.Policy;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
@@ -12,13 +11,35 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class DatabaseObjectCleanUp
+    public class Check_DatabaseObjectCleanUp
     {
         private static string _dbObjectsNaming;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "TestTable";
+        private static string TableName = "Check_Model";
 
-        [TestInitialize]
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText =
+                        $"CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL)";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
@@ -26,15 +47,21 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{_tableName}', 'U') IS NULL BEGIN CREATE TABLE [{_tableName}]( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
-                        "[First Name] [nvarchar](50) NOT NULL, " +
-                        "[Second Name] [nvarchar](50) NOT NULL, " +
-                        "[Born] [datetime] NULL); END";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
 
-                    sqlCommand.CommandText = $"DELETE FROM [{_tableName}]";
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -48,7 +75,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
-            _dbObjectsNaming = otherDomainObject.RunTableDependency(_connectionString, _tableName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(_connectionString, TableName);
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
 
@@ -61,16 +88,16 @@ namespace TableDependency.SqlClient.IntegrationTest
     {
         public string RunTableDependency(string connectionString, string tableName)
         {
-            var mapper = new ModelToTableMapper<TestTable>();
+            var mapper = new ModelToTableMapper<Check_Model>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<TestTable>(connectionString, tableName, mapper);
+            var tableDependency = new SqlTableDependency<Check_Model>(connectionString, tableName, mapper);
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
         {
         }
     }

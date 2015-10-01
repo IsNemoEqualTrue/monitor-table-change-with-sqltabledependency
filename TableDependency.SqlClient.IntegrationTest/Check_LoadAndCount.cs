@@ -12,29 +12,57 @@ using TableDependency.SqlClient.IntegrationTest.Helpers;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class LoadAndCount
+    public class Check_LoadAndCount
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = "TestTable";
+        private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static string TableName = "TestTable";
         private int _counter = 1;
 
-        [TestInitialize]
-        public void TestInitialize()
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.ExecuteNonQuery();
+
                     sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{_tableName}', 'U') IS NULL BEGIN CREATE TABLE [{_tableName}]( " +
+                        $"CREATE TABLE [{TableName}]( " +
                         "[Id][int] IDENTITY(1, 1) NOT NULL, " +
                         "[First Name] [nvarchar](50) NOT NULL, " +
                         "[Second Name] [nvarchar](50) NOT NULL, " +
-                        "[Born] [datetime] NULL); END";
+                        "[Born] [datetime] NULL)";
                     sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
 
-                    sqlCommand.CommandText = $"DELETE FROM [{_tableName}]";
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -47,12 +75,12 @@ namespace TableDependency.SqlClient.IntegrationTest
             var token = cts.Token;
 
             var counterUpTo = 1000;
-            var mapper = new ModelToTableMapper<TestTable>();
+            var mapper = new ModelToTableMapper<Check_Model>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
-            var listenerTask = Task.Factory.StartNew(() => new Listener(ConnectionString, _tableName, mapper).Run(counterUpTo, token), token);
+            var listenerTask = Task.Factory.StartNew(() => new Listener(_connectionString, TableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -61,7 +89,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                     {
                         if (_counter <= counterUpTo)
                         {
-                            sqlCommand.CommandText = $"INSERT INTO [{_tableName}] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
+                            sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{_counter}')";
                             sqlCommand.ExecuteNonQuery();
                             _counter++;
                         }
@@ -74,7 +102,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, listenerTask.Result.ObjectNaming));
         }
     }
 
@@ -87,20 +115,20 @@ namespace TableDependency.SqlClient.IntegrationTest
 
     public class Listener
     {
-        readonly SqlTableDependency<TestTable> _tableDependency;
+        readonly SqlTableDependency<Check_Model> _tableDependency;
         readonly ListenerResult _listenerResult = new ListenerResult();
 
         public string ObjectNaming{ get; private set; }
 
-        public Listener(string connectionString, string tableName, ModelToTableMapper<TestTable> mapper)
+        public Listener(string connectionString, string tableName, ModelToTableMapper<Check_Model> mapper)
         {
-            _tableDependency = new SqlTableDependency<TestTable>(connectionString, tableName, mapper);
+            _tableDependency = new SqlTableDependency<Check_Model>(connectionString, tableName, mapper);
             _tableDependency.OnChanged += TableDependency_OnChanged;
             _tableDependency.Start(60, 120);
             _listenerResult.ObjectNaming = _tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<TestTable> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Check_Model> e)
         {
             _listenerResult.Counter = _listenerResult.Counter + 1;
             if (_listenerResult.Counter.ToString() != e.Entity.Surname)

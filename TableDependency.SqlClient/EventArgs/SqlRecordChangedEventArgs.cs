@@ -13,6 +13,7 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.SqlClient.MessageTypes;
+using TableDependency.SqlClient.TypeConverters;
 using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
@@ -98,7 +99,7 @@ namespace TableDependency.SqlClient.EventArgs
             var xDocument = XDocument.Parse(stringXmlDocument);
             if (xDocument.Root == null) return default(T);
 
-            var xElement = xDocument.Root.Elements().First();            
+            var xElement = xDocument.Root.Elements().First();
             var entity = (T)Activator.CreateInstance(typeof(T));
 
             foreach (var entityPropertyInfo in _entiyProperiesInfo)
@@ -109,18 +110,28 @@ namespace TableDependency.SqlClient.EventArgs
                 var xAttribute = xElement.Attributes().FirstOrDefault(a => string.Equals(NormalizeSpaceForColumnName(a.Name.ToString().ToLower()), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase));
                 if (xAttribute == default(XAttribute)) continue;
 
-                var attributeValue = xAttribute.Value.Trim();
-                var value = TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFromString(attributeValue);
+                var value = GetPropertyValue(entityPropertyInfo, xAttribute.Value.Trim());
                 entityPropertyInfo.SetValue(entity, value);
             }
 
             return entity;
         }
 
+        private static object GetPropertyValue(PropertyInfo entityPropertyInfo, string attributeValue)
+        {  
+            if (entityPropertyInfo.PropertyType == typeof(bool) || entityPropertyInfo.PropertyType == typeof (bool?))
+            {
+                var aiDateTimeTypeConverter = TypeDescriptor.GetConverter(typeof(SqlBooleanConverterAdapter));
+                return aiDateTimeTypeConverter.ConvertFromString(attributeValue);
+            }
+
+            return TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFrom(attributeValue);
+        }
+
         private static string NormalizeSpaceForColumnName(string columnName)
         {
             return columnName.Replace("_x0020_", Space);
-        }        
+        }
 
         #endregion
     }

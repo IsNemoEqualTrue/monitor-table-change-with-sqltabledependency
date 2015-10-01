@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Helpers;
 
-namespace TableDependency.SqlClient.IntegrationTest.Issues
+namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
 {
     [TestClass]
     public class Issue_0002
@@ -23,7 +23,27 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
         /// </value>
         public TestContext TestContext { get; set; }
 
-        [TestInitialize]
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText =
+                        $"CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL," +
+                        "[VarcharColumn] [nvarchar](4000) NULL)";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
@@ -31,13 +51,21 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
 
-                    sqlCommand.CommandText = 
-                        $"CREATE TABLE [{TableName}]( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL," +
-                        "[VarcharColumn] [nvarchar](4000) NULL)";
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }

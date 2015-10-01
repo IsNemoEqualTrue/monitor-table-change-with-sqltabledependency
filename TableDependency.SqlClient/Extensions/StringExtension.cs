@@ -11,7 +11,13 @@ namespace TableDependency.SqlClient.Extensions
     {
         public static SqlDbType ToSqlDbType(this string type)
         {
+            // Mapping not listed in SqlDbType
+            if (type.ToLower() == "numeric")
+            {
+                return SqlDbType.Decimal;
+            }
+
             return (SqlDbType)Enum.Parse(typeof(SqlDbType), type, true);
-        }
+        }         
     }
 }

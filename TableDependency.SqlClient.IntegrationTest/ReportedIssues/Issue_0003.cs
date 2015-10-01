@@ -8,7 +8,7 @@ using TableDependency.EventArgs;
 using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest.Issues
+namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
 {
     [TestClass]
     public class Issue_0003
@@ -17,18 +17,18 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
         private const string TableName = "Issue0003";
         private int _counter;
 
-        [TestInitialize]
-        public void TestInitialize()
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}]";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = 
+                    sqlCommand.CommandText =
                         $"CREATE TABLE [{TableName}](" +
                         "[Id][int] IDENTITY(1, 1) NOT NULL," +
                         "[FirstName] [varchar](4000) NOT NULL," +
@@ -38,8 +38,34 @@ namespace TableDependency.SqlClient.IntegrationTest.Issues
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+        }
 
-            _counter = 0;
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
         }
 
         [TestMethod]

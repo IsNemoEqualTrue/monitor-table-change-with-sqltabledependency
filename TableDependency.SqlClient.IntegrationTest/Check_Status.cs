@@ -11,13 +11,35 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Status
-    {
+    public class Check_Status
+    {        
+        private SqlTableDependency<Check_Model> _tableDependency = null;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "TestTable";
-        private SqlTableDependency<TestTable> _tableDependency = null;
-        
-        [TestInitialize]
+        private const string TableName = "Check_Model";
+
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText =
+                        $"CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
+                        "[Born] [datetime] NULL)";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
@@ -25,15 +47,21 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText =
-                        $"IF OBJECT_ID('{TableName}', 'U') IS NULL BEGIN CREATE TABLE [{TableName}]( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
-                        "[First Name] [nvarchar](50) NOT NULL, " +
-                        "[Second Name] [nvarchar](50) NOT NULL, " +
-                        "[Born] [datetime] NULL); END";
-                    sqlCommand.ExecuteNonQuery();
-
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -44,10 +72,10 @@ namespace TableDependency.SqlClient.IntegrationTest
         {
             try
             {
-                var mapper = new ModelToTableMapper<TestTable>();
+                var mapper = new ModelToTableMapper<Check_Model>();
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
-                _tableDependency = new SqlTableDependency<TestTable>(_connectionString, TableName, mapper);
+                _tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
                 _tableDependency.OnChanged += TableDependency_Changed;
 
                 Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.WaitingToStart);
@@ -69,7 +97,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             }
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<TestTable> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
         {
             Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.ListenerForNotification);
         }

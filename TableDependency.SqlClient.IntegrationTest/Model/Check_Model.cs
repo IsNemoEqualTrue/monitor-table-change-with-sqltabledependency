@@ -2,7 +2,7 @@
 
 namespace TableDependency.SqlClient.IntegrationTest.Model
 {
-    public class TestTable
+    public class Check_Model
     {
         public int Id { get; set; }
         public string Name { get; set; }
