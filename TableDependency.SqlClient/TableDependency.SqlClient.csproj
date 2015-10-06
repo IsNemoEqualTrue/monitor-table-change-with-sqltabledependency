@@ -39,6 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />
+    <Compile Include="Exceptions\ServiceBrokerWithTriggerOrTableNotExistingException.cs" />
+    <Compile Include="Exceptions\ServiceBrokerNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerEndDialogException.cs" />
     <Compile Include="Exceptions\QueueAlreadyUsedException.cs" />
     <Compile Include="Exceptions\ServiceBrokerErrorMessageException.cs" />

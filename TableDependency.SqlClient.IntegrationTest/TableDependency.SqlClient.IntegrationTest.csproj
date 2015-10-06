@@ -85,6 +85,7 @@
     <Compile Include="Check_Status.cs" />
     <Compile Include="Check_TaskCancellation.cs" />
     <Compile Include="Issues\Issue_0002.cs" />
+    <Compile Include="Check_TeardownDatabaseObjects.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">

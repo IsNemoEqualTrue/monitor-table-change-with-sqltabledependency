@@ -42,7 +42,9 @@ namespace TableDependency.SqlClient
 
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource;
+        private bool _needsToCreateDatabaseObjects;
         private readonly string _dataBaseObjectsNamingConvention;
+        private readonly bool _automaticDatabaseObjectsTeardown;
         private readonly ModelToTableMapper<T> _mapper;
         private readonly string _connectionString;
         private Guid _dialogHandle = Guid.Empty;
@@ -96,17 +98,47 @@ namespace TableDependency.SqlClient
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">The model to column table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null)
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true)
         {
-            PreliminaryChecks(connectionString, tableName);
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
 
+            PreliminaryChecks(connectionString, tableName, null);
+
+            _dataBaseObjectsNamingConvention = $"{tableName}_{Guid.NewGuid()}";
             _connectionString = connectionString;
             _tableName = tableName;
             _mapper = mapper;
             _updateOf = updateOf;
+            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
             _userInterestedColumns = this.GetColumnsToUseForCreatingDbObjects(updateOf);
+            _needsToCreateDatabaseObjects = true;
+            
+            Status = TableDependencyStatus.WaitingToStart;
+        }
 
-            _dataBaseObjectsNamingConvention = $"{tableName}_{Guid.NewGuid()}";
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="existingServiceBrokerName">Name of the already existing service broker.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="mapper">The model to column table mapper.</param>
+        public SqlTableDependency(string connectionString, string existingServiceBrokerName, bool automaticDatabaseObjectsTeardown, ModelToTableMapper<T> mapper = null)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            if (string.IsNullOrWhiteSpace(existingServiceBrokerName)) throw new ArgumentNullException(nameof(existingServiceBrokerName));
+
+            PreliminaryChecks(connectionString, null, existingServiceBrokerName);
+
+            _dataBaseObjectsNamingConvention = existingServiceBrokerName;
+            _connectionString = connectionString;            
+            _tableName = TableAssociateToServiceBroker(connectionString);
+            _mapper = mapper;
+            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
+            _userInterestedColumns = this.GetColumnsToUseForCreatingDbObjects();
+            _needsToCreateDatabaseObjects = false;
 
             Status = TableDependencyStatus.WaitingToStart;
         }
@@ -138,12 +170,22 @@ namespace TableDependency.SqlClient
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
 
-            var toUseCreatingTrigger = _userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? _userInterestedColumns.ToArray();
-            var columnsForTableVariable = PrepareColumnListForTableVariable(toUseCreatingTrigger);
-            var columnsForSelect = string.Join(", ", toUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
-            var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
+            IList<string> processableMessages;
+            if (_needsToCreateDatabaseObjects)
+            {
+                _needsToCreateDatabaseObjects = false;
 
-            var processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _dataBaseObjectsNamingConvention, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
+                var toUseCreatingTrigger = _userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? _userInterestedColumns.ToArray();
+                var columnsForTableVariable = PrepareColumnListForTableVariable(toUseCreatingTrigger);
+                var columnsForSelect = string.Join(", ", toUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
+                var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
+                processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _dataBaseObjectsNamingConvention, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, _automaticDatabaseObjectsTeardown);
+            }
+            else
+            {
+                processableMessages = RetrieveProcessableMessages(_userInterestedColumns, _dataBaseObjectsNamingConvention);
+            }
+
             _dialogHandle = GetConversationHandle(_connectionString, _dataBaseObjectsNamingConvention);
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -171,6 +213,11 @@ namespace TableDependency.SqlClient
         /// </summary>
         public void Stop()
         {
+            Stop(_automaticDatabaseObjectsTeardown);
+        }
+
+        public void Stop(bool databaseObjectsTeardown)
+        {
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
@@ -179,7 +226,7 @@ namespace TableDependency.SqlClient
 
             _task = null;
 
-            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, _userInterestedColumns);
+            if (databaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, _userInterestedColumns);
 
             _disposed = true;
 
@@ -272,6 +319,21 @@ namespace TableDependency.SqlClient
                 Debug.WriteLine("SqlTableDependency: Exception " + exception.Message + ".");
                 setStatus(TableDependencyStatus.StoppedDueToError);
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
+            }
+        }
+
+        private string TableAssociateToServiceBroker(string connectionString)
+        {
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"select object_name(parent_id) from sys.triggers where name = 'tr_{_dataBaseObjectsNamingConvention}'";
+                    var table = sqlCommand.ExecuteScalar() as string;
+                    if (string.IsNullOrWhiteSpace(table)) throw new ServiceBrokerWithTriggerOrTableNotExistingException(_dataBaseObjectsNamingConvention);
+                    return table;
+                }
             }
         }
 
@@ -415,7 +477,7 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        private IEnumerable<Tuple<string, SqlDbType, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
+        private IEnumerable<Tuple<string, SqlDbType, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf = null)
         {
             var tableColumns = GetTableColumnsList(_connectionString, _tableName);
             var tableColumnsList = tableColumns as Tuple<string, SqlDbType, string>[] ?? tableColumns.ToArray();
@@ -463,7 +525,26 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns)
+        private IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming)
+        {
+            var processableMessages = new List<string>
+            {
+                string.Format(StartMessageTemplate, databaseObjectsNaming),
+                string.Format(EndMessageTemplate, databaseObjectsNaming)
+            };
+
+            var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
+            foreach (var userInterestedColumn in interestedColumns)
+            {
+                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}");
+                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}");
+                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}");
+            }
+
+            return processableMessages;
+        }
+
+        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns, bool teardownDatabaseObjects)
         {
             var processableMessages = new List<string>();
 
@@ -481,11 +562,10 @@ namespace TableDependency.SqlClient
                         processableMessages.Add(string.Format(EndMessageTemplate, databaseObjectsNaming));
 
                         sqlCommand.CommandText =
-                            $"CREATE MESSAGE TYPE[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] VALIDATION = NONE " + Environment.NewLine +
+                            $"CREATE MESSAGE TYPE[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] VALIDATION = NONE; " + Environment.NewLine +
                             $"CREATE MESSAGE TYPE[{string.Format(EndMessageTemplate, databaseObjectsNaming)}] VALIDATION = NONE";
                         sqlCommand.ExecuteNonQuery();
 
-                        var contracts = new List<string>();
                         var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
                         foreach (var userInterestedColumn in interestedColumns)
                         {
@@ -494,15 +574,13 @@ namespace TableDependency.SqlClient
                             processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}");
 
                             sqlCommand.CommandText =
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}] VALIDATION = NONE " + Environment.NewLine +
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}] VALIDATION = NONE " + Environment.NewLine +
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}] VALIDATION = NONE";
+                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}] VALIDATION = NONE; " + Environment.NewLine +
+                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}] VALIDATION = NONE; " + Environment.NewLine +
+                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}] VALIDATION = NONE;";
                             sqlCommand.ExecuteNonQuery();
-
-                            contracts.Add(userInterestedColumn.Item1);
                         }
 
-                        var contractBody = string.Join(", " + Environment.NewLine, contracts.Select(c => Environment.NewLine + string.Format("[{0}/{2}/{1}] SENT BY INITIATOR, [{0}/{3}/{1}] SENT BY INITIATOR, [{0}/{4}/{1}] SENT BY INITIATOR", databaseObjectsNaming, c, ChangeType.Delete, ChangeType.Insert, ChangeType.Update)).Concat(new List<string> { string.Format(Environment.NewLine + "[" + StartMessageTemplate + "] SENT BY INITIATOR", databaseObjectsNaming), string.Format(Environment.NewLine + "[" + EndMessageTemplate + "] SENT BY INITIATOR", databaseObjectsNaming) }));
+                        var contractBody = string.Join(", " + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                         sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                         sqlCommand.ExecuteNonQuery();
 
@@ -511,8 +589,16 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
                         sqlCommand.ExecuteNonQuery();
 
-                        sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
-                        sqlCommand.ExecuteNonQuery();
+                        if (teardownDatabaseObjects)
+                        {
+                            sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                            sqlCommand.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF)";
+                            sqlCommand.ExecuteNonQuery();
+                        }
 
                         sqlCommand.CommandText = $"CREATE SERVICE[{databaseObjectsNaming}] ON QUEUE[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                         sqlCommand.ExecuteNonQuery();
@@ -619,11 +705,8 @@ namespace TableDependency.SqlClient
             Debug.WriteLine("SqlTableDependency: Database objects destroyed.");
         }
 
-        private static void PreliminaryChecks(string connectionString, string tableName)
+        private static void PreliminaryChecks(string connectionString, string tableName, string serviceBrokerName)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
-
             CheckIfConnectionStringIsValid(connectionString);
             CheckIfUserHasPermission();
 
@@ -639,7 +722,15 @@ namespace TableDependency.SqlClient
                 }
 
                 CheckIfServiceBrokerIsEnabled(sqlConnection);
-                CheckIfTableExists(sqlConnection, tableName);
+
+                if (string.IsNullOrWhiteSpace(tableName))
+                {
+                    CheckIfServiceBrokerExists(sqlConnection, serviceBrokerName);
+                }
+                else
+                {
+                    CheckIfTableExists(sqlConnection, tableName);
+                }
             }
         }
 
@@ -675,6 +766,15 @@ namespace TableDependency.SqlClient
                 if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
             }
         }
+
+        private static void CheckIfServiceBrokerExists(SqlConnection sqlConnection, string serviceBrokerName)
+        {
+            using (var sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.services WHERE name = N'{serviceBrokerName}'";
+                if ((int)sqlCommand.ExecuteScalar() == 0) throw new ServiceBrokerNotExistingException(serviceBrokerName);
+            }
+        }        
 
         private static void CheckIfTableExists(SqlConnection sqlConnection, string tableName)
         {

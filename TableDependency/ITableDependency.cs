@@ -13,7 +13,9 @@ namespace TableDependency
         event ErrorEventHandler OnError;
 
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
+        void Stop(bool databaseObjectsTeardown);
         void Stop();
+
         TableDependencyStatus Status { get; }
     }
 }

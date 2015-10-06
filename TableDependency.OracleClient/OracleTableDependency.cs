@@ -158,10 +158,15 @@ namespace TableDependency.OracleClient
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
         }
 
+        public void Stop()
+        {
+            // call with automatic database teardounw
+        }
+
         /// <summary>
         /// Stops monitoring change in the table contents.
         /// </summary>
-        public void Stop()
+        public void Stop(bool databaseObjectsTeardown)
         {
             if (_task != null)
             {
