@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Helpers;
 
-namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
     public class Issue_0002
@@ -95,13 +95,13 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(_counter == 3);
+            Assert.IsTrue(this._counter == 3);
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<Model.Issue_0002_Model> e)
         {
-            _counter++;
+            this._counter++;
             this.TestContext.WriteLine($"{e.ChangeType}: {e.Entity.VarcharColumn}");
         }
 

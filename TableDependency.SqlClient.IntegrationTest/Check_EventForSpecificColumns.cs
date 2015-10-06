@@ -46,15 +46,6 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
         }
 
         [ClassCleanup()]

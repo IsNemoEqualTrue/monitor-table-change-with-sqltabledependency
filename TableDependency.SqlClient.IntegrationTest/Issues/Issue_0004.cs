@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
     public class Issue_0004
@@ -68,7 +68,7 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
         }
 
         [TestMethod]
-        public void ProblemWithXmlTest()
+        public void Test()
         {
             SqlTableDependency<Issue_0004_Model> tableDependency = null;
             var interestedColumnsList = new List<string>() { "VarcharColumn", "DatetimeOffsetColumn", "TimeColumn", "TimeStampColumn" };

@@ -12,7 +12,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     public class Check_PreliminaryTests
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Check_Model";
+        private const string TableName = "PreliminaryCheckTest";
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";
 

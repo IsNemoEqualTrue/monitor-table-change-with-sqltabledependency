@@ -61,42 +61,6 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE CONTRACT [{0}] ([{0}_Deleted] SENT BY INITIATOR, [{0}_Inserted] SENT BY INITIATOR, [{0}_Updated] SENT BY INITIATOR).
-        /// </summary>
-        internal static string CreateContract {
-            get {
-                return ResourceManager.GetString("CreateContract", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE MESSAGE TYPE [{0}_Deleted] VALIDATION = NONE.
-        /// </summary>
-        internal static string CreateMessageDeleted {
-            get {
-                return ResourceManager.GetString("CreateMessageDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE MESSAGE TYPE [{0}_Inserted] VALIDATION = NONE.
-        /// </summary>
-        internal static string CreateMessageInserted {
-            get {
-                return ResourceManager.GetString("CreateMessageInserted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE MESSAGE TYPE [{0}_Updated] VALIDATION = NONE.
-        /// </summary>
-        internal static string CreateMessageUpdated {
-            get {
-                return ResourceManager.GetString("CreateMessageUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CREATE PROCEDURE [{0}_QueueActivation] AS 
         ///BEGIN 
         ///	BEGIN TRANSACTION
@@ -119,28 +83,6 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE QUEUE [{0}] 
-        ///WITH STATUS = ON, 
-        ///RETENTION = OFF, 
-        ///POISON_MESSAGE_HANDLING (STATUS = OFF), 
-        ///ACTIVATION (STATUS = ON, PROCEDURE_NAME = [{0}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER).
-        /// </summary>
-        internal static string CreateQueue {
-            get {
-                return ResourceManager.GetString("CreateQueue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CREATE SERVICE [{0}] ON QUEUE [{0}] ([{0}]).
-        /// </summary>
-        internal static string CreateService {
-            get {
-                return ResourceManager.GetString("CreateService", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON [{1}] AFTER INSERT, DELETE, UPDATE AS 
         ///BEGIN
         ///	-- stop if no row was affected
@@ -149,17 +91,18 @@ namespace TableDependency.SqlClient.Resources {
         ///	-- Turn off rows affected messages
         ///	SET NOCOUNT ON;
         ///
+        ///	DECLARE @rowsToProcess INT
+        ///	DECLARE @currentRow INT = 0
         ///	DECLARE @h AS UNIQUEIDENTIFIER
         ///	DECLARE @records XML
         ///	DECLARE @message NVARCHAR(MAX)
         ///	DECLARE @dmlType NVARCHAR(10)
-        ///	DECLARE @rowsToProcess INT
-        ///	DECLARE @currentRow INT = 0
         ///	DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
+        ///	{5}
         ///	
         ///	IF NOT EXISTS(SELECT * FROM INSERTED)
         ///	BEGIN
-        ///		SET @dmlTy [rest of string was truncated]&quot;;.
+        ///		SET  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {
@@ -172,8 +115,8 @@ namespace TableDependency.SqlClient.Resources {
         ///IF EXISTS (SELECT * FROM sys.services WHERE name = N&apos;{0}&apos;) DROP SERVICE [{0}];
         ///IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N&apos;{0}&apos;) DROP QUEUE [{0}];
         ///IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N&apos;{0}&apos;) DROP CONTRACT [{0}];
-        ///IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N&apos;{0}_Deleted&apos;) DROP MESSAGE TYPE [{0}_Deleted];
-        ///IF EXISTS (SELECT * FROM sys.service_message_types WHERE na [rest of string was truncated]&quot;;.
+        ///IF EXISTS (SELECT * FROM sys.objects WHERE name = N&apos;{0}_QueueActivation&apos;) DROP PROCEDURE [{0}_QueueActivation];
+        ///{1}.
         /// </summary>
         internal static string ScriptDropAll {
             get {
@@ -182,15 +125,13 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IF ({0})
-        ///			BEGIN
-        ///				SET @dmlType = &apos;UPDATE&apos;
-        ///				INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
-        ///			END
-        ///			ELSE
-        ///			BEGIN
-        ///				RETURN
-        ///			END.
+        ///   Looks up a localized string similar to IF ({0}) BEGIN
+        ///    SET @dmlType = &apos;{3}&apos;
+        ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+        ///END
+        ///ELSE BEGIN
+        ///    RETURN
+        ///END.
         /// </summary>
         internal static string TriggerUpdateWithColumns {
             get {
@@ -199,10 +140,8 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///				SET @dmlType = &apos;UPDATE&apos;
-        ///				INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
-        ///.
+        ///   Looks up a localized string similar to SET @dmlType = &apos;{2}&apos;
+        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}].
         /// </summary>
         internal static string TriggerUpdateWithoutColuns {
             get {

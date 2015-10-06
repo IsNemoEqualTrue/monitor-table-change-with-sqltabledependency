@@ -15,7 +15,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     {        
         private SqlTableDependency<Check_Model> _tableDependency = null;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "Check_Model";
+        private const string TableName = "StatusCheckTest";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -42,15 +42,6 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
         }
 
         [ClassCleanup()]
@@ -109,11 +100,11 @@ namespace TableDependency.SqlClient.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('aaa', 'aaa')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('Ismano', 'Del Bianco')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = 'bbb', [Second Name] = 'bbbb'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = 'Dina', [Second Name] = 'Bruschi'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 

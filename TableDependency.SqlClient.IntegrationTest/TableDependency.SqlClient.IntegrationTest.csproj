@@ -38,6 +38,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -54,27 +56,35 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Check_GuidSmallMoneyTypes.cs" />
+    <Compile Include="Check_BinaryBitCharVarbinaryTypes.cs" />
+    <Compile Include="Check_BigIntDecimalAndFloatTypes.cs" />
+    <Compile Include="Check_DateType.cs" />
+    <Compile Include="Check_XmlNVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="Check_DatabaseObjectCleanUp.cs" />
+    <Compile Include="Check_ImageTextRealTypes.cs" />
     <Compile Include="Check_EventForAllColumns.cs" />
     <Compile Include="Check_EventForSpecificColumns.cs" />
     <Compile Include="Helpers\BooleanExtender.cs" />
     <Compile Include="Helpers\Helper.cs" />
-    <Compile Include="ReportedIssues\Issue_0006.cs" />
-    <Compile Include="ReportedIssues\Issue_0005.cs" />
-    <Compile Include="ReportedIssues\Issue_0004.cs" />
+    <Compile Include="Issues\Issue_0007.cs" />
+    <Compile Include="Issues\Issue_0006.cs" />
+    <Compile Include="Issues\Issue_0005.cs" />
+    <Compile Include="Issues\Issue_0004.cs" />
     <Compile Include="Check_LoadAndCount.cs" />
     <Compile Include="Model\Issue_0002_Model.cs" />
     <Compile Include="Model\Issue_0004_Model.cs" />
+    <Compile Include="Model\Issue_0007_Model.cs" />
     <Compile Include="Model\Issue_0006_Model.cs" />
     <Compile Include="Model\Issue_0005_Model.cs" />
     <Compile Include="Model\Check_Model.cs" />
     <Compile Include="Model\Issue_0003_Model.cs" />
     <Compile Include="Check_PreliminaryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReportedIssues\Issue_0003.cs" />
+    <Compile Include="Issues\Issue_0003.cs" />
     <Compile Include="Check_Status.cs" />
     <Compile Include="Check_TaskCancellation.cs" />
-    <Compile Include="ReportedIssues\Issue_0002.cs" />
+    <Compile Include="Issues\Issue_0002.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">

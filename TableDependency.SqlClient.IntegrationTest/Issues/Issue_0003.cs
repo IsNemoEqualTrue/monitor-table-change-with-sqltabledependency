@@ -1,14 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.Exceptions;
+using TableDependency.Mappers;
 using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
     public class Issue_0003
@@ -33,8 +38,7 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
                         "[Id][int] IDENTITY(1, 1) NOT NULL," +
                         "[FirstName] [varchar](4000) NOT NULL," +
                         "[SecondName] [nvarchar](4000) NOT NULL," +
-                        "[NotManagedColumnBecauseIsVarcharMAX] [nvarchar](MAX) NULL," +
-                        "[NotManagedColumnBecauseIsXml] XML NULL)";
+                        "[NotManagedColumnBecauseIsImage] [image])";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -70,14 +74,13 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
 
         [TestMethod]
         [ExpectedException(typeof(ColumnTypeNotSupportedException))]
-        public void DealWithUnmanagedColumnsTypeTest()
+        public void DealWithNotManagedColumnsTypeTest()
         {
             SqlTableDependency<Issue_0003_Model_Unmanaged> tableDependency = null;
-            var interestedColumnsList = new List<string>() { "FirstName", "SecondName" };
 
             try
             {
-                tableDependency = new SqlTableDependency<Issue_0003_Model_Unmanaged>(_connectionString, TableName, updateOf: interestedColumnsList);
+                tableDependency = new SqlTableDependency<Issue_0003_Model_Unmanaged>(_connectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed_Unmanaged;
                 tableDependency.Start();
 
@@ -131,6 +134,15 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
             this._counter++;
         }
 
+        static byte[] GetBytes(string str, int? lenght = null)
+        {
+            if (str == null) return null;
+
+            byte[] bytes = lenght.HasValue ? new byte[lenght.Value] : new byte[str.Length * sizeof(char)];
+            Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length * sizeof(char));
+            return bytes;
+        }
+
         private static void ModifyTableContent()
         {
             using (var sqlConnection = new SqlConnection(_connectionString))
@@ -138,21 +150,36 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([FirstName],[SecondName],[NotManagedColumnBecauseIsVarcharMAX]) VALUES ('Valentina', 'Del Bianco', 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim.')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([FirstName],[SecondName],[NotManagedColumnBecauseIsImage]) VALUES ('Valentina', 'Del Bianco', @image)";
+                    sqlCommand.Parameters.Add(new SqlParameter("@image", SqlDbType.VarBinary) {Value = GetBytes("Nonna Velia")});
+
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
+                }
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [FirstName] = 'ntina'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
+                }
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [NotManagedColumnBecauseIsVarcharMAX] = 'Valentina Del Bianco'";
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [NotManagedColumnBecauseIsImage] = 'Valentina Del Bianco'";
+                    sqlCommand.Parameters.Add(new SqlParameter("@image", SqlDbType.VarBinary) {Value = GetBytes("Nonna Dirce")});
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
+                }
 
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
+
                 }
             }
         }

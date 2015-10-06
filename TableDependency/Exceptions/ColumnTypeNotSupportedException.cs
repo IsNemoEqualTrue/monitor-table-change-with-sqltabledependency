@@ -2,12 +2,14 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
-using System.ComponentModel;
+using System;
 
-namespace TableDependency.SqlClient.TypeConverters
+namespace TableDependency.Exceptions
 {
-    [TypeConverter(typeof (SqlBooleanConverter))]
-    internal struct SqlBooleanConverterAdapter
+    public class ColumnTypeNotSupportedException : TableDependencyException
     {
+        protected internal ColumnTypeNotSupportedException(string message = null, Exception exception = null)
+            : base(message, exception)
+        { }
     }
 }

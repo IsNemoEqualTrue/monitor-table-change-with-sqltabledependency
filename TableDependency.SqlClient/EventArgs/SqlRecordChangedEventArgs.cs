@@ -5,15 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Reflection;
-using System.Xml.Linq;
+using System.Text;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
-using TableDependency.SqlClient.MessageTypes;
-using TableDependency.SqlClient.TypeConverters;
+using TableDependency.SqlClient.Extensions;
+using TableDependency.SqlClient.Messages;
 using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
@@ -22,7 +21,6 @@ namespace TableDependency.SqlClient.EventArgs
     {
         #region Member variables
 
-        private const string Space = " ";
         private static readonly IEnumerable<PropertyInfo> _entiyProperiesInfo;
 
         #endregion
@@ -62,44 +60,18 @@ namespace TableDependency.SqlClient.EventArgs
             _entiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
         }
 
-        internal SqlRecordChangedEventArgs(string messageType)
+        internal SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper)
         {
-            MessageType = messageType;
-        }
-
-        internal SqlRecordChangedEventArgs(string databaseObjectsNaming, string messageType, SqlXml message, ModelToTableMapper<T> mapper)
-            : this(messageType)
-        {
-            Entity = MaterializeEntity(message, mapper);
-            ChangeType = SetChangeType(databaseObjectsNaming, messageType);
+            ChangeType = messagesBag.MessageType;
+            Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
         }
 
         #endregion
 
         #region Private methods
 
-        private static ChangeType SetChangeType(string databaseObjectsNaming, string messageType)
+        private static T MaterializeEntity(List<Message> messages, ModelToTableMapper<T> mapper)
         {
-            if (messageType == string.Format(CustomMessageTypes.TemplateDeletedMessageType, databaseObjectsNaming))
-                return ChangeType.Delete;
-            if (messageType == string.Format(CustomMessageTypes.TemplateInsertedMessageType, databaseObjectsNaming))
-                return ChangeType.Insert;
-            if (messageType == string.Format(CustomMessageTypes.TemplateUpdatedMessageType, databaseObjectsNaming))
-                return ChangeType.Update;
-
-            return ChangeType.None;
-        }
-
-        private static T MaterializeEntity(SqlXml sqlXml, ModelToTableMapper<T> mapper)
-        {
-            var sqlXmlValue = sqlXml?.Value;
-            if (string.IsNullOrWhiteSpace(sqlXmlValue)) return default(T);
-
-            var stringXmlDocument = string.Concat("<Values xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">", sqlXmlValue, "</Values>");
-            var xDocument = XDocument.Parse(stringXmlDocument);
-            if (xDocument.Root == null) return default(T);
-
-            var xElement = xDocument.Root.Elements().First();
             var entity = (T)Activator.CreateInstance(typeof(T));
 
             foreach (var entityPropertyInfo in _entiyProperiesInfo)
@@ -107,30 +79,27 @@ namespace TableDependency.SqlClient.EventArgs
                 var propertyMappedTo = mapper?.GetMapping(entityPropertyInfo);
                 var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
 
-                var xAttribute = xElement.Attributes().FirstOrDefault(a => string.Equals(NormalizeSpaceForColumnName(a.Name.ToString().ToLower()), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase));
-                if (xAttribute == default(XAttribute)) continue;
+                var message = messages.FirstOrDefault(m => string.Equals(m.Recipient, propertyName, StringComparison.CurrentCultureIgnoreCase));
+                if (message == default(Message)) continue;
 
-                var value = GetPropertyValue(entityPropertyInfo, xAttribute.Value.Trim());
+                var value = GetValue(entityPropertyInfo, message.Body);
                 entityPropertyInfo.SetValue(entity, value);
             }
 
             return entity;
         }
 
-        private static object GetPropertyValue(PropertyInfo entityPropertyInfo, string attributeValue)
-        {  
-            if (entityPropertyInfo.PropertyType == typeof(bool) || entityPropertyInfo.PropertyType == typeof (bool?))
-            {
-                var aiDateTimeTypeConverter = TypeDescriptor.GetConverter(typeof(SqlBooleanConverterAdapter));
-                return aiDateTimeTypeConverter.ConvertFromString(attributeValue);
-            }
-
-            return TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFrom(attributeValue);
-        }
-
-        private static string NormalizeSpaceForColumnName(string columnName)
+        private static object GetValue(PropertyInfo entityPropertyInfo, byte[] message)
         {
-            return columnName.Replace("_x0020_", Space);
+            if (message == null || message.Length == 0) return null;
+
+            if (entityPropertyInfo.PropertyType == typeof(byte[])) return message;
+
+            if (entityPropertyInfo.PropertyType == typeof(bool) || entityPropertyInfo.PropertyType == typeof(bool?)) return Encoding.Unicode.GetString(message).ToBoolean();
+
+            if (entityPropertyInfo.PropertyType == typeof(char[])) return Encoding.Unicode.GetString(message).ToCharArray();
+            
+            return TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFromString(Encoding.Unicode.GetString(message));
         }
 
         #endregion

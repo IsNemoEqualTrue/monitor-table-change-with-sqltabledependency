@@ -18,7 +18,6 @@ using TableDependency.Extensions;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.OracleClient.EventArgs;
-using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.MessageTypes;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
@@ -526,7 +525,7 @@ namespace TableDependency.OracleClient
                     case "BLOB":
                     case "CLOB":
                     case "RAW":
-                        throw new ColumnTypeNotSupportedException(_tableName, tableColumn.Item2);
+                        throw new ColumnTypeNotSupportedException(message: $"Type {tableColumn.Item2} not supported by OracleTableDependency.");
                 }
             }
         }

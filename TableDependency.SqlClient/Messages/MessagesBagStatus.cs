@@ -2,14 +2,12 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
-using TableDependency.Exceptions;
-
-namespace TableDependency.SqlClient.Exceptions
+namespace TableDependency.SqlClient.Messages
 {
-    public class ColumnTypeNotSupportedException : TableDependencyException
+    internal enum MessagesBagStatus
     {
-        protected internal ColumnTypeNotSupportedException(string message)
-            : base(message)
-        { }
+        Open,
+        Collecting,
+        Closed
     }
 }

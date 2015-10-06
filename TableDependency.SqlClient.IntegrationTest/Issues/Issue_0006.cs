@@ -10,7 +10,7 @@ using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Helpers;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
     public class Issue_0006
@@ -76,8 +76,8 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
         {
             using (var sqlTableDependency = new SqlTableDependency<Issue_0006_Model>(_connectionString, TableName))
             {
-                sqlTableDependency.OnChanged += SqlTableDependency_OnChanged;
-                sqlTableDependency.OnError += SqlTableDependency_OnError;
+                sqlTableDependency.OnChanged += this.SqlTableDependency_OnChanged;
+                sqlTableDependency.OnError += this.SqlTableDependency_OnError;
                 sqlTableDependency.Start();
 
                 var t = new Task(ModifyTableContent);

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
-namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
+namespace TableDependency.SqlClient.IntegrationTest.Issues
 {
     [TestClass]
     public class Issue_0005
@@ -73,8 +72,8 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
         {
             using (var sqlTableDependency = new SqlTableDependency<Issue_0005_Model>(_connectionString, TableName))
             {
-                sqlTableDependency.OnChanged += SqlTableDependency_OnChanged;
-                sqlTableDependency.OnError += SqlTableDependency_OnError;
+                sqlTableDependency.OnChanged += this.SqlTableDependency_OnChanged;
+                sqlTableDependency.OnError += this.SqlTableDependency_OnError;
                 sqlTableDependency.Start();
 
                 var t = new Task(ModifyTableContent);
@@ -83,8 +82,8 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
             }
 
             Assert.IsTrue(this._counter == 4);
-            Assert.IsTrue(_format == "<names><name>Valentina Del Bianco</name></names>");
-            Assert.IsTrue(_version == 23554329);
+            Assert.IsTrue(this._format == "<names><name>Valentina Del Bianco</name></names>");
+            Assert.IsTrue(this._version == 23554329);
         }
 
         private void SqlTableDependency_OnError(object sender, TableDependency.EventArgs.ErrorEventArgs e)
@@ -94,10 +93,10 @@ namespace TableDependency.SqlClient.IntegrationTest.ReportedIssues
 
         private void SqlTableDependency_OnChanged(object sender, RecordChangedEventArgs<Issue_0005_Model> e)
         {
-            _version = e.Entity.Version.GetValueOrDefault();
-            _format = e.Entity.Format;
+            this._version = e.Entity.Version.GetValueOrDefault();
+            this._format = e.Entity.Format;
 
-            TestContext.WriteLine("Format: {0}, Version: {1}", e.Entity.Format, e.Entity.Version);
+            this.TestContext.WriteLine("Format: {0}, Version: {1}", e.Entity.Format, e.Entity.Version);
 
             this._counter++;
         }

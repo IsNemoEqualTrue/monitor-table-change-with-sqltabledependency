@@ -117,18 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CreateContract" xml:space="preserve">
-    <value>CREATE CONTRACT [{0}] ([{0}_Deleted] SENT BY INITIATOR, [{0}_Inserted] SENT BY INITIATOR, [{0}_Updated] SENT BY INITIATOR)</value>
-  </data>
-  <data name="CreateMessageDeleted" xml:space="preserve">
-    <value>CREATE MESSAGE TYPE [{0}_Deleted] VALIDATION = NONE</value>
-  </data>
-  <data name="CreateMessageInserted" xml:space="preserve">
-    <value>CREATE MESSAGE TYPE [{0}_Inserted] VALIDATION = NONE</value>
-  </data>
-  <data name="CreateMessageUpdated" xml:space="preserve">
-    <value>CREATE MESSAGE TYPE [{0}_Updated] VALIDATION = NONE</value>
-  </data>
   <data name="CreateProcedureQueueActivation" xml:space="preserve">
     <value>CREATE PROCEDURE [{0}_QueueActivation] AS 
 BEGIN 
@@ -145,16 +133,6 @@ BEGIN
 	COMMIT TRANSACTION
 END</value>
   </data>
-  <data name="CreateQueue" xml:space="preserve">
-    <value>CREATE QUEUE [{0}] 
-WITH STATUS = ON, 
-RETENTION = OFF, 
-POISON_MESSAGE_HANDLING (STATUS = OFF), 
-ACTIVATION (STATUS = ON, PROCEDURE_NAME = [{0}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)</value>
-  </data>
-  <data name="CreateService" xml:space="preserve">
-    <value>CREATE SERVICE [{0}] ON QUEUE [{0}] ([{0}])</value>
-  </data>
   <data name="CreateTrigger" xml:space="preserve">
     <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER INSERT, DELETE, UPDATE AS 
 BEGIN
@@ -164,24 +142,25 @@ BEGIN
 	-- Turn off rows affected messages
 	SET NOCOUNT ON;
 
+	DECLARE @rowsToProcess INT
+	DECLARE @currentRow INT = 0
 	DECLARE @h AS UNIQUEIDENTIFIER
 	DECLARE @records XML
 	DECLARE @message NVARCHAR(MAX)
 	DECLARE @dmlType NVARCHAR(10)
-	DECLARE @rowsToProcess INT
-	DECLARE @currentRow INT = 0
 	DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
+	{5}
 	
 	IF NOT EXISTS(SELECT * FROM INSERTED)
 	BEGIN
-		SET @dmlType = 'DELETE'
+		SET @dmlType = '{12}'
 		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED AS [{1}]
 	END
 	ELSE
 	BEGIN
 		IF NOT EXISTS(SELECT * FROM DELETED)
 		BEGIN
-			SET @dmlType = 'INSERT'
+			SET @dmlType = '{10}'
 			INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED AS [{1}]
 		END
 		ELSE
@@ -190,58 +169,69 @@ BEGIN
 		END
 	END
 
+	SET @rowsToProcess = @@ROWCOUNT
+	IF @rowsToProcess &lt; 1 RETURN
+
+	WHILE @currentRow &lt; @rowsToProcess
 	BEGIN
-		SET @rowsToProcess = @@ROWCOUNT
-		IF @rowsToProcess &lt; 1 RETURN
+		SET @currentRow = @currentRow + 1
 
-		BEGIN DIALOG CONVERSATION @h
-		FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE'
-		ON CONTRACT [{0}]
-		WITH ENCRYPTION = OFF;
-
-		IF @dmlType = 'INSERT' 
+		SELECT	{6}
+		FROM	@modifiedRecordsTable
+		WHERE	[RowNumber] = @currentRow
+				
+		IF @dmlType = '{10}' 
 		BEGIN
-			WHILE @currentRow &lt; @rowsToProcess
-			BEGIN
-				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
-				SET @message = CAST(@records AS NVARCHAR(MAX))
+			BEGIN DIALOG CONVERSATION @h
+			FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
+			WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
 
-				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Inserted] (@message)
+			{7}
+
+			IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+			BEGIN
+				RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+			END
+			ELSE
+			BEGIN
+				END CONVERSATION @h WITH CLEANUP
 			END
 		END
 		
-		IF @dmlType = 'UPDATE'
+		IF @dmlType = '{11}'
 		BEGIN
-			WHILE @currentRow &lt; @rowsToProcess
-			BEGIN
-				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
-				SET @message = CAST(@records AS NVARCHAR(MAX))
+			BEGIN DIALOG CONVERSATION @h
+			FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
+			WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
 
-				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Updated] (@message)
+			{8}
+
+			IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+			BEGIN
+				RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+			END
+			ELSE
+			BEGIN
+				END CONVERSATION @h WITH CLEANUP
 			END
 		END
 
-		IF @dmlType = 'DELETE'
+		IF @dmlType = '{12}'
 		BEGIN
-			WHILE @currentRow &lt; @rowsToProcess
-			BEGIN
-				SET @currentRow = @currentRow + 1						
-				SELECT @records = (SELECT {3} FROM @modifiedRecordsTable AS [{1}] WHERE [RowNumber] = @currentRow FOR XML AUTO, BINARY BASE64)
-				SET @message = CAST(@records AS NVARCHAR(MAX))
-	
-				;SEND ON CONVERSATION @h MESSAGE TYPE [{0}_Deleted] (@message)
-			END
-		END
+			BEGIN DIALOG CONVERSATION @h
+			FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
+			WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
 
-		IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
-		BEGIN
-			RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
-		END
-		ELSE
-		BEGIN
-			END CONVERSATION @h WITH CLEANUP
+			{9}
+
+			IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+			BEGIN
+				RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+			END
+			ELSE
+			BEGIN
+				END CONVERSATION @h WITH CLEANUP
+			END
 		END
 	END
 END</value>
@@ -251,26 +241,20 @@ END</value>
 IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
 IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}') DROP QUEUE [{0}];
 IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N'{0}') DROP CONTRACT [{0}];
-IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Deleted') DROP MESSAGE TYPE [{0}_Deleted];
-IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Inserted') DROP MESSAGE TYPE [{0}_Inserted];
-IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}_Updated') DROP MESSAGE TYPE [{0}_Updated];
-IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP PROCEDURE [{0}_QueueActivation];</value>
+IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP PROCEDURE [{0}_QueueActivation];
+{1}</value>
   </data>
   <data name="TriggerUpdateWithColumns" xml:space="preserve">
-    <value>IF ({0})
-			BEGIN
-				SET @dmlType = 'UPDATE'
-				INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
-			END
-			ELSE
-			BEGIN
-				RETURN
-			END</value>
+    <value>IF ({0}) BEGIN
+    SET @dmlType = '{3}'
+    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+END
+ELSE BEGIN
+    RETURN
+END</value>
   </data>
   <data name="TriggerUpdateWithoutColuns" xml:space="preserve">
-    <value>
-				SET @dmlType = 'UPDATE'
-				INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
-</value>
+    <value>SET @dmlType = '{2}'
+INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]</value>
   </data>
 </root>

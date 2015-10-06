@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Data;
+using TableDependency.Exceptions;
 
 namespace TableDependency.SqlClient.Extensions
 {
@@ -17,7 +18,24 @@ namespace TableDependency.SqlClient.Extensions
                 return SqlDbType.Decimal;
             }
 
-            return (SqlDbType)Enum.Parse(typeof(SqlDbType), type, true);
-        }         
+            try
+            {
+                return (SqlDbType) Enum.Parse(typeof (SqlDbType), type, true);
+            }
+            catch (Exception exception)
+            {
+                throw new ColumnTypeNotSupportedException(exception: exception);
+            }
+        }
+
+        public static bool? ToBoolean(this string str)
+        {
+            var cleanValue = (str ?? "").Trim();
+
+            if (string.Equals(cleanValue, "0", StringComparison.OrdinalIgnoreCase)) return false;
+            if (string.Equals(cleanValue, "1", StringComparison.OrdinalIgnoreCase)) return true;
+
+            return null;
+        }
     }
 }

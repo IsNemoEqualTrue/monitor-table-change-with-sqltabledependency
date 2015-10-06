@@ -2,8 +2,7 @@
 {
     public class Issue_0003_Model_Unmanaged : Issue_0003_Model_Managed
     {
-        public string NotManagedColumnBecauseIsVarcharMax { get; set; }
-        public string NotManagedColumnBecauseIsXml { get; set; }
+        public string NotManagedColumnBecauseIsImage { get; set; }
     }
 
     public class Issue_0003_Model_Managed
