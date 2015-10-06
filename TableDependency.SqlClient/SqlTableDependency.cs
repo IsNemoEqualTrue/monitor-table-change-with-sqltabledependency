@@ -18,6 +18,7 @@ using TableDependency.Enums;
 using TableDependency.Exceptions;
 using TableDependency.Extensions;
 using TableDependency.Mappers;
+using TableDependency.Messages;
 using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.EventArgs;
 using TableDependency.SqlClient.Exceptions;

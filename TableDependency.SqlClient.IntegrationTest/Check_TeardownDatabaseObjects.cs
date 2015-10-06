@@ -16,7 +16,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     [TestClass]
     public class CheckTeardownDatabaseObjects
     {
-        private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
+        private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static string TableName = "TeardownDatabaseObjects";
 
@@ -54,6 +54,8 @@ namespace TableDependency.SqlClient.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+
+            _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
         }
 
         [ClassCleanup()]
@@ -127,6 +129,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 dataBaseObjectsNamingConvention = tableDependency.DataBaseObjectsNamingConvention;
+                Thread.Sleep(5000);
             }
             finally
             {

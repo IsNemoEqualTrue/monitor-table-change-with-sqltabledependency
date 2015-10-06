@@ -48,9 +48,6 @@
     <Compile Include="Exceptions\UserWithNoPermissionException.cs" />
     <Compile Include="Extensions\SqlDataReaderExtension.cs" />
     <Compile Include="Extensions\StringExtension.cs" />
-    <Compile Include="Messages\Message.cs" />
-    <Compile Include="Messages\MessagesBag.cs" />
-    <Compile Include="Messages\MessagesBagStatus.cs" />
     <Compile Include="Messages\SqlMessageTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Scripts.Designer.cs">

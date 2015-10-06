@@ -2,7 +2,7 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
-namespace TableDependency.SqlClient.Messages
+namespace TableDependency.Messages
 {
     internal enum MessagesBagStatus
     {

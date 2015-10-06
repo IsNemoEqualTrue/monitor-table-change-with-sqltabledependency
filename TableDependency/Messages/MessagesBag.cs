@@ -9,7 +9,7 @@ using System.Text;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
 
-namespace TableDependency.SqlClient.Messages
+namespace TableDependency.Messages
 {
     internal class MessagesBag
     {
@@ -32,11 +32,11 @@ namespace TableDependency.SqlClient.Messages
 
         public MessagesBag(string startMessageSignature, string endMessageSignature)
         {
-            MessageSheets = new List<Message>();
-            Status = MessagesBagStatus.Open;
+            this.MessageSheets = new List<Message>();
+            this.Status = MessagesBagStatus.Open;
 
-            _endMessageSignature = endMessageSignature;
-            _startMessageSignature = startMessageSignature;
+            this._endMessageSignature = endMessageSignature;
+            this._startMessageSignature = startMessageSignature;
         }
 
         #endregion
@@ -45,23 +45,23 @@ namespace TableDependency.SqlClient.Messages
 
         public MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
-            if (rawMessageType == _startMessageSignature)
+            if (rawMessageType == this._startMessageSignature)
             {               
-                MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue));
-                MessageSheets.Clear();
-                return (Status = MessagesBagStatus.Open);
+                this.MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue));
+                this.MessageSheets.Clear();
+                return (this.Status = MessagesBagStatus.Open);
             }
 
-            if (rawMessageType == _endMessageSignature)
+            if (rawMessageType == this._endMessageSignature)
             {
-                if ((ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue)) != MessageType) throw new DataMisalignedException();
-                return (Status = MessagesBagStatus.Closed);
+                if ((ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue)) != this.MessageType) throw new DataMisalignedException();
+                return (this.Status = MessagesBagStatus.Closed);
             }
 
-            if (Status == MessagesBagStatus.Closed) throw new MessageMisalignedException("Envelop already closed!");
-            if (MessageType != GetMessageType(rawMessageType)) throw new MessageMisalignedException();
+            if (this.Status == MessagesBagStatus.Closed) throw new MessageMisalignedException("Envelop already closed!");
+            if (this.MessageType != GetMessageType(rawMessageType)) throw new MessageMisalignedException();
 
-            MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
+            this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
 
             return MessagesBagStatus.Collecting;
         }

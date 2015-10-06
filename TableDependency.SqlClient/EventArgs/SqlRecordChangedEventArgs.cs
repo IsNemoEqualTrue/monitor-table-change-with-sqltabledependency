@@ -11,6 +11,7 @@ using System.Text;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
+using TableDependency.Messages;
 using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.Utilities;

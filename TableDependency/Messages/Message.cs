@@ -2,7 +2,7 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
-namespace TableDependency.SqlClient.Messages
+namespace TableDependency.Messages
 {
     internal class Message
     {
@@ -13,8 +13,8 @@ namespace TableDependency.SqlClient.Messages
 
         public Message(string recipient, byte[] body)
         {
-            Recipient = recipient;
-            Body = body;
+            this.Recipient = recipient;
+            this.Body = body;
         }
 
         #endregion
