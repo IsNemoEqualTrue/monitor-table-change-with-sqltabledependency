@@ -150,13 +150,11 @@ namespace TableDependency.SqlClient
             IList<string> processableMessages;
             if (_needsToCreateDatabaseObjects)
             {
-                _needsToCreateDatabaseObjects = false;
-
                 var toUseCreatingTrigger = _userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? _userInterestedColumns.ToArray();
                 var columnsForTableVariable = PrepareColumnListForTableVariable(toUseCreatingTrigger);
                 var columnsForSelect = string.Join(", ", toUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
                 var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
-                processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _dataBaseObjectsNamingConvention, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, _automaticDatabaseObjectsTeardown);
+                processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _dataBaseObjectsNamingConvention, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
             }
             else
             {
@@ -178,7 +176,8 @@ namespace TableDependency.SqlClient
                     timeOut,
                     watchDogTimeOut,
                     processableMessages,
-                    _mapper),
+                    _mapper,
+                    _automaticDatabaseObjectsTeardown),
                 _cancellationTokenSource.Token);
 
             this.Status = TableDependencyStatus.Starting;
@@ -220,18 +219,20 @@ namespace TableDependency.SqlClient
             int timeOut,
             int timeOutWatchDog,
             ICollection<string> processableMessages,
-            ModelToTableMapper<T> modelMapper)
+            ModelToTableMapper<T> modelMapper,
+            bool automaticDatabaseObjectsTeardown)
         {
             setStatus(TableDependencyStatus.Started);
 
             var messagesBag = new MessagesBag(string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
-            var waitForStatement = string.Format(
-                "BEGIN CONVERSATION TIMER ('{0}') TIMEOUT = {3}; WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{1}]), TIMEOUT {2};",
-                dialogHandle,
-                databaseObjectsNaming,
-                timeOut * 1000,
-                timeOutWatchDog);
+            var waitForStatement = automaticDatabaseObjectsTeardown
+                ? string.Format(
+                    "BEGIN CONVERSATION TIMER ('{0}') TIMEOUT = {3}; WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{1}]), TIMEOUT {2};",
+                    dialogHandle, databaseObjectsNaming, timeOut * 1000, timeOutWatchDog)
+                : string.Format(
+                    "WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{0}]), TIMEOUT {1};",
+                    databaseObjectsNaming, timeOut * 1000);
 
             try
             {
@@ -552,7 +553,7 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns, bool teardownDatabaseObjects)
+        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns)
         {
             var processableMessages = new List<string>();
 
@@ -595,7 +596,7 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                        var dropAllScript = teardownDatabaseObjects ? string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages) : string.Empty;
+                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages);
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
                         sqlCommand.ExecuteNonQuery();
                         
