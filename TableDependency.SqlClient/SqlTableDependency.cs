@@ -96,50 +96,26 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>        
         /// <param name="mapper">The model to column table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true)
+        /// /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
 
             PreliminaryChecks(connectionString, tableName, null);
 
-            _dataBaseObjectsNamingConvention = $"{tableName}_{Guid.NewGuid()}";
+            _dataBaseObjectsNamingConvention = namingConventionForDatabaseObjects ?? $"{tableName}_{Guid.NewGuid()}";
             _connectionString = connectionString;
             _tableName = tableName;
             _mapper = mapper;
             _updateOf = updateOf;
             _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
-            _userInterestedColumns = this.GetColumnsToUseForCreatingDbObjects(updateOf);
-            _needsToCreateDatabaseObjects = true;
-            
-            Status = TableDependencyStatus.WaitingToStart;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="dataBaseObjectsNamingConvention">Name of already existing database object as service broker, queue and so on.</param>
-        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
-        /// <param name="mapper">The model to column table mapper.</param>
-        public SqlTableDependency(string connectionString, string dataBaseObjectsNamingConvention, bool automaticDatabaseObjectsTeardown, ModelToTableMapper<T> mapper = null)
-        {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(dataBaseObjectsNamingConvention)) throw new ArgumentNullException(nameof(dataBaseObjectsNamingConvention));
-
-            PreliminaryChecks(connectionString, null, dataBaseObjectsNamingConvention);
-
-            _dataBaseObjectsNamingConvention = dataBaseObjectsNamingConvention;
-            _connectionString = connectionString;            
-            _tableName = TableAssociateToServiceBroker(connectionString);
-            _mapper = mapper;
-            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
-            _userInterestedColumns = this.GetColumnsToUseForCreatingDbObjects();
-            _needsToCreateDatabaseObjects = false;
+            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(_updateOf);
+            _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
 
             Status = TableDependencyStatus.WaitingToStart;
         }
@@ -214,11 +190,6 @@ namespace TableDependency.SqlClient
         /// </summary>
         public void Stop()
         {
-            Stop(_automaticDatabaseObjectsTeardown);
-        }
-
-        public void Stop(bool databaseObjectsTeardown)
-        {
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
@@ -227,7 +198,7 @@ namespace TableDependency.SqlClient
 
             _task = null;
 
-            if (databaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, _userInterestedColumns);
+            if (_automaticDatabaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, _userInterestedColumns);
 
             _disposed = true;
 
@@ -323,19 +294,55 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private string TableAssociateToServiceBroker(string connectionString)
+        private bool CheckIfNeedsToCreateDatabaseObjects()
         {
-            using (var sqlConnection = new SqlConnection(connectionString))
+            IList<bool> allObjectAlreadyPresent = new List<bool>();
+
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"select object_name(parent_id) from sys.triggers where name = 'tr_{_dataBaseObjectsNamingConvention}'";
-                    var table = sqlCommand.ExecuteScalar() as string;
-                    if (string.IsNullOrWhiteSpace(table)) throw new ServiceBrokerWithTriggerOrTableNotExistingException(_dataBaseObjectsNamingConvention);
-                    return table;
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = 'tr_{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.OBJECTS WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    foreach (var userInterestedColumn in _userInterestedColumns)
+                    {
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    }
                 }
             }
+
+            if (allObjectAlreadyPresent.All(exist => exist == false)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist == true)) return false;
+
+            // Not all objects are present
+            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
         }
 
         private void OnStatusChanged(TableDependencyStatus status)
@@ -588,20 +595,12 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages);
+                        var dropAllScript = teardownDatabaseObjects ? string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages) : string.Empty;
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
                         sqlCommand.ExecuteNonQuery();
-
-                        if (teardownDatabaseObjects)
-                        {
-                            sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
-                            sqlCommand.ExecuteNonQuery();
-                        }
-                        else
-                        {
-                            sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF)";
-                            sqlCommand.ExecuteNonQuery();
-                        }
+                        
+                        sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                        sqlCommand.ExecuteNonQuery();
 
                         sqlCommand.CommandText = $"CREATE SERVICE[{databaseObjectsNaming}] ON QUEUE[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                         sqlCommand.ExecuteNonQuery();

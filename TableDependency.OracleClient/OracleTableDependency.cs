@@ -160,14 +160,6 @@ namespace TableDependency.OracleClient
 
         public void Stop()
         {
-            // call with automatic database teardounw
-        }
-
-        /// <summary>
-        /// Stops monitoring change in the table contents.
-        /// </summary>
-        public void Stop(bool databaseObjectsTeardown)
-        {
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
