@@ -123,17 +123,17 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <param name="existingServiceBrokerName">Name of the already existing service broker.</param>
+        /// <param name="dataBaseObjectsNamingConvention">Name of already existing database object as service broker, queue and so on.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="mapper">The model to column table mapper.</param>
-        public SqlTableDependency(string connectionString, string existingServiceBrokerName, bool automaticDatabaseObjectsTeardown, ModelToTableMapper<T> mapper = null)
+        public SqlTableDependency(string connectionString, string dataBaseObjectsNamingConvention, bool automaticDatabaseObjectsTeardown, ModelToTableMapper<T> mapper = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(existingServiceBrokerName)) throw new ArgumentNullException(nameof(existingServiceBrokerName));
+            if (string.IsNullOrWhiteSpace(dataBaseObjectsNamingConvention)) throw new ArgumentNullException(nameof(dataBaseObjectsNamingConvention));
 
-            PreliminaryChecks(connectionString, null, existingServiceBrokerName);
+            PreliminaryChecks(connectionString, null, dataBaseObjectsNamingConvention);
 
-            _dataBaseObjectsNamingConvention = existingServiceBrokerName;
+            _dataBaseObjectsNamingConvention = dataBaseObjectsNamingConvention;
             _connectionString = connectionString;            
             _tableName = TableAssociateToServiceBroker(connectionString);
             _mapper = mapper;
@@ -559,26 +559,28 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{databaseObjectsNaming}'";
                         if (((int)sqlCommand.ExecuteScalar()) > 0) throw new QueueAlreadyUsedException(databaseObjectsNaming);
 
-                        processableMessages.Add(string.Format(StartMessageTemplate, databaseObjectsNaming));
-                        processableMessages.Add(string.Format(EndMessageTemplate, databaseObjectsNaming));
+                        var startMessage = string.Format(StartMessageTemplate, databaseObjectsNaming);
+                        var endMessage = string.Format(EndMessageTemplate, databaseObjectsNaming);
 
-                        sqlCommand.CommandText =
-                            $"CREATE MESSAGE TYPE[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] VALIDATION = NONE; " + Environment.NewLine +
-                            $"CREATE MESSAGE TYPE[{string.Format(EndMessageTemplate, databaseObjectsNaming)}] VALIDATION = NONE";
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE[{startMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE[{endMessage}] VALIDATION = NONE";
                         sqlCommand.ExecuteNonQuery();
+
+                        processableMessages.Add(startMessage);
+                        processableMessages.Add(endMessage);
 
                         var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
                         foreach (var userInterestedColumn in interestedColumns)
                         {
-                            processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}");
-                            processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}");
-                            processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}");
-
-                            sqlCommand.CommandText =
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}] VALIDATION = NONE; " + Environment.NewLine +
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}] VALIDATION = NONE; " + Environment.NewLine +
-                                $"CREATE MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}] VALIDATION = NONE;";
+                            var deleteMessage = $"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}";
+                            var insertMessage = $"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}";
+                            var updateMessage= $"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}";
+                           
+                            sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{deleteMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{insertMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{updateMessage}] VALIDATION = NONE;";
                             sqlCommand.ExecuteNonQuery();
+
+                            processableMessages.Add(deleteMessage);
+                            processableMessages.Add(insertMessage);
+                            processableMessages.Add(updateMessage);
                         }
 
                         var contractBody = string.Join(", " + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
