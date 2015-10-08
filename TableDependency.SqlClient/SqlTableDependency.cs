@@ -100,7 +100,7 @@ namespace TableDependency.SqlClient
         /// <param name="mapper">The model to column table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
-        /// /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
