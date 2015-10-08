@@ -513,7 +513,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsToUse)
+        private static void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsToUse)
         {
             foreach (var tableColumn in tableColumnsToUse)
             {
@@ -530,7 +530,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming)
+        private static IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming)
         {
             var processableMessages = new List<string>
             {
