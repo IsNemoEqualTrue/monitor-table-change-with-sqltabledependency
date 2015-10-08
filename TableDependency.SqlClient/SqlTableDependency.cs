@@ -37,13 +37,13 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
-        private static string EndMessageTemplate = "{0}/EndDialog";
-        private static string StartMessageTemplate = "{0}/StartDialog";
+        private const string EndMessageTemplate = "{0}/EndDialog";
+        private const string StartMessageTemplate = "{0}/StartDialog";
         private const string Max = "MAX";
 
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource;
-        private bool _needsToCreateDatabaseObjects;
+        private readonly bool _needsToCreateDatabaseObjects;
         private readonly string _dataBaseObjectsNamingConvention;
         private readonly bool _automaticDatabaseObjectsTeardown;
         private readonly ModelToTableMapper<T> _mapper;
@@ -64,7 +64,7 @@ namespace TableDependency.SqlClient
         /// <value>
         /// The data base objects naming.
         /// </value>
-        public string DataBaseObjectsNamingConvention => string.Copy(this._dataBaseObjectsNamingConvention);
+        public string DataBaseObjectsNamingConvention => string.Copy(_dataBaseObjectsNamingConvention);
 
         /// <summary>
         /// Gets the SqlTableDependency status.
@@ -134,7 +134,7 @@ namespace TableDependency.SqlClient
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
         public void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
-            if (timeOut < 60) throw new ArgumentException("timeOut must be great or equal to 60 seconds");
+            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
             if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
 
             if (_task != null)
@@ -192,7 +192,7 @@ namespace TableDependency.SqlClient
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
-                _task.Wait();
+                _task?.Wait();
             }
 
             _task = null;
@@ -227,12 +227,8 @@ namespace TableDependency.SqlClient
             var messagesBag = new MessagesBag(string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             var waitForStatement = automaticDatabaseObjectsTeardown
-                ? string.Format(
-                    "BEGIN CONVERSATION TIMER ('{0}') TIMEOUT = {3}; WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{1}]), TIMEOUT {2};",
-                    dialogHandle, databaseObjectsNaming, timeOut * 1000, timeOutWatchDog)
-                : string.Format(
-                    "WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{0}]), TIMEOUT {1};",
-                    databaseObjectsNaming, timeOut * 1000);
+                ? $"BEGIN CONVERSATION TIMER ('{dialogHandle}') TIMEOUT = {timeOutWatchDog}; WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {(timeOut * 1000)};"
+                : $"WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {(timeOut * 1000)};";
 
             try
             {
@@ -529,7 +525,7 @@ namespace TableDependency.SqlClient
                     case SqlDbType.Structured:
                     case SqlDbType.Udt:
                     case SqlDbType.Variant:
-                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} type is not an admitted type for SqlTableDependency.");
+                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} type is not an admitted for SqlTableDependency.");
                 }
             }
         }
@@ -811,7 +807,7 @@ namespace TableDependency.SqlClient
                 var dbColumnNames = tableColumns.Select(t => t.Item1.ToLower()).ToList();
                 foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
                 {
-                    throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' does not exists");
+                    throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' specified on updateOf list does not exists");
                 }
             }
         }
