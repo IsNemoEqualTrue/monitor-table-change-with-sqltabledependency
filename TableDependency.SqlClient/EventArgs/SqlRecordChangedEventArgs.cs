@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -99,8 +100,10 @@ namespace TableDependency.SqlClient.EventArgs
             if (entityPropertyInfo.PropertyType == typeof(bool) || entityPropertyInfo.PropertyType == typeof(bool?)) return Encoding.Unicode.GetString(message).ToBoolean();
 
             if (entityPropertyInfo.PropertyType == typeof(char[])) return Encoding.Unicode.GetString(message).ToCharArray();
-            
-            return TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFromString(Encoding.Unicode.GetString(message));
+
+            return TypeDescriptor
+                .GetConverter(entityPropertyInfo.PropertyType)
+                .ConvertFromString(null, CultureInfo.CurrentCulture, Encoding.Unicode.GetString(message).ToString(CultureInfo.CurrentCulture));
         }
 
         #endregion

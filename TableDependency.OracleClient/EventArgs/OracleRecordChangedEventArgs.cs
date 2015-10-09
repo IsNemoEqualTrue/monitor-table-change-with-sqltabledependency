@@ -104,7 +104,14 @@ namespace TableDependency.OracleClient.EventArgs
                 {
                     var columnValue = xmlNode.Value.Trim();
                     var value = TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFromString(columnValue);
-                    entityPropertyInfo.SetValue(entity, value);                    
+                    entityPropertyInfo.SetValue(entity, value);
+
+                    //
+                    //
+                    // TODO:
+                    // return TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType).ConvertFromString(null, CultureInfo.CurrentCulture, Encoding.Unicode.GetString(message).ToString(CultureInfo.CurrentCulture));
+                    //
+                    //
                 }
             }
 

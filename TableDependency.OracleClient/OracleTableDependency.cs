@@ -163,7 +163,7 @@ namespace TableDependency.OracleClient
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
-                if (_task.Status == TaskStatus.Running) _task.Wait();
+                _task?.Wait();
             }
 
             _task = null;
@@ -181,7 +181,7 @@ namespace TableDependency.OracleClient
             if (_task != null)
             {
                 _cancellationTokenSource.Cancel(true);
-                if (_task.Status == TaskStatus.Running) _task.Wait();
+                _task?.Wait();
             }
 
             _task = null;
@@ -489,7 +489,7 @@ namespace TableDependency.OracleClient
             var columns = string.Join(" || ", columnsList);
 
             return string.Format("'<?xml version=\"1.0\"?><{0}>' || {1} || '</{0}>'", tableName.ToLower(), columns);
-        }
+        }       
 
         private string GetUpdateOf(IEnumerable<string> columnsUpdateOf)
         {
@@ -521,7 +521,7 @@ namespace TableDependency.OracleClient
                     case "BFILE":
                     case "BLOB":
                     case "CLOB":
-                    case "RAW":
+                    case "NLOB":
                         throw new ColumnTypeNotSupportedException(message: $"Type {tableColumn.Item2} not supported by OracleTableDependency.");
                 }
             }

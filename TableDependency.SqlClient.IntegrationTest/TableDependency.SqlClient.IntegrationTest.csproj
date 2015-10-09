@@ -67,6 +67,7 @@
     <Compile Include="Check_EventForSpecificColumns.cs" />
     <Compile Include="Helpers\BooleanExtender.cs" />
     <Compile Include="Helpers\Helper.cs" />
+    <Compile Include="Issues\Issue_0008.cs" />
     <Compile Include="Issues\Issue_0007.cs" />
     <Compile Include="Issues\Issue_0006.cs" />
     <Compile Include="Issues\Issue_0005.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Check_LoadAndCount.cs" />
     <Compile Include="Model\Issue_0002_Model.cs" />
     <Compile Include="Model\Issue_0004_Model.cs" />
+    <Compile Include="Model\Issue_0008_Model.cs" />
     <Compile Include="Model\Issue_0007_Model.cs" />
     <Compile Include="Model\Issue_0006_Model.cs" />
     <Compile Include="Model\Issue_0005_Model.cs" />
