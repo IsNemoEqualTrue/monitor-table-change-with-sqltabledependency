@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.Mappers;
 using TableDependency.SqlClient.IntegrationTest.Model;
 
 namespace TableDependency.SqlClient.IntegrationTest
@@ -13,26 +13,44 @@ namespace TableDependency.SqlClient.IntegrationTest
     [TestClass]
     public class Merge
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private Check_Model modifiedValues;
+        private Check_Model insertedValues;
+        private Check_Model deletedValues;
+
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private const string TargetTableName = "energydata";
         private const string SourceTableName = "temp_energydata";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID(, 'U') IS NOT NULL DROP TABLE [{TargetTableName}];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TargetTableName}', 'U') IS NOT NULL DROP TABLE [{TargetTableName}];";
                     sqlCommand.ExecuteNonQuery();
-                    sqlCommand.CommandText = $"CREATE TABLE {TargetTableName} (id INT, Name NVARCHAR(100), qty INT);";
+                    sqlCommand.CommandText = $"CREATE TABLE {TargetTableName} (Id INT, Name NVARCHAR(100), qty INT);";
                     sqlCommand.ExecuteNonQuery();
 
                     sqlCommand.CommandText = $"IF OBJECT_ID('{SourceTableName}', 'U') IS NOT NULL DROP TABLE [{SourceTableName}];";
                     sqlCommand.ExecuteNonQuery();
-                    sqlCommand.CommandText = $"CREATE TABLE {SourceTableName} (id INT, Name NVARCHAR(100), qty INT);";
+                    sqlCommand.CommandText = $"CREATE TABLE {SourceTableName} (Id INT, Name NVARCHAR(100), qty INT);";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = "IF EXISTS (SELECT * FROM sys.objects WHERE name = N'testMerge') DROP PROCEDURE[testMerge]";
+                    sqlCommand.ExecuteNonQuery();
+                    sqlCommand.CommandText =
+                        "CREATE PROCEDURE dbo.testMerge AS " + Environment.NewLine +
+                        "BEGIN " + Environment.NewLine +
+                        "  SET NOCOUNT ON; " + Environment.NewLine +
+                        $"  MERGE INTO {TargetTableName} AS target " + Environment.NewLine +
+                        $"  USING {SourceTableName} AS source ON target.Id = source.Id " + Environment.NewLine +
+                        "  WHEN MATCHED THEN UPDATE SET target.qty = source.qty " + Environment.NewLine +
+                        "  WHEN NOT MATCHED BY TARGET THEN INSERT(Id, Name, qty) VALUES(source.Id, source.Name, source.qty) " + Environment.NewLine +
+                        "  WHEN NOT MATCHED BY SOURCE THEN DELETE; " + Environment.NewLine +
+                        "END;";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -41,7 +59,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -62,11 +80,13 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
+                    sqlCommand.CommandText = "IF EXISTS (SELECT * FROM sys.objects WHERE name = N'testMerge') DROP PROCEDURE[testMerge]";
+                    sqlCommand.ExecuteNonQuery();
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TargetTableName}', 'U') IS NOT NULL DROP TABLE [{TargetTableName}];";
                     sqlCommand.ExecuteNonQuery();
                     sqlCommand.CommandText = $"IF OBJECT_ID('{SourceTableName}', 'U') IS NOT NULL DROP TABLE [{SourceTableName}];";
@@ -82,7 +102,7 @@ namespace TableDependency.SqlClient.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TargetTableName);
+                tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TargetTableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
@@ -98,7 +118,9 @@ namespace TableDependency.SqlClient.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-
+            Assert.AreEqual(insertedValues.qty, 100);
+            Assert.AreEqual(modifiedValues.qty, 200);
+            Assert.AreEqual(deletedValues.qty, 0);
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
@@ -107,28 +129,31 @@ namespace TableDependency.SqlClient.IntegrationTest
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
-        {            
+        {
+            switch (e.ChangeType)
+            {
+                case ChangeType.Insert:
+                    insertedValues = new Check_Model { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
+                    break;
+                case ChangeType.Update:
+                    modifiedValues = new Check_Model { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
+                    break;
+                case ChangeType.Delete:
+                    deletedValues = new Check_Model { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
+                    break;
+            }
         }
 
         private static void MergeOperation()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     // Synchronize source data with target
-                    sqlCommand.CommandText =
-                        $"MERGE INTO {TargetTableName} AS target " +
-                        $"USING {SourceTableName} AS source " +
-                        "   ON target.id = source.id " +
-                        "WHEN MATCHED THEN " +
-                        "   UPDATE SET target.qty = source.qty " +
-                        "WHEN NOT MATCHED BY TARGET THEN " +
-                        "   INSERT(id, name, qty) VALUES(source.id, source.name, source.qty) " + 
-                        "WHEN NOT MATCHED BY SOURCE THEN " +
-                        "   DELETE";
-
+                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
+                    sqlCommand.CommandText = "testMerge";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
