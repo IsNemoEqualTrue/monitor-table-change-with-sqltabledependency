@@ -30,7 +30,7 @@ namespace TableDependency.Messages
 
         #region Constructors
 
-        public MessagesBag(string startMessageSignature, string endMessageSignature)
+        internal MessagesBag(string startMessageSignature, string endMessageSignature)
         {
             this.MessageSheets = new List<Message>();
             this.Status = MessagesBagStatus.Open;
@@ -43,7 +43,7 @@ namespace TableDependency.Messages
 
         #region Public Methods
 
-        public MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
+        internal MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
             if (rawMessageType == this._startMessageSignature)
             {               

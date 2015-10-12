@@ -1,16 +1,17 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TableDependency.SqlClient")]
-[assembly: AssemblyDescription("TableDependency.SqlClient is a C# component used to receive database notifications when table's contents has been changed")]
+[assembly: AssemblyTitle("ConsoleApplication2")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Christian Del Bianco")]
-[assembly: AssemblyProduct("TableDependency.SqlClient")]
-[assembly: AssemblyTrademark("Christian Del Bianco")]
-[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("ConsoleApplication2")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -19,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("afcbbe27-86b7-45bd-82cb-bb57084b4403")]
+[assembly: Guid("9e7e4633-16ca-4913-94bd-a1c735e0a22e")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -31,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.2.0.0")]
-[assembly: AssemblyFileVersion("4.2.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

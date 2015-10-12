@@ -10,6 +10,7 @@ namespace TableDependency.SqlClient.IntegrationTest.Model
         public string Name { get; set; }
         public string Surname { get; set; }
         public DateTime Born { get; set; }
+        public int qty { get; set; }
 
         // *****************************************************
         // All columns tests

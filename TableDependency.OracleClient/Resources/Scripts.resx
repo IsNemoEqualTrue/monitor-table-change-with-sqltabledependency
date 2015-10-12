@@ -118,91 +118,78 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CreateProcedureDequeueMessage" xml:space="preserve">
-    <value>CREATE OR REPLACE PROCEDURE DEQ_{0}
-(
-    messageType OUT VARCHAR2,
-    messageContent OUT XMLType
-)
-AS
-    dequeue_options      dbms_aq.dequeue_options_t;
-    message_properties   dbms_aq.message_properties_t;
-    message_handle       RAW(16);
-    message              TYPE_{0};
-    no_messages          EXCEPTION;
-    PRAGMA EXCEPTION_INIT(no_messages, -25228);
+    <value>CREATE OR REPLACE PROCEDURE DEQ_{0} (p_recordset OUT SYS_REFCURSOR) 
+AS 
+  obj TYPE_{0};
+  payload TBL_{0};
+  v_msgid RAW(16);
+
+  queueopts DBMS_AQ.DEQUEUE_OPTIONS_T;
+  msgprops DBMS_AQ.MESSAGE_PROPERTIES_T;
+   
+  no_messages EXCEPTION;
+  PRAGMA EXCEPTION_INIT (no_messages, -25228);
 BEGIN
-    dequeue_options.CONSUMER_NAME           := NULL;
-    dequeue_options.DEQUEUE_MODE            := DBMS_AQ.REMOVE;
-    dequeue_options.NAVIGATION              := DBMS_AQ.NEXT_MESSAGE;
-    dequeue_options.VISIBILITY              := DBMS_AQ.IMMEDIATE;
-    dequeue_options.WAIT                    := {1};
-    dequeue_options.MSGID                   := NULL;
-
+  queueopts.wait := {1};
+  queueopts.navigation := DBMS_AQ.NEXT_MESSAGE;
+  payload := TBL_{0}();
+  
+  FOR Lcntr IN 1..{2} LOOP
     BEGIN
-        DBMS_AQ.DEQUEUE (
-            queue_name         =&gt; 'QUE_{0}'
-            , dequeue_options    =&gt; dequeue_options
-            , message_properties =&gt; message_properties
-            , payload            =&gt; message
-            , msgid              =&gt; message_handle);
+      DBMS_AQ.DEQUEUE ('QUE_{0}', queueopts, msgprops, obj, v_msgid);
 
-        messageType := message.MESSAGE_TYPE; 
-        messageContent := message.MESSAGE_CONTENT;
+      payload.EXTEND;
+      payload(payload.LAST) := obj;
+      
+      queueopts.wait := DBMS_AQ.NO_WAIT;
+
     EXCEPTION
-        WHEN no_messages THEN
-            messageType := '{2}';
+      WHEN no_messages THEN
+        OPEN p_recordset FOR SELECT NULL AS message_type, NULL AS message_content FROM DUAL;
+        RETURN;
     END;
-END;</value>
-  </data>
-  <data name="CreateQueue" xml:space="preserve">
-    <value>BEGIN
-    DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=&gt; 'QT_{0}', queue_payload_type=&gt; 'TYPE_{0}', multiple_consumers =&gt; FALSE, auto_commit =&gt; TRUE);
-    DBMS_AQADM.CREATE_QUEUE(queue_name =&gt; 'QUE_{0}', queue_table =&gt; 'QT_{0}');
-    DBMS_AQADM.START_QUEUE(queue_name=&gt; 'QUE_{0}');
+  END LOOP;
+   
+  OPEN p_recordset FOR SELECT message_type, message_content FROM TABLE(payload);     
 END;</value>
   </data>
   <data name="CreateTriggerEnqueueMessage" xml:space="preserve">
     <value>CREATE OR REPLACE TRIGGER TR_{0}
-AFTER DELETE OR INSERT OR UPDATE{7} ON {1}
+AFTER DELETE OR INSERT OR UPDATE{1} ON {2}
 REFERENCING OLD AS OLD NEW AS NEW 
 FOR EACH ROW
 BEGIN
   DECLARE
-    enqueue_options dbms_aq.enqueue_options_t;
-    message_properties dbms_aq.message_properties_t;
-    message_handle RAW(16);
-    message TYPE_{0}; 
-    messageType VARCHAR2(50);
-    messageContent XMLType;
+    enqueue_options     DBMS_AQ.enqueue_options_t;
+    message_properties  DBMS_AQ.message_properties_t;
+    message_handle      RAW(16);
+    
+    messageStart VARCHAR2(50) := '{3}';
+    messageEnd VARCHAR2(50) := '{4}';
+    dmlType VARCHAR2(50);
+    {5}
   BEGIN
+    enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
+     
     IF INSERTING THEN
-      messageType := '{2}';
-      messageContent := XMLType.CreateXML({5});
+      dmlType := '{6}';
+      {7}
     ELSIF UPDATING THEN
-      messageType := '{3}';
-      messageContent := XMLType.CreateXML({5});
-    ELSIF DELETING THEN      
-      messageType := '{4}';
-      messageContent := XMLType.CreateXML({6});
+      dmlType := '{8}';
+      {9}
+    ELSIF DELETING THEN 
+      dmlType := '{10}';
+      {11}
     END IF;
-
-    message := TYPE_{0}(messageType, messageContent);
-    enqueue_options.VISIBILITY := DBMS_AQ.ON_COMMIT;
-    enqueue_options.SEQUENCE_DEVIATION := NULL;
-    message_properties.DELAY := DBMS_AQ.NO_DELAY;
-    message_properties.EXPIRATION := DBMS_AQ.NEVER;
-
-    DBMS_AQ.ENQUEUE (
-          queue_name         =&gt; 'QUE_{0}'
-        , enqueue_options    =&gt; enqueue_options
-        , message_properties =&gt; message_properties
-        , payload            =&gt; message
-        , msgid              =&gt; message_handle);
+       
+    DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{0}(messageStart,dmlType), msgid =&gt; message_handle);
+    {12}       
+    DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{0}(messageEnd, dmlType), msgid =&gt; message_handle);
   END;
 END;</value>
   </data>
-  <data name="CreateTypeMessage" xml:space="preserve">
-    <value>CREATE TYPE TYPE_{0} AS OBJECT (MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT XMLType);</value>
+  <data name="EnqueueScript" xml:space="preserve">
+    <value>DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{1}({2}, {3}), msgid =&gt; message_handle);</value>
   </data>
   <data name="ScriptDropAll" xml:space="preserve">
     <value>BEGIN
@@ -262,7 +249,21 @@ END;</value>
       WHEN NO_DATA_FOUND THEN
         NULL;
     END;
+    
+    DECLARE
+      v_object_type VARCHAR2(30);
+    BEGIN
+      SELECT   OBJECT_TYPE 
+      INTO     v_object_type
+      FROM     user_OBJECTS 
+      WHERE    OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TBL_{0}';
 
+      EXECUTE IMMEDIATE 'DROP TYPE TBL_{0}';
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        NULL;
+    END;    
+    
     DECLARE
       v_object_type6 VARCHAR2(30);
     BEGIN

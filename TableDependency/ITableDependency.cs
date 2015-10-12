@@ -7,7 +7,7 @@ using TableDependency.Enums;
 
 namespace TableDependency
 {
-    public interface ITableDependency<T>
+    public interface ITableDependency<T> where T : class
     {
         event ChangedEventHandler<T> OnChanged;
         event ErrorEventHandler OnError;

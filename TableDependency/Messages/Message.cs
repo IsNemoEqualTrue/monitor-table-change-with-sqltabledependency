@@ -6,12 +6,12 @@ namespace TableDependency.Messages
 {
     internal class Message
     {
-        public string Recipient { get; }
-        public byte[] Body { get; }
+        internal string Recipient { get; }
+        internal byte[] Body { get; }
 
         #region Constructors
 
-        public Message(string recipient, byte[] body)
+        internal Message(string recipient, byte[] body)
         {
             this.Recipient = recipient;
             this.Body = body;

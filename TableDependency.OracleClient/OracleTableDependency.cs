@@ -9,19 +9,18 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using Oracle.DataAccess.Client;
-using Oracle.DataAccess.Types;
 using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
 using TableDependency.Extensions;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
+using TableDependency.Messages;
 using TableDependency.OracleClient.EventArgs;
-using TableDependency.OracleClient.MessageTypes;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
-using OracleCommand = Oracle.DataAccess.Client.OracleCommand;
 using OracleConnection = Oracle.DataAccess.Client.OracleConnection;
 using OracleConnectionStringBuilder = Oracle.DataAccess.Client.OracleConnectionStringBuilder;
 using OracleException = Oracle.DataAccess.Client.OracleException;
@@ -36,15 +35,17 @@ namespace TableDependency.OracleClient
     {
         #region Private variables
 
+        private const string EndMessageTemplate = "{0}/EndDialog";
+        private const string StartMessageTemplate = "{0}/StartDialog";
+
         private Task _task;
         private CancellationTokenSource _cancellationTokenSource;
         private readonly string _dataBaseObjectsNamingConvention;
         private readonly ModelToTableMapper<T> _mapper;
-        private readonly string _updateOf;
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly string _messagePayloadForInsertAndUpdate;
-        private readonly string _messagePayloadForDelete;
+        private readonly IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
+        private readonly IEnumerable<string> _updateOf;
         private bool _disposed;
 
         #endregion
@@ -90,25 +91,23 @@ namespace TableDependency.OracleClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">The model to columns table mapper.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null)
         {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
+
             PreliminaryChecks(connectionString, tableName);
 
-            _mapper = mapper;
+            _dataBaseObjectsNamingConvention = Get24DigitsGuid();
             _connectionString = connectionString;
             _tableName = tableName;
-            _dataBaseObjectsNamingConvention = Get24DigitsGuid();
+            _mapper = mapper;            
+            _updateOf = updateOf;
+            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(updateOf);       
 
-            var columnsToUseCreatingTrigger = GetColumnsToUseForCreatingDbObjects(updateOf);
-            var toUseCreatingTrigger = columnsToUseCreatingTrigger as Tuple<string, string, string>[] ?? columnsToUseCreatingTrigger.ToArray();
-
-            _messagePayloadForInsertAndUpdate = PrepareTSqlTriggerPartialBody(tableName, toUseCreatingTrigger, "NEW");
-            _messagePayloadForDelete = PrepareTSqlTriggerPartialBody(tableName, toUseCreatingTrigger, "OLD");
-            _updateOf = GetUpdateOf(updateOf);
-
-            this.Status = TableDependencyStatus.WaitingToStart;
+            Status = TableDependencyStatus.WaitingForStart;
         }
 
         #endregion
@@ -124,7 +123,7 @@ namespace TableDependency.OracleClient
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
         public void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
-            if (timeOut < 60) throw new ArgumentException("timeOut must be great or equal to 60 seconds");
+            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
             if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
 
             if (_task != null)
@@ -137,12 +136,9 @@ namespace TableDependency.OracleClient
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
 
-            this.Status = TableDependencyStatus.Starting;
-
-            CreateDatabaseObjects(_connectionString, _tableName, this._messagePayloadForInsertAndUpdate, _messagePayloadForDelete, _updateOf, _dataBaseObjectsNamingConvention, timeOut, watchDogTimeOut);
+            var processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _updateOf, _dataBaseObjectsNamingConvention, timeOut, watchDogTimeOut);
 
             _cancellationTokenSource = new CancellationTokenSource();
-
             _task = Task.Factory.StartNew(() => 
                 WaitForNotification(
                     _cancellationTokenSource.Token, 
@@ -152,9 +148,11 @@ namespace TableDependency.OracleClient
                     _connectionString,
                     _dataBaseObjectsNamingConvention,
                     watchDogTimeOut,
-                    _mapper),
+                    _mapper,
+                    processableMessages),
                 _cancellationTokenSource.Token);
 
+            Status = TableDependencyStatus.Starting;
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
         }
 
@@ -168,7 +166,7 @@ namespace TableDependency.OracleClient
 
             _task = null;
 
-            DropDatabaseObjects(_connectionString, this._dataBaseObjectsNamingConvention);
+            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -204,49 +202,66 @@ namespace TableDependency.OracleClient
             string connectionString,
             string databaseObjectsNaming,
             int timeOutWatchDog,
-            ModelToTableMapper<T> modelMapper)
-        {
-            OracleCommand watchDogEnableCommand = null;
-            OracleCommand watchDogDisableCommand = null;
-            OracleCommand getQueueMessageCommand = null;
-
+            ModelToTableMapper<T> modelMapper,
+            ICollection<string> processableMessages)
+        {            
             setStatus(TableDependencyStatus.Started);
+
+            var messagesBag = new MessagesBag(string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             try
             {
-                using (var connection = new OracleConnection(connectionString))
+                while (true)
                 {
-                    connection.Open();
+                    StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
 
-                    OracleParameter messageTypeParameter;
-                    OracleParameter messageContentParameter;
-
-                    watchDogEnableCommand = PrepareWatchDogEnableCommand(databaseObjectsNaming, timeOutWatchDog, connection);
-                    watchDogDisableCommand = PrepareWatchDogDisableCommand(databaseObjectsNaming, connection);
-                    getQueueMessageCommand = PrepareGetQueueMessageCommand(databaseObjectsNaming, connection, out messageTypeParameter, out messageContentParameter);
-
-                    while (true)
+                    using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
                     {
-                        try
+                        using (var connection = new OracleConnection(connectionString))
                         {
-                            setStatus(TableDependencyStatus.ListenerForNotification);
-
-                            await watchDogEnableCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
-                            await getQueueMessageCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
-                            await watchDogDisableCommand.ExecuteNonQueryAsync(cancellationToken).WithCancellation(cancellationToken);
-
-                            var messageTypeValue = Convert.ToString(messageTypeParameter.Value);
-                            if (messageTypeValue != CustomMessageTypes.TimeoutMessageType)
+                            await connection.OpenAsync(cancellationToken);
+                                                                                 
+                            using (var getQueueMessageCommand = connection.CreateCommand())
                             {
-                                if (!string.IsNullOrWhiteSpace(messageTypeValue)) RaiseEvent(onChangeSubscribedList, messageTypeValue, (OracleXmlType)messageContentParameter.Value, modelMapper);
+                                getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
+                                getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
+                                getQueueMessageCommand.CommandTimeout = 0;
+                                getQueueMessageCommand.Parameters.Add(new OracleParameter {ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output});
+
+                                try
+                                {
+                                    setStatus(TableDependencyStatus.WaitingForNotification);
+
+                                    using (var reader = await getQueueMessageCommand.ExecuteReaderAsync(cancellationToken))
+                                    {
+                                        while (await reader.ReadAsync(cancellationToken))
+                                        {
+                                            var messageType = reader.GetString(0);
+                                            if (processableMessages.Contains(messageType))
+                                            {
+                                                var messageContent = reader.IsDBNull(1) ? null : reader.GetString(1);
+
+                                                var messageStatus = messagesBag.AddMessage(messageType, GetBytes(messageContent));
+                                                if (messageStatus == MessagesBagStatus.Closed)
+                                                {
+                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag);
+                                                    transactionScope.Complete();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }                                    
+                                }
+                                catch (Exception exception)
+                                {
+                                    ThrowIfOracleClientCancellationRequested(cancellationToken, exception);
+                                    throw;
+                                }
                             }
                         }
-                        catch (Exception exception)
-                        {
-                            ThrowIfOracleClientCancellationRequested(cancellationToken, exception);
-                            throw;
-                        }
                     }
+
+                    StopWatchDog(connectionString, databaseObjectsNaming);
                 }
             }
             catch (OperationCanceledException)
@@ -260,17 +275,48 @@ namespace TableDependency.OracleClient
                 Debug.WriteLine("OracleTableDependency: Exception " + exception.Message + ".");
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
             }
-            finally
+        }
+
+        private static void StartWatchDog(string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
+        {
+            using (var connection = new OracleConnection(connectionString))
             {
-                watchDogEnableCommand?.Dispose();
-                watchDogDisableCommand?.Dispose();
-                getQueueMessageCommand?.Dispose();
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = string.Format(Scripts.ScriptJobEnable, databaseObjectsNaming, (timeOutWatchDog / 60));
+                    command.CommandType = CommandType.Text;
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static void StopWatchDog(string connectionString, string databaseObjectsNaming)
+        {
+            using (var connection = new OracleConnection(connectionString))
+            {
+                connection.Open();
+                using (var watchDogDisableCommand = connection.CreateCommand())
+                {
+                    watchDogDisableCommand.CommandText = string.Format(Scripts.ScriptJobDisable, databaseObjectsNaming);
+                    watchDogDisableCommand.CommandType = CommandType.Text;
+                    watchDogDisableCommand.ExecuteNonQuery();
+                }
             }
         }
 
         private void OnStatusChanged(TableDependencyStatus status)
         {
-            this.Status = status;
+            Status = status;
+        }
+
+        private static byte[] GetBytes(string str, int? lenght = null)
+        {
+            if (str == null) return null;
+
+            byte[] bytes = lenght.HasValue ? new byte[lenght.Value] : new byte[str.Length * sizeof(char)];
+            Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length * sizeof(char));
+            return bytes;
         }
 
         private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
@@ -302,52 +348,20 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static OracleCommand PrepareWatchDogEnableCommand(string databaseObjectsNaming, int timeOutWatchDog, OracleConnection connection)
-        {
-            var watchDogEnableCommand = connection.CreateCommand();
-            watchDogEnableCommand.CommandText = string.Format(Scripts.ScriptJobEnable, databaseObjectsNaming, (timeOutWatchDog / 60));
-            watchDogEnableCommand.CommandType = CommandType.Text;
-            watchDogEnableCommand.Prepare();
-
-            return watchDogEnableCommand;
-        }
-
-        private static OracleCommand PrepareWatchDogDisableCommand(string databaseObjectsNaming, OracleConnection connection)
-        {
-            var watchDogDisableCommand = connection.CreateCommand();
-            watchDogDisableCommand.CommandText = string.Format(Scripts.ScriptJobDisable, databaseObjectsNaming);
-            watchDogDisableCommand.CommandType = CommandType.Text;
-            watchDogDisableCommand.Prepare();
-
-            return watchDogDisableCommand;
-        }
-
-        private static OracleCommand PrepareGetQueueMessageCommand(string databaseObjectsNaming, OracleConnection connection, out OracleParameter messageTypeParameter, out OracleParameter messageContentParameter)
-        {
-            var getQueueMessageCommand = connection.CreateCommand();
-            getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
-            getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
-            getQueueMessageCommand.CommandTimeout = 0;
-            messageTypeParameter = getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "messageType", OracleDbType = OracleDbType.Varchar2, Size = 50, Direction = ParameterDirection.Output });
-            messageContentParameter = getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "messageContent ", OracleDbType = OracleDbType.XmlType, Direction = ParameterDirection.Output });
-            getQueueMessageCommand.Prepare();
-
-            return getQueueMessageCommand;
-        }
-
-        private static void RaiseEvent(IEnumerable<Delegate> delegates, string messageType, OracleXmlType message, ModelToTableMapper<T> modelMapper)
+        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag)
         {
             if (delegates == null) return;
-            if (string.IsNullOrWhiteSpace(messageType)) return;
-            if (string.IsNullOrWhiteSpace(message.Value)) return;
-
-            foreach (var dlg in delegates.Where(d => d != null))
-            {
-                dlg.Method.Invoke(dlg.Target, new object[] { null, new OracleRecordChangedEventArgs<T>(messageType, message.Value, modelMapper) });
-            }
+            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new OracleRecordChangedEventArgs<T>(messagesBag, modelMapper) });
         }
 
-        private static void CreateDatabaseObjects(string connectionString, string tableName, string messagePayloadForInsertUpdate, string messagePayloadForDelete, string updateOf, string databaseObjectsNaming, int timeOut, int timeOutWatchDog)
+        private static string ComputeVariableSize(Tuple<string, string, string> column)
+        {
+            if (string.IsNullOrWhiteSpace(column.Item3)) return string.Empty;
+            if (Convert.ToInt32(column.Item3) > 0) return "(" + column.Item3 + ")";
+            return string.Empty;
+        }
+
+        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, string, string>> columnsTableList, IEnumerable<string> updateOf, string databaseObjectsNaming, int timeOut, int timeOutWatchDog)
         {
             try
             {
@@ -357,40 +371,55 @@ namespace TableDependency.OracleClient
 
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = string.Format(
-                            Scripts.CreateTypeMessage,
-                            databaseObjectsNaming);
+                        command.CommandText = $"CREATE TYPE TYPE_{databaseObjectsNaming} AS OBJECT(MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT VARCHAR2(4000));";                       
+                        command.ExecuteNonQuery();
+                        command.CommandText = $"CREATE TYPE TBL_{databaseObjectsNaming} IS TABLE OF TYPE_{databaseObjectsNaming};";
                         command.ExecuteNonQuery();
 
-                        command.CommandText = string.Format(
-                            Scripts.CreateQueue,
-                            databaseObjectsNaming);
+                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=> 'QT_{databaseObjectsNaming}', queue_payload_type=> 'TYPE_{databaseObjectsNaming}', multiple_consumers => FALSE); END;";
                         command.ExecuteNonQuery();
+                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE(queue_name => 'QUE_{databaseObjectsNaming}', queue_table => 'QT_{databaseObjectsNaming}'); END;";
+                        command.ExecuteNonQuery();
+                        command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{databaseObjectsNaming}'); END;";
+                        command.ExecuteNonQuery();
+
+                        var declareStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " " + c.Item2 + ComputeVariableSize(c) + ";"));
+                        var startMessageStatement = string.Format(StartMessageTemplate, databaseObjectsNaming);
+                        var endMessageStatement = string.Format(EndMessageTemplate, databaseObjectsNaming);
+                        var setNewValueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :NEW." + c.Item1 + ";"));
+                        var setOldValueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :OLD." + c.Item1 + ";"));
+                        var insertDml = ChangeType.Insert.ToString();
+                        var updateDml = ChangeType.Update.ToString();
+                        var deleteDml = ChangeType.Delete.ToString();
+
+                        var enqueueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c =>
+                        {
+                            var messageType = $"'{databaseObjectsNaming}/' || dmlType || '/{c.Item1.Replace("\"", string.Empty)}'";
+                            var variableName = "TO_CHAR(v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + ")";
+                            return string.Format(Scripts.EnqueueScript, databaseObjectsNaming, databaseObjectsNaming, messageType, variableName);
+                        }));
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
                             databaseObjectsNaming,
+                            GetUpdateOfStatement(updateOf),
                             tableName,
-                            CustomMessageTypes.InsertedMessageType,
-                            CustomMessageTypes.UpdatedMessageType,
-                            CustomMessageTypes.DeletedMessageType,
-                            messagePayloadForInsertUpdate,
-                            messagePayloadForDelete,
-                            updateOf);
+                            startMessageStatement,
+                            endMessageStatement,
+                            declareStatement,                            
+                            insertDml,
+                            setNewValueStatement,
+                            updateDml,
+                            setNewValueStatement,
+                            deleteDml,
+                            setOldValueStatement,
+                            enqueueStatement);
                         command.ExecuteNonQuery();
 
-                        command.CommandText = string.Format(
-                            Scripts.CreateProcedureDequeueMessage,
-                            databaseObjectsNaming,
-                            timeOut,
-                            CustomMessageTypes.TimeoutMessageType);
+                        command.CommandText = string.Format(Scripts.CreateProcedureDequeueMessage, databaseObjectsNaming, timeOut, columnsTableList.Count() + 2);
                         command.ExecuteNonQuery();
 
-                        command.CommandText = string.Format(
-                            Scripts.ScriptJobCreate,
-                            databaseObjectsNaming,
-                            (timeOutWatchDog / 60),
-                            string.Format(Scripts.ScriptDropAll, databaseObjectsNaming).Replace("'", "''"));
+                        command.CommandText = string.Format(Scripts.ScriptJobCreate, databaseObjectsNaming, (timeOutWatchDog / 60), string.Format(Scripts.ScriptDropAll, databaseObjectsNaming).Replace("'", "''"));
                         command.ExecuteNonQuery();
                     }
                 }
@@ -402,6 +431,13 @@ namespace TableDependency.OracleClient
             }
 
             Debug.WriteLine($"OracleTableDependency: Database objects created with naming {databaseObjectsNaming}.");
+
+            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var messageBoundaries = new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming) };        
+
+            return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
         }
 
         private static void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
@@ -474,24 +510,9 @@ namespace TableDependency.OracleClient
         private static string Get24DigitsGuid()
         {
             return Guid.NewGuid().ToString().Substring(5, 20).Replace("-", "_").ToUpper();
-        }
+        }     
 
-        private string PrepareTSqlTriggerPartialBody(string tableName, IEnumerable<Tuple<string, string, string>> columnsTableList, string referencing)
-        {
-            var columnsList = columnsTableList.Select(c =>
-            {
-                var referencingPart = $" || :{referencing}.{c.Item1} || ";
-                var columnNode = $"'<column name={c.Item1}><![CDATA['{referencingPart}']]></column>'";
-                return columnNode;
-            })
-            .ToList();
-
-            var columns = string.Join(" || ", columnsList);
-
-            return string.Format("'<?xml version=\"1.0\"?><{0}>' || {1} || '</{0}>'", tableName.ToLower(), columns);
-        }       
-
-        private string GetUpdateOf(IEnumerable<string> columnsUpdateOf)
+        private static string GetUpdateOfStatement(IEnumerable<string> columnsUpdateOf)
         {
             return columnsUpdateOf != null
                 ? " OF " + string.Join(", ", columnsUpdateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"\"{c}\"").ToList())
@@ -500,16 +521,18 @@ namespace TableDependency.OracleClient
 
         private IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
         {
-            var tableColumnsList = GetTableColumnsList(_connectionString, _tableName);
-            var columnsList = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
-            if (!columnsList.Any()) throw new NoColumnsException(_tableName);
+            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
+            var tableColumnsList = tableColumns as Tuple<string, string, string>[] ?? tableColumns.ToArray();
+            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
 
-            CheckUpdateOfValidity(columnsList, updateOf);
-            CheckMapperValidity(columnsList);
+            CheckUpdateOfValidity(tableColumnsList, updateOf);
+            CheckMapperValidity(tableColumnsList);
 
-            var userIterestedColumns = this.GetUserInterestedColumns(columnsList);
-            CheckIfUserInterestedColumnsCanBeManaged(userIterestedColumns);
-            return userIterestedColumns;
+            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
+
+            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, string, string>[] ?? userIterestedColumns.ToArray();
+            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
+            return columnsToUseForCreatingDbObjects;
         }
 
         private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
@@ -522,7 +545,7 @@ namespace TableDependency.OracleClient
                     case "BLOB":
                     case "CLOB":
                     case "NLOB":
-                        throw new ColumnTypeNotSupportedException(message: $"Type {tableColumn.Item2} not supported by OracleTableDependency.");
+                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} type is not an admitted for SqlTableDependency.");
                 }
             }
         }
@@ -566,7 +589,7 @@ namespace TableDependency.OracleClient
                 var dbColumnNames = tableColumns.Select(t => t.Item1.ToLower()).ToList();
                 foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor.ToLower() + "\"")))
                 {
-                    throw new UpdateOfException($"Column {columnToMonitorDuringUpdate} does not exists");
+                    throw new UpdateOfException($"updateOf define column {columnToMonitorDuringUpdate} that does not exists");
                 }
             }
         }

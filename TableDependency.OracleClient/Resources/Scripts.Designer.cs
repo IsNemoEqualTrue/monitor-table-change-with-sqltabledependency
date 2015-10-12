@@ -39,7 +39,7 @@ namespace TableDependency.OracleClient.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    var temp = new global::System.Resources.ResourceManager("TableDependency.OracleClient.Resources.Scripts", typeof(Scripts).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TableDependency.OracleClient.Resources.Scripts", typeof(Scripts).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,22 +61,25 @@ namespace TableDependency.OracleClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE OR REPLACE PROCEDURE DEQ_{0}
-        ///(
-        ///    messageType OUT VARCHAR2,
-        ///    messageContent OUT XMLType
-        ///)
-        ///AS
-        ///    dequeue_options      dbms_aq.dequeue_options_t;
-        ///    message_properties   dbms_aq.message_properties_t;
-        ///    message_handle       RAW(16);
-        ///    message              TYPE_{0};
-        ///    no_messages          EXCEPTION;
-        ///    PRAGMA EXCEPTION_INIT(no_messages, -25228);
+        ///   Looks up a localized string similar to CREATE OR REPLACE PROCEDURE DEQ_{0} (p_recordset OUT SYS_REFCURSOR) 
+        ///AS 
+        ///  obj TYPE_{0};
+        ///  payload TBL_{0};
+        ///  v_msgid RAW(16);
+        ///
+        ///  queueopts DBMS_AQ.DEQUEUE_OPTIONS_T;
+        ///  msgprops DBMS_AQ.MESSAGE_PROPERTIES_T;
+        ///   
+        ///  no_messages EXCEPTION;
+        ///  PRAGMA EXCEPTION_INIT (no_messages, -25228);
         ///BEGIN
-        ///    dequeue_options.CONSUMER_NAME           := NULL;
-        ///    dequeue_options.DEQUEUE_MODE            := DBMS_AQ.REMOVE;
-        ///    dequeue [rest of string was truncated]&quot;;.
+        ///  queueopts.wait := {1};
+        ///  queueopts.navigation := DBMS_AQ.NEXT_MESSAGE;
+        ///  payload := TBL_{0}();
+        ///  
+        ///  FOR Lcntr IN 1..{2} LOOP
+        ///    BEGIN
+        ///      DBMS_AQ.DEQUEUE (&apos;QUE_{0}&apos;, queueopts, msgprops, obj, v_msgid [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateProcedureDequeueMessage {
             get {
@@ -85,37 +88,25 @@ namespace TableDependency.OracleClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to BEGIN
-        ///    DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=&gt; &apos;QT_{0}&apos;, queue_payload_type=&gt; &apos;TYPE_{0}&apos;, multiple_consumers =&gt; FALSE, auto_commit =&gt; TRUE);
-        ///    DBMS_AQADM.CREATE_QUEUE(queue_name =&gt; &apos;QUE_{0}&apos;, queue_table =&gt; &apos;QT_{0}&apos;);
-        ///    DBMS_AQADM.START_QUEUE(queue_name=&gt; &apos;QUE_{0}&apos;);
-        ///END;.
-        /// </summary>
-        internal static string CreateQueue {
-            get {
-                return ResourceManager.GetString("CreateQueue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CREATE OR REPLACE TRIGGER TR_{0}
-        ///AFTER DELETE OR INSERT OR UPDATE{7} ON {1}
+        ///AFTER DELETE OR INSERT OR UPDATE{1} ON {2}
         ///REFERENCING OLD AS OLD NEW AS NEW 
         ///FOR EACH ROW
         ///BEGIN
         ///  DECLARE
-        ///    enqueue_options dbms_aq.enqueue_options_t;
-        ///    message_properties dbms_aq.message_properties_t;
-        ///    message_handle RAW(16);
-        ///    message TYPE_{0}; 
-        ///    messageType VARCHAR2(50);
-        ///    messageContent XMLType;
+        ///    enqueue_options     DBMS_AQ.enqueue_options_t;
+        ///    message_properties  DBMS_AQ.message_properties_t;
+        ///    message_handle      RAW(16);
+        ///    
+        ///    messageStart VARCHAR2(50) := &apos;{3}&apos;;
+        ///    messageEnd VARCHAR2(50) := &apos;{4}&apos;;
+        ///    dmlType VARCHAR2(50);
+        ///    {5}
         ///  BEGIN
+        ///    enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
+        ///     
         ///    IF INSERTING THEN
-        ///      messageType := &apos;{2}&apos;;
-        ///      messageContent := XMLType.CreateXML({5});
-        ///    ELSIF UPDATING THEN
-        ///      messageTyp [rest of string was truncated]&quot;;.
+        ///      dmlT [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {
@@ -124,11 +115,11 @@ namespace TableDependency.OracleClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE TYPE TYPE_{0} AS OBJECT (MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT XMLType);.
+        ///   Looks up a localized string similar to DBMS_AQ.ENQUEUE(queue_name =&gt; &apos;QUE_{0}&apos;, enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{1}({2}, {3}), msgid =&gt; message_handle);.
         /// </summary>
-        internal static string CreateTypeMessage {
+        internal static string EnqueueScript {
             get {
-                return ResourceManager.GetString("CreateTypeMessage", resourceCulture);
+                return ResourceManager.GetString("EnqueueScript", resourceCulture);
             }
         }
         

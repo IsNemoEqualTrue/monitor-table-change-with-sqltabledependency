@@ -9,7 +9,7 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_PreliminaryTests
+    public class PreliminaryTests
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private const string TableName = "PreliminaryCheckTest";

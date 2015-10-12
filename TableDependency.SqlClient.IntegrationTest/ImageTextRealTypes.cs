@@ -18,7 +18,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     }
 
     [TestClass]
-    public class Check_ImageTextRealTypes
+    public class ImageTextRealTypes
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static string TableName = "Real";

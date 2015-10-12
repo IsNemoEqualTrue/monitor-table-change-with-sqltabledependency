@@ -14,7 +14,7 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_EventForSpecificColumns
+    public class EventForSpecificColumns
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private const string TableName = "Check_Model";

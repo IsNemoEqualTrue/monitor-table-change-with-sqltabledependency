@@ -100,7 +100,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                 using (var sqlCommand = connection.CreateCommand())
                 {
                     sqlCommand.CommandText = 
-                        $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES (100, '{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Description}'); " +
+                        $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES ('100', '{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Description}'); " +
                         $"UPDATE {TableName} SET \"Long Description\" = '{_checkValues[ChangeType.Update.ToString()].Item1.Description}'; " +
                         $"DELETE FROM {TableName}; END;";
                     sqlCommand.ExecuteNonQuery();

@@ -11,7 +11,7 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_Status
+    public class Status
     {        
         private SqlTableDependency<Check_Model> _tableDependency = null;
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
@@ -69,7 +69,7 @@ namespace TableDependency.SqlClient.IntegrationTest
                 _tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
                 _tableDependency.OnChanged += TableDependency_Changed;
 
-                Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.WaitingToStart);
+                Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.WaitingForStart);
 
                 _tableDependency.Start();
 
@@ -90,7 +90,7 @@ namespace TableDependency.SqlClient.IntegrationTest
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
         {
-            Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.ListenerForNotification);
+            Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.WaitingForNotification || _tableDependency.Status == TableDependencyStatus.NotificationConsuming || _tableDependency.Status == TableDependencyStatus.NotificationConsumed);
         }
 
         private static void ModifyTableContent()

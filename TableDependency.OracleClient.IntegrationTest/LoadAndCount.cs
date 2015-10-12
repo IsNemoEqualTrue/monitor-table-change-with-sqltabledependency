@@ -55,8 +55,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                         if (_counter <= counterUpTo)
                         {
                             _counter++;
-                            sqlCommand.CommandText = 
-                                $"INSERT INTO {_tableName} (ID, NAME, \"Long Description\") VALUES ('{_counter}', '{DateTime.Now.Ticks}', 'Ticks {DateTime.Now.Ticks}')";
+                            sqlCommand.CommandText = $"INSERT INTO {_tableName} (ID, NAME, \"Long Description\") VALUES ('{_counter}', '{DateTime.Now.Ticks}', 'Ticks {DateTime.Now.Ticks}')";
                             sqlCommand.ExecuteNonQuery();                            
                         }
 

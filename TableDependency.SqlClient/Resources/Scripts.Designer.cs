@@ -115,8 +115,8 @@ namespace TableDependency.SqlClient.Resources {
         ///IF EXISTS (SELECT * FROM sys.services WHERE name = N&apos;{0}&apos;) DROP SERVICE [{0}];
         ///IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N&apos;{0}&apos;) DROP QUEUE [{0}];
         ///IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N&apos;{0}&apos;) DROP CONTRACT [{0}];
-        ///IF EXISTS (SELECT * FROM sys.objects WHERE name = N&apos;{0}_QueueActivation&apos;) DROP PROCEDURE [{0}_QueueActivation];
-        ///{1}.
+        ///{1}
+        ///IF EXISTS (SELECT * FROM sys.objects WHERE name = N&apos;{0}_QueueActivation&apos;) DROP PROCEDURE [{0}_QueueActivation];.
         /// </summary>
         internal static string ScriptDropAll {
             get {

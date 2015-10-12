@@ -14,7 +14,7 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_DateType
+    public class DateType
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static string TableName = "Test";

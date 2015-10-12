@@ -14,17 +14,17 @@ using TableDependency.SqlClient.IntegrationTest.Model;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_DisposeAndRestartWithSameObjects
+    public class EventForAllColumns
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private const string TableName = "DisposeAndRestartWithSameObjects";
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private const string TableName = "Check_Model";
         private static int _counter;
         private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -35,8 +35,8 @@ namespace TableDependency.SqlClient.IntegrationTest
                     sqlCommand.CommandText =
                         $"CREATE TABLE [{TableName}]( " +
                         "[Id][int] IDENTITY(1, 1) NOT NULL, " +
-                        "[First Name] [nvarchar](50) NULL, " +
-                        "[Second Name] [nvarchar](50) NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL, " +
                         "[Born] [datetime] NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
@@ -51,7 +51,7 @@ namespace TableDependency.SqlClient.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -63,43 +63,40 @@ namespace TableDependency.SqlClient.IntegrationTest
         }
 
         [TestMethod]
-        public void Test()
+        public void EventForAllColumnsTest()
         {
-            var namingToUse = "CustomNaming";
+            SqlTableDependency<Check_Model> tableDependency = null;
+            string naming = null;
 
-            var mapper = new ModelToTableMapper<Check_Model>();
-            mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
-
-            using (var tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TableName, mapper, null, false, namingToUse))
+            try
             {
+                var mapper = new ModelToTableMapper<Check_Model>();
+                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+
+                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
-                Assert.AreEqual(tableDependency.DataBaseObjectsNamingConvention, namingToUse);
-                Thread.Sleep(1 * 25 * 1000);
-            }
+                naming = tableDependency.DataBaseObjectsNamingConvention;
 
-            Thread.Sleep(1 * 60 * 1000);
-
-            using (var tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TableName, mapper, null, true, namingToUse))
-            {
-                tableDependency.OnChanged += TableDependency_Changed;
-                tableDependency.Start();
-                Assert.AreEqual(tableDependency.DataBaseObjectsNamingConvention, namingToUse);
-
-                Thread.Sleep(1 * 25 * 1000);
+                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(1 * 60 * 1000);
+                t.Wait(20000);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, namingToUse));
+            Assert.AreEqual(_counter, 3);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Surname, _checkValues[ChangeType.Insert.ToString()].Item1.Surname);
             Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Name, _checkValues[ChangeType.Update.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Surname, _checkValues[ChangeType.Update.ToString()].Item1.Surname);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, _checkValues[ChangeType.Delete.ToString()].Item1.Surname);            
+            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, _checkValues[ChangeType.Delete.ToString()].Item1.Surname);
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
@@ -129,7 +126,7 @@ namespace TableDependency.SqlClient.IntegrationTest
             _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia", Surname = "Ceccarelli" }, new Check_Model()));
             _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia", Surname = "Ceccarelli" }, new Check_Model()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

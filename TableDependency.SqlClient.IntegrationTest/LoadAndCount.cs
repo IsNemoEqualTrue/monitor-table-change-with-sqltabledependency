@@ -12,7 +12,7 @@ using TableDependency.SqlClient.IntegrationTest.Helpers;
 namespace TableDependency.SqlClient.IntegrationTest
 {
     [TestClass]
-    public class Check_LoadAndCount
+    public class LoadAndCount
     {
         private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static string TableName = "TestTable";

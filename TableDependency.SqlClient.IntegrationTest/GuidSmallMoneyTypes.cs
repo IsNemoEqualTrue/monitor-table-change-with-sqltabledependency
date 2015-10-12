@@ -24,7 +24,7 @@ namespace TableDependency.SqlClient.IntegrationTest
     }
 
     [TestClass]
-    public class Check_GuidSmallMoneyTypes
+    public class GuidSmallMoneyTypes
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static string TableName = "CheckGuidSmallMoneyTimeStampTypes";
@@ -121,7 +121,6 @@ namespace TableDependency.SqlClient.IntegrationTest
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<ModelGuidSmallMoneyTypes> e)
         {
-
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:

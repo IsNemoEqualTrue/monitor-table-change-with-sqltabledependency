@@ -20,8 +20,8 @@ namespace TableDependency.OracleClient.IntegrationTest
         {
             var domaininfo = new AppDomainSetup {ApplicationBase = Environment.CurrentDirectory};
             var adevidence = AppDomain.CurrentDomain.Evidence;
-            var domain = AppDomain.CreateDomain("TableDependencyDomain", adevidence, domaininfo);
-            var otherDomainObject = (RunsInAnotherAppDomain)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain).Assembly.FullName, typeof(RunsInAnotherAppDomain).FullName);
+            var domain = AppDomain.CreateDomain("RunsInAnotherAppDomainOracleCleannUp", adevidence, domaininfo);
+            var otherDomainObject = (RunsInAnotherAppDomainOracleCleannUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainOracleCleannUp).Assembly.FullName, typeof(RunsInAnotherAppDomainOracleCleannUp).FullName);
             var dbObjectsNaming = otherDomainObject.RunTableDependency(ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString, ConfigurationManager.AppSettings.Get("tableName"));           
             otherDomainObject.StopTableDependency();
 
@@ -29,7 +29,7 @@ namespace TableDependency.OracleClient.IntegrationTest
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString, dbObjectsNaming));
         }
 
-        public class RunsInAnotherAppDomain : MarshalByRefObject
+        public class RunsInAnotherAppDomainOracleCleannUp : MarshalByRefObject
         {
             OracleTableDependency<Item> _tableDependency = null;
 

@@ -36,7 +36,6 @@ namespace TableDependency.SqlClient
     public class SqlTableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
         #region Private variables
-
         private const string EndMessageTemplate = "{0}/EndDialog";
         private const string StartMessageTemplate = "{0}/StartDialog";
         private const string Max = "MAX";
@@ -97,7 +96,7 @@ namespace TableDependency.SqlClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>        
-        /// <param name="mapper">The model to column table mapper.</param>
+        /// <param name="mapper">Model to column table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
@@ -106,9 +105,9 @@ namespace TableDependency.SqlClient
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
 
-            PreliminaryChecks(connectionString, tableName, null);
+            PreliminaryChecks(connectionString, tableName);
 
-            _dataBaseObjectsNamingConvention = namingConventionForDatabaseObjects ?? $"{tableName}_{Guid.NewGuid()}";
+            _dataBaseObjectsNamingConvention = string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects) ? $"{tableName}_{Guid.NewGuid()}" : namingConventionForDatabaseObjects;
             _connectionString = connectionString;
             _tableName = tableName;
             _mapper = mapper;
@@ -117,7 +116,7 @@ namespace TableDependency.SqlClient
             _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(_updateOf);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
 
-            Status = TableDependencyStatus.WaitingToStart;
+            Status = TableDependencyStatus.WaitingForStart;
         }
 
         #endregion
@@ -226,53 +225,59 @@ namespace TableDependency.SqlClient
 
             var messagesBag = new MessagesBag(string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
-            var waitForStatement = automaticDatabaseObjectsTeardown
-                ? $"BEGIN CONVERSATION TIMER ('{dialogHandle}') TIMEOUT = {timeOutWatchDog}; WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {(timeOut * 1000)};"
-                : $"WAITFOR(RECEIVE TOP (1) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {(timeOut * 1000)};";
-
             try
             {
-                using (var sqlConnection = new SqlConnection(connectionString))
+                while (true)
                 {
-                    sqlConnection.Open();
+                    if (automaticDatabaseObjectsTeardown) RunBeginConversationTimer(connectionString, dialogHandle, timeOutWatchDog);
 
-                    using (var sqlCommand = sqlConnection.CreateCommand())
+                    using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
                     {
-                        sqlCommand.CommandText = waitForStatement;
-                        sqlCommand.CommandTimeout = 0;
-                        sqlCommand.Prepare();
-
-                        while (true)
+                        using (var sqlConnection = new SqlConnection(connectionString))
                         {
-                            try
+                            await sqlConnection.OpenAsync(cancellationToken);
+
+                            using (var sqlCommand = sqlConnection.CreateCommand())
                             {
-                                setStatus(TableDependencyStatus.ListenerForNotification);
-                                using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
+                                sqlCommand.CommandText = $"WAITFOR(RECEIVE TOP ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {timeOut * 1000};";
+                                sqlCommand.CommandTimeout = 0;
+
+                                try
                                 {
-                                    while (await sqlDataReader.ReadAsync(cancellationToken))
+                                    setStatus(TableDependencyStatus.WaitingForNotification);
+
+                                    using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                     {
-                                        var messageType = sqlDataReader.GetSqlString(1);
-                                        if (messageType.Value == SqlMessageTypes.EndDialogType || messageType.Value == SqlMessageTypes.ErrorType)
+                                        setStatus(TableDependencyStatus.NotificationConsuming);
+                                        while (await sqlDataReader.ReadAsync(cancellationToken))
                                         {
-                                            SendEndConversationMessage(sqlConnection, sqlDataReader.GetSqlGuid(0));
+                                            var messageType = sqlDataReader.GetSqlString(1);
+                                            if (messageType.Value == SqlMessageTypes.EndDialogType || messageType.Value == SqlMessageTypes.ErrorType)
+                                            {
+                                                SendEndConversationMessage(sqlConnection, sqlDataReader.GetSqlGuid(0));
+                                                if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
+                                                throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
+                                            }
 
-                                            if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
-                                            throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
-                                        }
-
-                                        if (processableMessages.Contains(messageType.Value))
-                                        {
-                                            var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
-                                            var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
-                                            if (messageStatus == MessagesBagStatus.Closed) RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag);
+                                            if (processableMessages.Contains(messageType.Value))
+                                            {
+                                                var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
+                                                var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
+                                                if (messageStatus == MessagesBagStatus.Closed)
+                                                {
+                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag);
+                                                    transactionScope.Complete();
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            catch (Exception exception)
-                            {
-                                ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
-                                throw;
+                                catch (Exception exception)
+                                {
+                                    ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
+                                    throw;
+                                }
                             }
                         }
                     }
@@ -288,6 +293,21 @@ namespace TableDependency.SqlClient
                 Debug.WriteLine("SqlTableDependency: Exception " + exception.Message + ".");
                 setStatus(TableDependencyStatus.StoppedDueToError);
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
+            }
+        }
+
+        private static void RunBeginConversationTimer(string connectionString, Guid dialogHandle, int timeOutWatchDog)
+        {
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.OpenAsync();
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"BEGIN CONVERSATION TIMER ('{dialogHandle}') TIMEOUT = {timeOutWatchDog};";
+                    sqlCommand.CommandTimeout = 0;
+                    sqlCommand.ExecuteNonQuery();
+                }
             }
         }
 
@@ -335,8 +355,8 @@ namespace TableDependency.SqlClient
                 }
             }
 
-            if (allObjectAlreadyPresent.All(exist => exist == false)) return true;
-            if (allObjectAlreadyPresent.All(exist => exist == true)) return false;
+            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist)) return false;
 
             // Not all objects are present
             throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
@@ -344,7 +364,7 @@ namespace TableDependency.SqlClient
 
         private void OnStatusChanged(TableDependencyStatus status)
         {
-            this.Status = status;
+            Status = status;
         }
 
         private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
@@ -436,7 +456,7 @@ namespace TableDependency.SqlClient
         private static string ComputeSize(SqlDbType dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
             switch (dataType)
-            {                               
+            {
                 case SqlDbType.Binary:
                 case SqlDbType.VarBinary:
                 case SqlDbType.Char:
@@ -577,8 +597,8 @@ namespace TableDependency.SqlClient
                         {
                             var deleteMessage = $"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}";
                             var insertMessage = $"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Item1}";
-                            var updateMessage= $"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}";
-                           
+                            var updateMessage = $"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Item1}";
+
                             sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{deleteMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{insertMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{updateMessage}] VALIDATION = NONE;";
                             sqlCommand.ExecuteNonQuery();
 
@@ -595,7 +615,7 @@ namespace TableDependency.SqlClient
                         var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages);
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
                         sqlCommand.ExecuteNonQuery();
-                        
+
                         sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
 
@@ -704,7 +724,7 @@ namespace TableDependency.SqlClient
             Debug.WriteLine("SqlTableDependency: Database objects destroyed.");
         }
 
-        private static void PreliminaryChecks(string connectionString, string tableName, string serviceBrokerName)
+        private static void PreliminaryChecks(string connectionString, string tableName)
         {
             CheckIfConnectionStringIsValid(connectionString);
             CheckIfUserHasPermission();
@@ -721,15 +741,7 @@ namespace TableDependency.SqlClient
                 }
 
                 CheckIfServiceBrokerIsEnabled(sqlConnection);
-
-                if (string.IsNullOrWhiteSpace(tableName))
-                {
-                    CheckIfServiceBrokerExists(sqlConnection, serviceBrokerName);
-                }
-                else
-                {
-                    CheckIfTableExists(sqlConnection, tableName);
-                }
+                CheckIfTableExists(sqlConnection, tableName);
             }
         }
 
@@ -765,15 +777,6 @@ namespace TableDependency.SqlClient
                 if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
             }
         }
-
-        private static void CheckIfServiceBrokerExists(SqlConnection sqlConnection, string serviceBrokerName)
-        {
-            using (var sqlCommand = sqlConnection.CreateCommand())
-            {
-                sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.services WHERE name = N'{serviceBrokerName}'";
-                if ((int)sqlCommand.ExecuteScalar() == 0) throw new ServiceBrokerNotExistingException(serviceBrokerName);
-            }
-        }        
 
         private static void CheckIfTableExists(SqlConnection sqlConnection, string tableName)
         {
