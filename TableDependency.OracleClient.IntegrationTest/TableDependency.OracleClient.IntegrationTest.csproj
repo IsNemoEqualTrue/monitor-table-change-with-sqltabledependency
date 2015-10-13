@@ -67,6 +67,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskCancellation.cs" />
     <Compile Include="LoadAndCount.cs" />
+    <Compile Include="Merge.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.OracleClient\TableDependency.OracleClient.csproj">

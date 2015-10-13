@@ -498,8 +498,8 @@ namespace TableDependency.OracleClient
         {
             using (var command = connection.CreateCommand())
             {
-                var countParam = new OracleParameter { ParameterName = ":1", OracleDbType = OracleDbType.Int32, Direction = ParameterDirection.Output };
-                command.CommandText = $"BEGIN SELECT COUNT(*) INTO :1 FROM SYS.USER_TABLES WHERE TABLE_NAME = '{tableName}'; END;";
+                var countParam = new OracleParameter { ParameterName = "exist", OracleDbType = OracleDbType.Int32, Direction = ParameterDirection.Output };
+                command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM SYS.USER_TABLES WHERE UPPER(TABLE_NAME) = '{tableName.ToUpper()}'; END;";
                 command.Parameters.Add(countParam);
                 command.ExecuteNonQuery();
 
@@ -620,7 +620,7 @@ namespace TableDependency.OracleClient
                 connection.Open();
                 using (var cmmand = connection.CreateCommand())
                 {
-                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, TO_CHAR(NVL(CHAR_LENGTH, 0)) AS CHAR_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY COLUMN_ID";
+                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, TO_CHAR(NVL(CHAR_LENGTH, 0)) AS CHAR_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE UPPER(TABLE_NAME) = '{tableName.ToUpper()}' ORDER BY COLUMN_ID";
                     var reader = cmmand.ExecuteReader();
                     while (reader.Read())
                     {
