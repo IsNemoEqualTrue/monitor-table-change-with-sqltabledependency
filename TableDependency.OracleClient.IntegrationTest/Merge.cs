@@ -15,7 +15,6 @@ namespace TableDependency.OracleClient.IntegrationTest
     {
         private Item modifiedValues;
         private Item insertedValues;
-        private Item deletedValues;
 
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
         private static readonly string SourceTableName = "AAAA_Source";
@@ -118,9 +117,6 @@ namespace TableDependency.OracleClient.IntegrationTest
                     break;
                 case ChangeType.Update:
                     modifiedValues = new Item { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
-                    break;
-                case ChangeType.Delete:
-                    deletedValues = new Item { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
                     break;
             }
         }
