@@ -6,12 +6,42 @@ using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.OracleClient.IntegrationTest.Helpers;
 using TableDependency.OracleClient.IntegrationTest.Model;
+using Oracle.DataAccess.Client;
 
 namespace TableDependency.OracleClient.IntegrationTest
 {
     [TestClass]
     public class DatabaseObjectCleanUp
     {
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static readonly string TableName = "AAAA_Table".ToUpper();
+
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
+
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
+
         /// <summary>
         /// THIS TEST MUST BE EXECUTED IN Debug RELEASE !!!
         /// </summary>
@@ -20,16 +50,16 @@ namespace TableDependency.OracleClient.IntegrationTest
         {
             var domaininfo = new AppDomainSetup {ApplicationBase = Environment.CurrentDirectory};
             var adevidence = AppDomain.CurrentDomain.Evidence;
-            var domain = AppDomain.CreateDomain("RunsInAnotherAppDomainOracleCleannUp", adevidence, domaininfo);
-            var otherDomainObject = (RunsInAnotherAppDomainOracleCleannUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainOracleCleannUp).Assembly.FullName, typeof(RunsInAnotherAppDomainOracleCleannUp).FullName);
-            var dbObjectsNaming = otherDomainObject.RunTableDependency(ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString, ConfigurationManager.AppSettings.Get("tableName"));           
+            var domain = AppDomain.CreateDomain("AppDomainOracleCleannUpOracle", adevidence, domaininfo);
+            var otherDomainObject = (AppDomainOracleCleannUpOracle)domain.CreateInstanceAndUnwrap(typeof(AppDomainOracleCleannUpOracle).Assembly.FullName, typeof(AppDomainOracleCleannUpOracle).FullName);
+            var dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);           
             otherDomainObject.StopTableDependency();
 
             Thread.Sleep(3 * 60 * 1000);
-            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString, dbObjectsNaming));
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
         }
 
-        public class RunsInAnotherAppDomainOracleCleannUp : MarshalByRefObject
+        public class AppDomainOracleCleannUpOracle : MarshalByRefObject
         {
             OracleTableDependency<Item> _tableDependency = null;
 

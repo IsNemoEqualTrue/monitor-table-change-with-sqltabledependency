@@ -1,18 +1,44 @@
 ﻿using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.OracleClient.IntegrationTest.Helpers;
 using TableDependency.OracleClient.IntegrationTest.Model;
+using Oracle.DataAccess.Client;
 
 namespace TableDependency.OracleClient.IntegrationTest
 {
     [TestClass]
     public class TaskCancellation
     {
-        private static string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string TableName = ConfigurationManager.AppSettings.Get("tableName");
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static readonly string TableName = "AAAA_Table".ToUpper();
+
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
+
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
 
         [TestMethod]
         public void TaskCancellationTest()
@@ -26,7 +52,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                 mapper.AddMapping(c => c.Description, "Long Description");
 
                 tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper);
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnChanged += (sender, e) => { };
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -42,10 +68,6 @@ namespace TableDependency.OracleClient.IntegrationTest
             }
 
             Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, naming));
-        }
-
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
-        {
         }
     }
 }

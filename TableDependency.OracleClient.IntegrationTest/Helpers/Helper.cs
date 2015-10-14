@@ -31,5 +31,31 @@ namespace TableDependency.OracleClient.IntegrationTest.Helpers
                 }
             }
         }
+
+        internal static void DropTable(string connectionString, string tableName)
+        {
+            using (var connection = new OracleConnection(connectionString))
+            {
+                connection.Open();
+                using (var sqlCommand = connection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        internal static void DropProcedure(string connectionString, string procedureName)
+        {
+            using (var connection = new OracleConnection(connectionString))
+            {
+                connection.Open();
+                using (var sqlCommand = connection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE {procedureName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

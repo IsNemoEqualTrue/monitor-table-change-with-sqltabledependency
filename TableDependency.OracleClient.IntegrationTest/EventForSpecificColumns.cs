@@ -16,23 +16,36 @@ namespace TableDependency.OracleClient.IntegrationTest
     [TestClass]
     public class EventForSpecificColumns
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string TableName = ConfigurationManager.AppSettings.Get("tableName");
         private static int _counter = 0;
-        private static Dictionary<string, Tuple<Item, Item>> _checkValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static readonly Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
 
-        [TestInitialize]
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static readonly string TableName = "AAAA_Table".ToUpper();
+
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
-            using (var connection = new OracleConnection(_connectionString))
+            using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM " + TableName;
-                    sqlCommand.ExecuteNonQuery();
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.ExecuteNonQuery();
                 }
             }
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            Helper.DropTable(ConnectionString, TableName);
         }
 
         [TestMethod]
@@ -46,7 +59,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                 var mapper = new ModelToTableMapper<Item>();
                 mapper.AddMapping(c => c.Description, "Long Description");
 
-                tableDependency = new OracleTableDependency<Item>(_connectionString, TableName, mapper, new List<string>() { "NAME" });
+                tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper, new List<string>() { "NAME" });
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -63,12 +76,12 @@ namespace TableDependency.OracleClient.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 2);
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Description, _checkValues[ChangeType.Insert.ToString()].Item1.Description);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, CheckValues[ChangeType.Insert.ToString()].Item1.Description);
 
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Description, _checkValues[ChangeType.Delete.ToString()].Item1.Description);
-            Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
@@ -77,31 +90,31 @@ namespace TableDependency.OracleClient.IntegrationTest
             {
                 case ChangeType.Insert:
                     _counter++;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Description = e.Entity.Description;
                     break;
                 case ChangeType.Delete:
                     _counter++;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Description = e.Entity.Description;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Funghi" }, new Item()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Funghi" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Funghi" }, new Item()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Name = "Pizza Mergherita", Description = "Pizza Funghi" }, new Item()));
 
-            using (var connection = new OracleConnection(_connectionString))
+            using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
                 using (var sqlCommand = connection.CreateCommand())
                 {
                     sqlCommand.CommandText = 
-                        $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES ('100', '{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Description}'); " +
-                        $"UPDATE {TableName} SET \"Long Description\" = '{_checkValues[ChangeType.Update.ToString()].Item1.Description}'; " +
+                        $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES (100, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}'); " +
+                        $"UPDATE {TableName} SET \"Long Description\" = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'; " +
                         $"DELETE FROM {TableName}; END;";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(2000);

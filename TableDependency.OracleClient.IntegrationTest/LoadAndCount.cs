@@ -14,23 +14,35 @@ namespace TableDependency.OracleClient.IntegrationTest
     [TestClass]
     public class LoadAndCount
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private static string _tableName = ConfigurationManager.AppSettings.Get("tableName");
         private static int _counter = 0;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static readonly string TableName = "AAAA_Table".ToUpper();
 
-        [TestInitialize]
+        [ClassInitialize()]
+        public static void ClassInitialize(TestContext testContext)
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
-            using (var connection = new OracleConnection(_connectionString))
+            using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "DELETE FROM " + _tableName;
-                    sqlCommand.ExecuteNonQuery();
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.ExecuteNonQuery();
                 }
             }
         }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            Helper.DropTable(ConnectionString, TableName);
+        }        
 
         [TestMethod]
         public void LoadAndCountTest()
@@ -42,10 +54,10 @@ namespace TableDependency.OracleClient.IntegrationTest
             var mapper = new ModelToTableMapper<Item>();
             mapper.AddMapping(c => c.Description, "Long Description");
 
-            var listenerTask = Task.Factory.StartNew(() => new Listener(_connectionString, _tableName, mapper).Run(counterUpTo, token), token);
+            var listenerTask = Task.Factory.StartNew(() => new Listener(ConnectionString, TableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
 
-            using (var sqlConnection = new OracleConnection(_connectionString))
+            using (var sqlConnection = new OracleConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -55,7 +67,7 @@ namespace TableDependency.OracleClient.IntegrationTest
                         if (_counter <= counterUpTo)
                         {
                             _counter++;
-                            sqlCommand.CommandText = $"INSERT INTO {_tableName} (ID, NAME, \"Long Description\") VALUES ('{_counter}', '{DateTime.Now.Ticks}', 'Ticks {DateTime.Now.Ticks}')";
+                            sqlCommand.CommandText = $"INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES ({_counter}, '{DateTime.Now.Ticks}', 'Ticks {DateTime.Now.Ticks}')";
                             sqlCommand.ExecuteNonQuery();                            
                         }
 
@@ -67,7 +79,7 @@ namespace TableDependency.OracleClient.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(Helper.AreAllDbObjectDisposed(_connectionString, listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(Helper.AreAllDbObjectDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
         }
     }
 

@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oracle.DataAccess.Client;
 using TableDependency.Exceptions;
 using TableDependency.Mappers;
+using TableDependency.OracleClient.IntegrationTest.Helpers;
 using TableDependency.OracleClient.IntegrationTest.Model;
 
 namespace TableDependency.OracleClient.IntegrationTest
@@ -10,21 +12,43 @@ namespace TableDependency.OracleClient.IntegrationTest
     [TestClass]
     public class PreliminaryTests
     {
-        private string ValidConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-        private string ValidTableName = ConfigurationManager.AppSettings.Get("tableName");
-        private string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
-        private string InvalidTableName = "NotExistingTable";
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+        private static readonly string TableName = "AAAA_Table".ToUpper();
+        private static string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
+        private static string InvalidTableName = "NotExistingTable";
 
-        [TestInitialize]
+        [ClassInitialize()]
+
+        public static void ClassInitialize(TestContext testContext)
+        {
+            Helper.DropTable(ConnectionString, TableName);
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        [TestInitialize()]
         public void TestInitialize()
         {
+        }
+
+        [ClassCleanup()]
+        public static void ClassCleanup()
+        {
+            Helper.DropTable(ConnectionString, TableName);
         }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidConnectionStringException))]
         public void InvalidConnectionStringTest()
         {
-            using (new OracleTableDependency<Item>(InvalidValidConnectionString, ValidTableName))
+            using (new OracleTableDependency<Item>(InvalidValidConnectionString, TableName))
             {
             }
         }
@@ -33,7 +57,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
         {
-            using (new OracleTableDependency<Item>(ValidConnectionString, InvalidTableName))
+            using (new OracleTableDependency<Item>(ConnectionString, InvalidTableName))
             {
             }
         }
@@ -44,7 +68,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         {
             var mapper = new ModelToTableMapper<Item>();
 
-            using (new OracleTableDependency<Item>(ValidConnectionString, ValidTableName, mapper))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -56,7 +80,7 @@ namespace TableDependency.OracleClient.IntegrationTest
             var mapper = new ModelToTableMapper<Item>();
             mapper.AddMapping(c => c.Description, "Long Description").AddMapping(c => c.Name, null);
 
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, mapper))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -68,7 +92,7 @@ namespace TableDependency.OracleClient.IntegrationTest
             var mapper = new ModelToTableMapper<Item>();
             mapper.AddMapping(c => c.Description, "Long Description").AddMapping(c => c.Name, string.Empty);
 
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, mapper))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -80,7 +104,7 @@ namespace TableDependency.OracleClient.IntegrationTest
             var mapper = new ModelToTableMapper<Item>();
             mapper.AddMapping(c => c.Description, "Long Description").AddMapping(c => c.Name, "Not Exist");
 
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, mapper))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -89,7 +113,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>()))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, updateOf: new List<string>()))
             {
             }
         }
@@ -98,7 +122,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "NAME", null }))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, updateOf: new List<string>() { "NAME", null }))
             {
             }
         }
@@ -107,7 +131,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "NAME", string.Empty }))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, updateOf: new List<string>() { "NAME", string.Empty }))
             {
             }
         }
@@ -116,7 +140,7 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
         {
-            using (new OracleTableDependency<Item>(this.ValidConnectionString, ValidTableName, updateOf: new List<string>() { "Not exists" }))
+            using (new OracleTableDependency<Item>(ConnectionString, TableName, updateOf: new List<string>() { "Not exists" }))
             {
             }                             
         }

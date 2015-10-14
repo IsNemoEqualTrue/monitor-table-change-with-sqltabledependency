@@ -7,6 +7,7 @@ using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.OracleClient.IntegrationTest.Model;
+using TableDependency.OracleClient.IntegrationTest.Helpers;
 
 namespace TableDependency.OracleClient.IntegrationTest
 {
@@ -24,9 +25,9 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            DropProcedure(ConnectionString, ProcedureName);
-            DropTable(ConnectionString, SourceTableName);
-            DropTable(ConnectionString, TarghetTableName);
+            Helper.DropProcedure(ConnectionString, ProcedureName);
+            Helper.DropTable(ConnectionString, SourceTableName);
+            Helper.DropTable(ConnectionString, TarghetTableName);
 
             using (var connection = new OracleConnection(ConnectionString))
             {
@@ -140,35 +141,9 @@ namespace TableDependency.OracleClient.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            DropProcedure(ConnectionString, ProcedureName);
-            DropTable(ConnectionString, SourceTableName);
-            DropTable(ConnectionString, TarghetTableName);
-        }
-
-        private static void DropTable(string connectionString, string tableName)
-        {
-            using (var connection = new OracleConnection(connectionString))
-            {
-                connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
-        }
-
-        private static void DropProcedure(string connectionString, string procedureName)
-        {
-            using (var connection = new OracleConnection(connectionString))
-            {
-                connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE {procedureName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
+            Helper.DropProcedure(ConnectionString, ProcedureName);
+            Helper.DropTable(ConnectionString, SourceTableName);
+            Helper.DropTable(ConnectionString, TarghetTableName);
         }
     }
 }

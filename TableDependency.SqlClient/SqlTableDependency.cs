@@ -41,10 +41,10 @@ namespace TableDependency.SqlClient
         private const string Max = "MAX";
 
         private Task _task;
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly bool _needsToCreateDatabaseObjects;
+        private CancellationTokenSource _cancellationTokenSource;        
         private readonly string _dataBaseObjectsNamingConvention;
         private readonly bool _automaticDatabaseObjectsTeardown;
+        private readonly bool _needsToCreateDatabaseObjects;
         private readonly ModelToTableMapper<T> _mapper;
         private readonly string _connectionString;
         private Guid _dialogHandle = Guid.Empty;
