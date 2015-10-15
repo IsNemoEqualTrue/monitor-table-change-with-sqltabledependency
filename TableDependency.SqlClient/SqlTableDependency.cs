@@ -33,45 +33,16 @@ namespace TableDependency.SqlClient
     /// <summary>
     /// SqlTableDependency class.
     /// </summary>
-    public class SqlTableDependency<T> : ITableDependency<T>, IDisposable where T : class
+    public class SqlTableDependency<T> : TableDependency<T> where T : class
     {
         #region Private variables
+
         private const string EndMessageTemplate = "{0}/EndDialog";
         private const string StartMessageTemplate = "{0}/StartDialog";
         private const string Max = "MAX";
 
-        private Task _task;
-        private CancellationTokenSource _cancellationTokenSource;        
-        private readonly string _dataBaseObjectsNamingConvention;
-        private readonly bool _automaticDatabaseObjectsTeardown;
-        private readonly bool _needsToCreateDatabaseObjects;
-        private readonly ModelToTableMapper<T> _mapper;
-        private readonly string _connectionString;
         private Guid _dialogHandle = Guid.Empty;
-        private bool _disposed;
-        private readonly string _tableName;
         private readonly IEnumerable<Tuple<string, SqlDbType, string>> _userInterestedColumns;
-        private readonly IEnumerable<string> _updateOf;
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Return the database objects naming convention for created objects used to receive notifications. 
-        /// </summary>
-        /// <value>
-        /// The data base objects naming.
-        /// </value>
-        public string DataBaseObjectsNamingConvention => string.Copy(_dataBaseObjectsNamingConvention);
-
-        /// <summary>
-        /// Gets the SqlTableDependency status.
-        /// </summary>
-        /// <value>
-        /// The TableDependencyStatus enumeration status.
-        /// </value>
-        public TableDependencyStatus Status { get; private set; }
 
         #endregion
 
@@ -80,12 +51,12 @@ namespace TableDependency.SqlClient
         /// <summary>
         /// Occurs when an error happen during listening for changes on monitored table.
         /// </summary>
-        public event ErrorEventHandler OnError;
+        public override event ErrorEventHandler OnError;
 
         /// <summary>
         /// Occurs when the table content has been changed with an update, insert or delete operation.
         /// </summary>
-        public event ChangedEventHandler<T> OnChanged;
+        public override event ChangedEventHandler<T> OnChanged;
 
         #endregion
 
@@ -116,7 +87,7 @@ namespace TableDependency.SqlClient
             _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(_updateOf);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
 
-            Status = TableDependencyStatus.WaitingForStart;
+            _status = TableDependencyStatus.WaitingForStart;
         }
 
         #endregion
@@ -131,7 +102,7 @@ namespace TableDependency.SqlClient
         /// <returns></returns>
         /// <exception cref="NoSubscriberException"></exception>
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
-        public void Start(int timeOut = 120, int watchDogTimeOut = 180)
+        public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
             if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
@@ -179,28 +150,8 @@ namespace TableDependency.SqlClient
                     _automaticDatabaseObjectsTeardown),
                 _cancellationTokenSource.Token);
 
-            this.Status = TableDependencyStatus.Starting;
+            this._status = TableDependencyStatus.Starting;
             Debug.WriteLine("SqlTableDependency: Started waiting for notification.");
-        }
-
-        /// <summary>
-        /// Stops monitoring table's content changes.
-        /// </summary>
-        public void Stop()
-        {
-            if (_task != null)
-            {
-                _cancellationTokenSource.Cancel(true);
-                _task?.Wait();
-            }
-
-            _task = null;
-
-            if (_automaticDatabaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, _userInterestedColumns);
-
-            _disposed = true;
-
-            Debug.WriteLine("SqlTableDependency: Stopped waiting for notification.");
         }
 
         #endregion
@@ -364,7 +315,7 @@ namespace TableDependency.SqlClient
 
         private void OnStatusChanged(TableDependencyStatus status)
         {
-            Status = status;
+            _status = status;
         }
 
         private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
@@ -694,7 +645,12 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, colonne);
         }
 
-        private static void DropDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        {
+            DropDatabaseObjects(connectionString, databaseObjectsNaming, this._userInterestedColumns);
+        }
+
+        private void DropDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
         {
             var dropMessageStartEnd = new List<string>()
             {
@@ -819,13 +775,7 @@ namespace TableDependency.SqlClient
 
         #region IDisposable implementation
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (_disposed) return;
 

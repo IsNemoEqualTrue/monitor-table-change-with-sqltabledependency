@@ -31,58 +31,28 @@ namespace TableDependency.OracleClient
     /// <summary>
     /// OracleTableDependency class.
     /// </summary>
-    public class OracleTableDependency<T> : ITableDependency<T>, IDisposable where T : class
+    public class OracleTableDependency<T> : TableDependency<T> where T : class
     {
         #region Private variables
 
         private const string EndMessageTemplate = "{0}/EndDialog";
         private const string StartMessageTemplate = "{0}/StartDialog";
 
-        private Task _task;
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly string _dataBaseObjectsNamingConvention;
-        private readonly bool _automaticDatabaseObjectsTeardown;
-        private readonly bool _needsToCreateDatabaseObjects;
-        private readonly ModelToTableMapper<T> _mapper;
-        private readonly string _connectionString;
-        private readonly string _tableName;
         private readonly IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
-        private readonly IEnumerable<string> _updateOf;
-        private bool _disposed;
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Return the database objects naming convention. 
-        /// </summary>
-        /// <value>
-        /// The data base objects naming.
-        /// </value>
-        public string DataBaseObjectsNamingConvention => string.Copy(this._dataBaseObjectsNamingConvention);
-
-        /// <summary>
-        /// Gets the SqlTableDependency status.
-        /// </summary>
-        /// <value>
-        /// The TableDependencyStatus enumeration status.
-        /// </value>
-        public TableDependencyStatus Status { get; private set; }
 
         #endregion
 
         #region Events
 
         /// <summary>
-        /// Occurs when an error happen during listening changes on monitored table.
+        /// Occurs when an error happen during listening for changes on monitored table.
         /// </summary>
-        public event ErrorEventHandler OnError;
+        public override event ErrorEventHandler OnError;
 
         /// <summary>
         /// Occurs when the table content has been changed with an update, insert or delete operation.
         /// </summary>
-        public event ChangedEventHandler<T> OnChanged;
+        public override event ChangedEventHandler<T> OnChanged;
 
         #endregion
 
@@ -126,7 +96,7 @@ namespace TableDependency.OracleClient
             _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(updateOf);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
 
-            Status = TableDependencyStatus.WaitingForStart;
+            _status = TableDependencyStatus.WaitingForStart;
         }
 
         #endregion
@@ -140,7 +110,7 @@ namespace TableDependency.OracleClient
         /// <param name="watchDogTimeOut">The watchDog timeout in seconds.</param>
         /// <exception cref="NoSubscriberException"></exception>
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
-        public void Start(int timeOut = 120, int watchDogTimeOut = 180)
+        public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
             if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
@@ -180,25 +150,8 @@ namespace TableDependency.OracleClient
                     _automaticDatabaseObjectsTeardown),
                 _cancellationTokenSource.Token);
 
-            Status = TableDependencyStatus.Starting;
+            _status = TableDependencyStatus.Starting;
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
-        }
-
-        public void Stop()
-        {
-            if (_task != null)
-            {
-                _cancellationTokenSource.Cancel(true);
-                _task?.Wait();
-            }
-
-            _task = null;
-
-            if (_automaticDatabaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
-
-            _disposed = true;
-
-            Debug.WriteLine("OracleTableDependency: Stopped waiting for notification.");
         }
 
 #if DEBUG
@@ -394,7 +347,7 @@ namespace TableDependency.OracleClient
 
         private void OnStatusChanged(TableDependencyStatus status)
         {
-            Status = status;
+            _status = status;
         }
 
         private static byte[] GetBytes(string str, int? lenght = null)
@@ -448,7 +401,7 @@ namespace TableDependency.OracleClient
             return string.Empty;
         }
 
-        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, string, string>> columnsTableList, IEnumerable<string> updateOf, string databaseObjectsNaming, int timeOut, int timeOutWatchDog)
+        private IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, string, string>> columnsTableList, IEnumerable<string> updateOf, string databaseObjectsNaming, int timeOut, int timeOutWatchDog)
         {
             try
             {
@@ -522,7 +475,7 @@ namespace TableDependency.OracleClient
             return RetrieveProcessableMessages(columnsTableList, databaseObjectsNaming);
         }
 
-        private static void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
         {
             using (var connection = new OracleConnection(connectionString))
             {
@@ -721,13 +674,7 @@ namespace TableDependency.OracleClient
 
         #region IDisposable implementation
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (_disposed) return;
 

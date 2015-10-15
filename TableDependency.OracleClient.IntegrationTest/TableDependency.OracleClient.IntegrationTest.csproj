@@ -40,6 +40,7 @@
       <HintPath>..\..\..\..\..\..\..\oraclexe\product\11.2.0\client_1\odp.net\bin\4\Oracle.DataAccess.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
   </ItemGroup>
@@ -58,7 +59,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DataAnnotationTest.cs" />
     <Compile Include="DatabaseObjectCleanUp.cs" />
+    <Compile Include="DisposeAndRestartWithSameObjects.cs" />
     <Compile Include="EventForAllColumns.cs" />
     <Compile Include="EventForSpecificColumns.cs" />
     <Compile Include="Helpers\Helper.cs" />

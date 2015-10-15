@@ -16,5 +16,6 @@ namespace TableDependency
         void Stop();
 
         TableDependencyStatus Status { get; }
+        string DataBaseObjectsNamingConvention { get; }
     }
 }
