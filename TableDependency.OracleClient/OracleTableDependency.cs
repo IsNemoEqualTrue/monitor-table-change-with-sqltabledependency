@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -34,12 +35,7 @@ namespace TableDependency.OracleClient
     public class OracleTableDependency<T> : TableDependency<T> where T : class
     {
         #region Private variables
-
-        private const string EndMessageTemplate = "{0}/EndDialog";
-        private const string StartMessageTemplate = "{0}/StartDialog";
-
-        private readonly IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
-
+       
         #endregion
 
         #region Events
@@ -62,41 +58,203 @@ namespace TableDependency.OracleClient
         /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
+        public OracleTableDependency(string connectionString)
+            : base(connectionString, null, null, (IEnumerable<string>)null, true)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        public OracleTableDependency(string connectionString, string tableName)
+            : base(connectionString, tableName, null, (IEnumerable<string>)null, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
+            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf)
+            : base(connectionString, tableName, null, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf)
+            : base(connectionString, tableName, mapper, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
-        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true, string namingConventionForDatabaseObjects = null)
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
+            _tableName = _tableName.ToUpper();
+        }
 
-            PreliminaryChecks(connectionString, tableName);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, null, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
 
-            if (string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects))
-            {
-                _dataBaseObjectsNamingConvention = Get24DigitsGuid();
-            }
-            else if (namingConventionForDatabaseObjects.Length > 25)
-            {
-                throw new TableDependencyException("Naming convention cannot be greater that 25 characters");
-            }
-            else
-            {
-                _dataBaseObjectsNamingConvention = namingConventionForDatabaseObjects;
-            }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, IEnumerable<string> updateOf)
+            : base(connectionString, null, null, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
 
-            _connectionString = connectionString;
-            _tableName = tableName;
-            _mapper = mapper;
-            _updateOf = updateOf;
-            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
-            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(updateOf);
-            _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf)
+            : base(connectionString, tableName, null, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
 
-            _status = TableDependencyStatus.WaitingForStart;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf)
+            : base(connectionString, tableName, mapper, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public OracleTableDependency(string connectionString, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, null, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+            _tableName = _tableName.ToUpper();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OracleTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public OracleTableDependency(string connectionString, UpdateOfModel<T> updateOf)
+            : base(connectionString, null, null, updateOf, true, null)
+        {
+            _tableName = _tableName.ToUpper();
         }
 
         #endregion
@@ -113,7 +271,7 @@ namespace TableDependency.OracleClient
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
-            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
+            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");            
 
             if (_task != null)
             {
@@ -170,6 +328,128 @@ namespace TableDependency.OracleClient
             Debug.WriteLine("OracleTableDependency: Stopped waiting for notification.");
         }
 #endif
+
+        #endregion
+
+        #region Protected methods
+
+        protected override IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
+        {
+            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
+            var tableColumnsList = tableColumns as Tuple<string, string, string>[] ?? tableColumns.ToArray();
+            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
+
+            CheckUpdateOfValidity(tableColumnsList, updateOf);
+            CheckMapperValidity(tableColumnsList);
+
+            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
+
+            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, string, string>[] ?? userIterestedColumns.ToArray();
+            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
+            return columnsToUseForCreatingDbObjects;
+        }
+
+        protected override string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects)
+        {
+            if (string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects))
+            {
+                return Get24DigitsGuid();
+            }
+
+            if (namingConventionForDatabaseObjects.Length > 25)
+            {
+                throw new TableDependencyException("Naming convention cannot be greater that 25 characters");
+            }
+
+            return namingConventionForDatabaseObjects;            
+        }
+
+        protected override bool CheckIfNeedsToCreateDatabaseObjects()
+        {
+            IList<bool> allObjectAlreadyPresent = new List<bool>();
+
+            using (var connection = new OracleConnection(_connectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    var outParameter = command.Parameters.Add(new OracleParameter { ParameterName = "exist", OracleDbType = OracleDbType.Int32, Direction = ParameterDirection.Output });
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TRIGGER' AND UPPER(OBJECT_NAME) = 'TR_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND UPPER(OBJECT_NAME) = 'DEQ_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'QUEUE' AND UPPER(OBJECT_NAME) = 'QUE_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TBL_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+
+                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TYPE_{_dataBaseObjectsNamingConvention}'; END;";
+                    command.ExecuteNonQuery();
+                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                }
+            }
+
+            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist)) return false;
+
+            // Not all objects are present
+            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
+        }
+
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        {
+            using (var connection = new OracleConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = string.Format("DECLARE counter INT; BEGIN SELECT COUNT(*) INTO counter FROM user_scheduler_jobs WHERE JOB_NAME = 'JOB_{0}'; DBMS_SCHEDULER.DROP_JOB('JOB_{0}', TRUE); EXCEPTION WHEN OTHERS THEN NULL; END;", databaseObjectsNaming);
+                    command.ExecuteNonQuery();
+
+                    command.CommandType = CommandType.Text;
+                    command.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming);
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            Debug.WriteLine("OracleTableDependency: Database objects destroyed.");
+        }
+
+        protected override void PreliminaryChecks(string connectionString, string tableName)
+        {
+            CheckIfConnectionStringIsValid(connectionString);
+
+            using (var connection = new OracleConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                }
+                catch (OracleException exception)
+                {
+                    throw new InvalidConnectionStringException(exception);
+                }
+
+                CheckIfTableExists(connection, tableName);
+            }
+        }
 
         #endregion
 
@@ -297,54 +577,6 @@ namespace TableDependency.OracleClient
             return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
         }
 
-        private bool CheckIfNeedsToCreateDatabaseObjects()
-        {
-            IList<bool> allObjectAlreadyPresent = new List<bool>();
-
-            using (var connection = new OracleConnection(_connectionString))
-            {
-                connection.Open();
-                using (var command = connection.CreateCommand())
-                {
-                    var outParameter = command.Parameters.Add(new OracleParameter { ParameterName = "exist", OracleDbType = OracleDbType.Int32, Direction = ParameterDirection.Output });
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TRIGGER' AND UPPER(OBJECT_NAME) = 'TR_{_dataBaseObjectsNamingConvention}'; END;";                    
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND UPPER(OBJECT_NAME) = 'DEQ_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'QUEUE' AND UPPER(OBJECT_NAME) = 'QUE_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TBL_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TYPE_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-                }
-            }
-
-            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
-            if (allObjectAlreadyPresent.All(exist => exist)) return false;
-
-            // Not all objects are present
-            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
-        }
-
         private void OnStatusChanged(TableDependencyStatus status)
         {
             _status = status;
@@ -442,7 +674,7 @@ namespace TableDependency.OracleClient
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
                             databaseObjectsNaming,
-                            GetUpdateOfStatement(updateOf),
+                            GetUpdateOfStatement(columnsTableList, updateOf),
                             tableName,
                             startMessageStatement,
                             endMessageStatement,
@@ -475,48 +707,6 @@ namespace TableDependency.OracleClient
             return RetrieveProcessableMessages(columnsTableList, databaseObjectsNaming);
         }
 
-        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
-        {
-            using (var connection = new OracleConnection(connectionString))
-            {
-                connection.Open();
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = string.Format("DECLARE counter INT; BEGIN select COUNT(*) INTO counter FROM user_scheduler_jobs WHERE JOB_NAME = 'JOB_{0}'; DBMS_SCHEDULER.DROP_JOB('JOB_{0}', TRUE); EXCEPTION WHEN NO_DATA_FOUND THEN NULL; END;", databaseObjectsNaming);
-                    command.ExecuteNonQuery();
-
-                    command.CommandType = CommandType.Text;
-                    command.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming);
-                    command.ExecuteNonQuery();
-                }
-            }
-
-            Debug.WriteLine("OracleTableDependency: Database objects destroyed.");
-        }
-
-        private static void PreliminaryChecks(string connectionString, string tableName)
-        {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
-
-            CheckIfConnectionStringIsValid(connectionString);
-
-            using (var connection = new OracleConnection(connectionString))
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (OracleException exception)
-                {
-                    throw new InvalidConnectionStringException(exception);
-                }
-
-                CheckIfTableExists(connection, tableName);
-            }
-        }
-
         private static void CheckIfConnectionStringIsValid(string connectionString)
         {
             try
@@ -547,27 +737,11 @@ namespace TableDependency.OracleClient
             return Guid.NewGuid().ToString().Substring(5, 20).Replace("-", "_").ToUpper();
         }
 
-        private static string GetUpdateOfStatement(IEnumerable<string> columnsUpdateOf)
+        private static string GetUpdateOfStatement(IEnumerable<Tuple<string, string, string>> tableColumns, IEnumerable<string> columnsUpdateOf)
         {
-            return columnsUpdateOf != null
-                ? " OF " + string.Join(", ", columnsUpdateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"\"{c}\"").ToList())
-                : null;
-        }
-
-        private IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
-        {
-            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
-            var tableColumnsList = tableColumns as Tuple<string, string, string>[] ?? tableColumns.ToArray();
-            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
-
-            CheckUpdateOfValidity(tableColumnsList, updateOf);
-            CheckMapperValidity(tableColumnsList);
-
-            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
-
-            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, string, string>[] ?? userIterestedColumns.ToArray();
-            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
-            return columnsToUseForCreatingDbObjects;
+            if (columnsUpdateOf == null) return null;
+            var updateOfList = columnsUpdateOf.Select(updateOf => tableColumns.Where(c => c.Item1.ToUpper() == $"\"{updateOf.ToUpper()}\"").Select(c => c.Item1).FirstOrDefault()).ToList();
+            return " OF " + string.Join(", ", updateOfList);
         }
 
         private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
@@ -612,19 +786,14 @@ namespace TableDependency.OracleClient
         {
             if (updateOf != null)
             {
-                var columnsToMonitorDuringUpdate = updateOf as string[] ?? updateOf.ToArray();
-                if (!columnsToMonitorDuringUpdate.Any()) throw new UpdateOfException("updateOf parameter is empty.");
-
-                if (columnsToMonitorDuringUpdate.Any(string.IsNullOrWhiteSpace))
-                {
-                    throw new UpdateOfException("updateOf parameter contains a null or empty value.");
-                }
+                if (!updateOf.Any()) throw new UpdateOfException("updateOf parameter is empty.");
+                if (updateOf.Any(string.IsNullOrWhiteSpace)) throw new UpdateOfException("updateOf parameter contains a null or empty value.");
 
                 var tableColumns = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
-                var dbColumnNames = tableColumns.Select(t => t.Item1.ToLower()).ToList();
-                foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor.ToLower() + "\"")))
+                var dbColumnNames = tableColumns.Select(t => t.Item1.ToUpper()).ToList();
+                foreach (var columnToMonitorDuringUpdate in updateOf.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor.ToUpper() + "\"")))
                 {
-                    throw new UpdateOfException($"updateOf define column {columnToMonitorDuringUpdate} that does not exists");
+                    throw new UpdateOfException($"updateOf define column {columnToMonitorDuringUpdate} that does not exists.");
                 }
             }
         }
@@ -637,7 +806,7 @@ namespace TableDependency.OracleClient
 
                 // With ORACLE when define an column with "" it become case sensitive.
                 var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
-                var mappingNames = _mapper.GetMappings().Select(t => "\"" + t.Value + "\"").ToList();
+                var mappingNames = _mapper.GetMappings().Select(t => "\"" + t.Value.ToUpper() + "\"").ToList();
 
                 mappingNames.ForEach<string>(mapping =>
                 {

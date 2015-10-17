@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F050B8DC-2E3F-42DC-829B-76DD5732E434}</ProjectGuid>
+    <ProjectGuid>{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TableDependency.SqlClient.IntegrationTest</RootNamespace>
-    <AssemblyName>TableDependency.SqlClient.IntegrationTest</AssemblyName>
+    <RootNamespace>TableDependency.IntegrationTest</RootNamespace>
+    <AssemblyName>TableDependency.IntegrationTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,10 +35,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Oracle.DataAccess, Version=4.112.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\oraclexe\product\11.2.0\client_1\odp.net\bin\4\Oracle.DataAccess.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -50,19 +55,63 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-          <Private>False</Private>
-        </Reference>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Helpers\BooleanExtender.cs" />
-    <Compile Include="Helpers\Helper.cs" />
-    <Compile Include="Model\Check_Model.cs" />
+    <Compile Include="DataAnnotationTestOracle.cs" />
+    <Compile Include="DataAnnotationTestSqlServer.cs" />
+    <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
+    <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="DisposeAndRestartWithSameObjectsTestSqlServer.cs" />
+    <Compile Include="DisposeAndRestartWithSameObjectsTestOracle.cs" />
+    <Compile Include="EventForAllColumnsTestOracle.cs" />
+    <Compile Include="EventForAllColumnsTestSqlServer.cs" />
+    <Compile Include="EventForSpecificColumnsTestSqlServer.cs" />
+    <Compile Include="EventForSpecificColumnsTestOracle.cs" />
+    <Compile Include="LoadAndCountTestSqlServer.cs" />
+    <Compile Include="LoadAndCountTestOracle.cs" />
+    <Compile Include="Models\Item3.cs" />
+    <Compile Include="Models\Item2.cs" />
+    <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestOracle.cs" />
+    <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
+    <Compile Include="MultiDmlOperationsTestOracle.cs" />
+    <Compile Include="Helpers\Oracle\OracleHelper.cs" />
+    <Compile Include="Helpers\SqlServer\SqlServerHelper.cs" />
+    <Compile Include="MargeTestSqlServer.cs" />
+    <Compile Include="MergeTestOracle.cs" />
+    <Compile Include="Models\Check_Model.cs" />
+    <Compile Include="Models\Item.cs" />
+    <Compile Include="Models\Item4.cs" />
+    <Compile Include="MultiDmlOperationsTestSqlServer.cs" />
+    <Compile Include="NoMapperUseTestOracle.cs" />
+    <Compile Include="NoMapperUseTestSqlServer.cs" />
+    <Compile Include="NoProblemDurignCommandTimeoutForNoMessagesTestOracle.cs" />
+    <Compile Include="NoProblemDurignCommandTimeoutForNoMessagesTestSqlServer.cs" />
+    <Compile Include="PreliminaryTestOracle.cs" />
+    <Compile Include="PreliminaryTestSqlServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StatusTestOracle.cs" />
+    <Compile Include="StatusTestSqlServer.cs" />
+    <Compile Include="TableNameFromModelClassNameAndUpdateOfTestOracle.cs" />
+    <Compile Include="TableNameFromModelClassNameAndUpdateOfTestSqlServer.cs" />
+    <Compile Include="TaskCancellationTestOracle.cs" />
+    <Compile Include="TaskCancellationTestSqlServer.cs" />
+    <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />
+    <Compile Include="TypeChecks\SqlServer\BinaryBitCharVarbinaryTypes.cs" />
+    <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
+    <Compile Include="TypeChecks\SqlServer\RealTypesTest.cs" />
+    <Compile Include="TypeChecks\SqlServer\GuidSmallMoneyTypes.cs" />
+    <Compile Include="TypeChecks\SqlServer\XmlNVarcharMaxAndVarcharMaxType.cs" />
+    <Compile Include="UpdateOfUsingLambaTestOracle.cs" />
+    <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TableDependency.OracleClient\TableDependency.OracleClient.csproj">
+      <Project>{41f1e2b4-5f77-4f40-a511-2f90c8dfdb12}</Project>
+      <Name>TableDependency.OracleClient</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
       <Project>{3b201820-cb8f-41a1-8430-0c806bcf7494}</Project>
       <Name>TableDependency.SqlClient</Name>
@@ -73,9 +122,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
-  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

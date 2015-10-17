@@ -203,7 +203,7 @@ END;</value>
 
       EXECUTE IMMEDIATE 'DROP TRIGGER TR_{0}';
     EXCEPTION
-      WHEN NO_DATA_FOUND THEN
+      WHEN OTHERS THEN
         NULL;
     END;
 
@@ -217,7 +217,7 @@ END;</value>
 
       EXECUTE IMMEDIATE 'DROP PROCEDURE DEQ_{0}';
     EXCEPTION
-    WHEN NO_DATA_FOUND THEN
+    WHEN OTHERS THEN
       NULL;
     END;
 
@@ -232,7 +232,7 @@ END;</value>
       DBMS_AQADM.STOP_QUEUE('QUE_{0}'); 
       DBMS_AQADM.DROP_QUEUE(queue_name =&gt; 'QUE_{0}');
     EXCEPTION
-      WHEN NO_DATA_FOUND THEN
+      WHEN OTHERS THEN
         NULL;
     END;
 
@@ -246,7 +246,7 @@ END;</value>
 
       DBMS_AQADM.DROP_QUEUE_TABLE(queue_table =&gt; 'QT_{0}', force =&gt; TRUE); 
     EXCEPTION
-      WHEN NO_DATA_FOUND THEN
+      WHEN OTHERS THEN
         NULL;
     END;
     
@@ -260,7 +260,7 @@ END;</value>
 
       EXECUTE IMMEDIATE 'DROP TYPE TBL_{0}';
     EXCEPTION
-      WHEN NO_DATA_FOUND THEN
+      WHEN OTHERS THEN
         NULL;
     END;    
     
@@ -274,7 +274,7 @@ END;</value>
 
       EXECUTE IMMEDIATE 'DROP TYPE TYPE_{0}';
     EXCEPTION
-      WHEN NO_DATA_FOUND THEN
+      WHEN OTHERS THEN
         NULL;
     END;
 END;</value>

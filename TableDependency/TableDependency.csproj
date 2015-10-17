@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TableDependency</RootNamespace>
     <AssemblyName>TableDependency</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,7 +62,7 @@
     <Compile Include="Enums\ChangeType.cs" />
     <Compile Include="Delegates\ChangedEventHandler.cs" />
     <Compile Include="Mappers\ModelToTableMapper.cs" />
-    <Compile Include="Mappers\UpdateOfModelMapper.cs" />
+    <Compile Include="Mappers\UpdateOfModel.cs" />
     <Compile Include="Messages\Message.cs" />
     <Compile Include="Messages\MessagesBag.cs" />
     <Compile Include="Messages\MessagesBagStatus.cs" />

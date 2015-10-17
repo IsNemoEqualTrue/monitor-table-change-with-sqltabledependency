@@ -12,23 +12,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using TableDependency.Delegates;
 using TableDependency.Enums;
+using TableDependency.Exceptions;
 using TableDependency.Mappers;
 
 namespace TableDependency
 {
     public abstract class TableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
-        #region Private variables
+        #region Protected variables
+
+        protected const string EndMessageTemplate = "{0}/EndDialog";
+        protected const string StartMessageTemplate = "{0}/StartDialog";
 
         protected CancellationTokenSource _cancellationTokenSource;
         protected string _dataBaseObjectsNamingConvention;
-        protected bool _automaticDatabaseObjectsTeardown;
-        protected bool _needsToCreateDatabaseObjects;
+        protected bool _automaticDatabaseObjectsTeardown = true;
+        protected bool _needsToCreateDatabaseObjects = true;
         protected ModelToTableMapper<T> _mapper;
         protected string _connectionString;
         protected string _tableName;
         protected Task _task;
-
+        protected IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
         protected IEnumerable<string> _updateOf;
         protected TableDependencyStatus _status;
         protected bool _disposed;
@@ -67,6 +71,14 @@ namespace TableDependency
         /// </value>
         public TableDependencyStatus Status => this._status;
 
+        /// <summary>
+        /// Gets name of the table.
+        /// </summary>
+        /// <value>
+        /// The name of the table.
+        /// </value>
+        public string TableName => this._tableName;
+
         #endregion
 
         #region Public methods
@@ -92,32 +104,107 @@ namespace TableDependency
 
         #endregion
 
+        #region Constructors
+
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            _tableName = this.GetCandidateTableName(tableName);
+            PreliminaryChecks(connectionString, _tableName);
+            this.Initializer(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+        }
+
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            _tableName = this.GetCandidateTableName(tableName);
+            PreliminaryChecks(connectionString, _tableName);
+            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+        }
+
+        #endregion
+
         #region Protected methods
+
+        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
+        {
+            if (mapper != null && mapper.Count() == 0) throw new ModelToTableMapperException("Empty mapper");
+
+            _connectionString = connectionString;
+            _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
+            _updateOf = updateOf;
+            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(updateOf);
+            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
+            _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention(namingConventionForDatabaseObjects);
+            _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
+            _status = TableDependencyStatus.WaitingForStart;
+        }
+
+        protected abstract IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf);
+
+        protected abstract string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects);
+
+        protected abstract bool CheckIfNeedsToCreateDatabaseObjects();
+
+        protected abstract void PreliminaryChecks(string connectionString, string candidateTableName);
 
         protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
-        protected string TableNameFromModel()
+        protected string GetCandidateTableName(string tableName)
         {
-            return (from attribute in Attribute.GetCustomAttributes(typeof (T)) where attribute.GetType().Name == "Table" select ((TableAttribute) attribute).Name).FirstOrDefault();
+            return !string.IsNullOrWhiteSpace(tableName) ? tableName : (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
         }
 
-        protected ModelToTableMapper<T> ColumnNamesFromModel()
+        protected string GetTableNameFromTableDataAnnotation()
         {
-            var columnAttributeList = typeof(T)
+            var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
+            return ((TableAttribute)attribute)?.Name.ToUpper();
+        }
+
+        protected ModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
+        {
+            ModelToTableMapper<T> mapper = null;
+
+            var propertyInfos = typeof(T)
                 .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
                 .Where(x => Attribute.IsDefined(x, typeof(ColumnAttribute), false))
                 .ToArray();
 
-            if (columnAttributeList.Any())
+            if (!propertyInfos.Any()) return null;
+
+            mapper = new ModelToTableMapper<T>();
+            foreach (var propertyInfo in propertyInfos)
             {
-                var mapper = new ModelToTableMapper<T>();
-                foreach (var columnAttribute in columnAttributeList)
+                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
+                var dbColumnName = ((ColumnAttribute)attribute).Name;
+                if (attribute != null) mapper.AddMapping(propertyInfo, dbColumnName);
+            }
+
+            return mapper;
+        }
+
+        protected IList<string> GetColumnNameListFromUpdateOfModel(UpdateOfModel<T> updateOf)
+        {
+            var updateOfList = new List<string>();
+
+            if (updateOf != null && updateOf.Count() > 0)
+            {                
+                foreach (var propertyInfo in updateOf.GetPropertiesInfos())
                 {
-                    mapper.AddMapping(columnAttribute, columnAttribute.Name);
+                    var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
+                    if (attribute != null)
+                    {
+                        var dbColumnName = ((ColumnAttribute) attribute).Name;
+                        updateOfList.Add(dbColumnName);
+                    }
+                    else
+                    {
+                        updateOfList.Add(propertyInfo.Name);
+                    }
                 }
             }
 
-            return null;
+            return updateOfList;
         }
 
         #endregion

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace TableDependency.OracleClient.IntegrationTest.Model
+﻿namespace TableDependency.IntegrationTest.Models
 {
     public class Item
     {

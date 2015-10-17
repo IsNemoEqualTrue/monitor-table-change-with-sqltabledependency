@@ -135,7 +135,7 @@ namespace TableDependency.OracleClient.Resources {
         ///
         ///      EXECUTE IMMEDIATE &apos;DROP TRIGGER TR_{0}&apos;;
         ///    EXCEPTION
-        ///      WHEN NO_DATA_FOUND THEN
+        ///      WHEN OTHERS THEN
         ///        NULL;
         ///    END;
         ///
@@ -145,7 +145,7 @@ namespace TableDependency.OracleClient.Resources {
         ///      SELECT   OBJECT_TYPE 
         ///      INTO     v_object_type3 
         ///      FROM     user_OBJECTS 
-        ///      [rest of string was truncated]&quot;;.
+        ///      WHERE  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ScriptDropAll {
             get {

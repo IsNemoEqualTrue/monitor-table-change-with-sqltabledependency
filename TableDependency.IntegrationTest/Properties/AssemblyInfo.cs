@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TableDependency")]
-[assembly: AssemblyDescription("TableDependency is a C# base library used with TableDependency.SqlClient and TableDependency.OracleClient to send notifications when table's contents has been changed")]
+[assembly: AssemblyTitle("TableDependency.IntegrationTest")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Christian Del Bianco")]
-[assembly: AssemblyProduct("TableDependency")]
-[assembly: AssemblyTrademark("Christian Del Bianco")]
-[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("TableDependency.IntegrationTest")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("1aa8ea22-ca51-4ab8-aaff-7909825f7f09")]
+[assembly: Guid("efc8d631-311a-4e29-91c4-2deb5b756bb3")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,8 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.3.0.0")]
-[assembly: AssemblyFileVersion("4.3.0.0")]
-
-[assembly: InternalsVisibleTo("TableDependency.OracleClient")]
-[assembly: InternalsVisibleTo("TableDependency.SqlClient")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

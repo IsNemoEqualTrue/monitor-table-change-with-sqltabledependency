@@ -37,12 +37,8 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
-        private const string EndMessageTemplate = "{0}/EndDialog";
-        private const string StartMessageTemplate = "{0}/StartDialog";
         private const string Max = "MAX";
-
         private Guid _dialogHandle = Guid.Empty;
-        private readonly IEnumerable<Tuple<string, SqlDbType, string>> _userInterestedColumns;
 
         #endregion
 
@@ -66,28 +62,187 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>        
-        /// <param name="mapper">Model to column table mapper.</param>
+        public SqlTableDependency(string connectionString)
+            : base(connectionString, null, null, (IEnumerable<string>)null, true)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        public SqlTableDependency(string connectionString, string tableName)
+            : base(connectionString, tableName, null, (IEnumerable<string>)null, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
+            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf)
+            : base(connectionString, tableName, mapper, updateOf, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper = null, IEnumerable<string> updateOf = null, bool automaticDatabaseObjectsTeardown = true, string namingConventionForDatabaseObjects = null)
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            if (string.IsNullOrWhiteSpace(tableName)) throw new ArgumentNullException(nameof(tableName));
+        }
 
-            PreliminaryChecks(connectionString, tableName);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
 
-            _dataBaseObjectsNamingConvention = string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects) ? $"{tableName}_{Guid.NewGuid()}" : namingConventionForDatabaseObjects;
-            _connectionString = connectionString;
-            _tableName = tableName;
-            _mapper = mapper;
-            _updateOf = updateOf;
-            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
-            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(_updateOf);
-            _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, null, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
 
-            _status = TableDependencyStatus.WaitingForStart;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, IEnumerable<string> updateOf)
+            : base(connectionString, null, null, updateOf, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf)
+            : base(connectionString, tableName, null, updateOf, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf)
+            : base(connectionString, tableName, mapper, updateOf, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="mapper">Model to columns table mapper.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table to monitor.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, tableName, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
+        /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
+        public SqlTableDependency(string connectionString, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+            : base(connectionString, null, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="tableName">Name of the table.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf)
+            : base(connectionString, tableName, null, updateOf, true, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
+        public SqlTableDependency(string connectionString, UpdateOfModel<T> updateOf)
+            : base(connectionString, null, null, updateOf, true, null)
+        {
         }
 
         #endregion
@@ -120,7 +275,7 @@ namespace TableDependency.SqlClient
             IList<string> processableMessages;
             if (_needsToCreateDatabaseObjects)
             {
-                var toUseCreatingTrigger = _userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? _userInterestedColumns.ToArray();
+                var toUseCreatingTrigger = _userInterestedColumns as Tuple<string, string, string>[] ?? _userInterestedColumns.ToArray();
                 var columnsForTableVariable = PrepareColumnListForTableVariable(toUseCreatingTrigger);
                 var columnsForSelect = string.Join(", ", toUseCreatingTrigger.Select(c => $"[{c.Item1}]").ToList());
                 var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
@@ -152,6 +307,133 @@ namespace TableDependency.SqlClient
 
             this._status = TableDependencyStatus.Starting;
             Debug.WriteLine("SqlTableDependency: Started waiting for notification.");
+        }
+
+        #endregion
+
+        #region Protected methods
+
+        protected override IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
+        {
+            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
+            var tableColumnsList = tableColumns as Tuple<string, string, string>[] ?? tableColumns.ToArray();
+            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
+
+            CheckUpdateOfValidity(tableColumnsList, updateOf);
+            CheckMapperValidity(tableColumnsList);
+
+            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
+
+            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, string, string>[] ?? userIterestedColumns.ToArray();
+            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
+            return columnsToUseForCreatingDbObjects;
+        }
+
+        protected override string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects)
+        {
+            return string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects) ? $"{_tableName}_{Guid.NewGuid()}" : namingConventionForDatabaseObjects;
+        }
+
+        protected override bool CheckIfNeedsToCreateDatabaseObjects()
+        {
+            IList<bool> allObjectAlreadyPresent = new List<bool>();
+
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = 'tr_{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.OBJECTS WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                    foreach (var userInterestedColumn in _userInterestedColumns)
+                    {
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+
+                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Item1}" + "'";
+                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    }
+                }
+            }
+
+            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist)) return false;
+
+            // Not all objects are present
+            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
+        }
+
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        {
+            var dropMessageStartEnd = new List<string>()
+            {
+                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming)}];",
+                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(EndMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(EndMessageTemplate, databaseObjectsNaming)}];"
+            };
+
+            var interestedColumns = _userInterestedColumns as Tuple<string, string, string>[] ?? _userInterestedColumns.ToArray();
+            var dropContracts = interestedColumns
+                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1}];" + Environment.NewLine +
+                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1}];" + Environment.NewLine +
+                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1}];" + Environment.NewLine)
+                .Concat(dropMessageStartEnd)
+                .ToList();
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandType = CommandType.Text;
+                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts));
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+
+            Debug.WriteLine("SqlTableDependency: Database objects destroyed.");
+        }
+
+        protected override void PreliminaryChecks(string connectionString, string tableName)
+        {
+            CheckIfConnectionStringIsValid(connectionString);
+            CheckIfUserHasPermission();
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (SqlException exception)
+                {
+                    throw new InvalidConnectionStringException(exception);
+                }
+
+                CheckIfServiceBrokerIsEnabled(sqlConnection);
+                CheckIfTableExists(sqlConnection, tableName);
+            }
         }
 
         #endregion
@@ -262,57 +544,6 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private bool CheckIfNeedsToCreateDatabaseObjects()
-        {
-            IList<bool> allObjectAlreadyPresent = new List<bool>();
-
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = 'tr_{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.OBJECTS WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                    foreach (var userInterestedColumn in _userInterestedColumns)
-                    {
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Item1}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Item1}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Item1}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
-                    }
-                }
-            }
-
-            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
-            if (allObjectAlreadyPresent.All(exist => exist)) return false;
-
-            // Not all objects are present
-            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
-        }
-
         private void OnStatusChanged(TableDependencyStatus status)
         {
             _status = status;
@@ -329,13 +560,13 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static string PrepareColumnListForTableVariable(IEnumerable<Tuple<string, SqlDbType, string>> tableColumns)
+        private static string PrepareColumnListForTableVariable(IEnumerable<Tuple<string, string, string>> tableColumns)
         {
             var columns = tableColumns.Select(tableColumn =>
             {
-                if (tableColumn.Item2 == SqlDbType.Timestamp)
+                if (tableColumn.Item2 == "timestamp")
                 {
-                    return $"[{tableColumn.Item1}] {SqlDbType.Binary}(8)";
+                    return $"[{tableColumn.Item1}] binary(8)";
                 }
 
                 if (!string.IsNullOrWhiteSpace(tableColumn.Item3))
@@ -404,24 +635,24 @@ namespace TableDependency.SqlClient
             foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper) });
         }
 
-        private static string ComputeSize(SqlDbType dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
+        private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
             switch (dataType)
             {
-                case SqlDbType.Binary:
-                case SqlDbType.VarBinary:
-                case SqlDbType.Char:
-                case SqlDbType.NChar:
-                case SqlDbType.VarChar:
-                case SqlDbType.NVarChar:
+                case "binary":
+                case "varbinary":
+                case "char":
+                case "nchar":
+                case "varchar":
+                case "nvarchar":
                     return characterMaximumLength == "-1" ? Max : characterMaximumLength;
 
-                case SqlDbType.Decimal:
+                case "decimal":
                     return $"{numericPrecision},{numericScale}";
 
-                case SqlDbType.DateTime2:
-                case SqlDbType.DateTimeOffset:
-                case SqlDbType.Time:
+                case "datetime2":
+                case "datetimeoffset":
+                case "time":
                     return $"{dateTimePrecisione}";
 
                 default:
@@ -429,9 +660,9 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static IEnumerable<Tuple<string, SqlDbType, string>> GetTableColumnsList(string connectionString, string tableName)
+        private static IEnumerable<Tuple<string, string, string>> GetTableColumnsList(string connectionString, string tableName)
         {
-            var columnsList = new List<Tuple<string, SqlDbType, string>>();
+            var columnsList = new List<Tuple<string, string, string>>();
 
             using (var sqlConnection = new SqlConnection(connectionString))
             {
@@ -443,9 +674,9 @@ namespace TableDependency.SqlClient
                     while (reader.Read())
                     {
                         var name = reader.GetString(0);
-                        var type = reader.GetString(1).ToSqlDbType();
+                        var type = reader.GetString(1).ConvertNumericType();
                         var size = ComputeSize(type, reader.GetSafeString(2), reader.GetSafeString(3), reader.GetSafeString(4), reader.GetSafeString(5));
-                        columnsList.Add(new Tuple<string, SqlDbType, string>(name, type, size));
+                        columnsList.Add(new Tuple<string, string, string>(name, type, size));
                     }
                 }
             }
@@ -453,23 +684,7 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        private IEnumerable<Tuple<string, SqlDbType, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf = null)
-        {
-            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
-            var tableColumnsList = tableColumns as Tuple<string, SqlDbType, string>[] ?? tableColumns.ToArray();
-            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
-
-            CheckUpdateOfValidity(tableColumnsList, updateOf);
-            CheckMapperValidity(tableColumnsList);
-
-            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
-
-            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, SqlDbType, string>[] ?? userIterestedColumns.ToArray();
-            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
-            return columnsToUseForCreatingDbObjects;
-        }
-
-        private void CheckMapperValidity(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList)
+        private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
         {
             if (_mapper != null)
             {
@@ -484,24 +699,26 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsToUse)
+        private static void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
         {
             foreach (var tableColumn in tableColumnsToUse)
             {
                 switch (tableColumn.Item2)
                 {
-                    case SqlDbType.Image:
-                    case SqlDbType.Text:
-                    case SqlDbType.NText:
-                    case SqlDbType.Structured:
-                    case SqlDbType.Udt:
-                    case SqlDbType.Variant:
+                    case "image":
+                    case "text":
+                    case "ntext":
+                    case "structured":
+                    case "geography":
+                    case "geometry":
+                    case "hierarchyid":
+                    case "sql_variant":
                         throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} type is not an admitted for SqlTableDependency.");
                 }
             }
         }
 
-        private static IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming)
+        private static IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> userInterestedColumns, string databaseObjectsNaming)
         {
             var processableMessages = new List<string>
             {
@@ -509,7 +726,7 @@ namespace TableDependency.SqlClient
                 string.Format(EndMessageTemplate, databaseObjectsNaming)
             };
 
-            var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
+            var interestedColumns = userInterestedColumns as Tuple<string, string, string>[] ?? userInterestedColumns.ToArray();
             foreach (var userInterestedColumn in interestedColumns)
             {
                 processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}");
@@ -520,7 +737,7 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns)
+        private static IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, string, string>> userInterestedColumns, string databaseObjectsNaming, string tableColumns, string selectColumns, string updateColumns)
         {
             var processableMessages = new List<string>();
 
@@ -543,7 +760,7 @@ namespace TableDependency.SqlClient
                         processableMessages.Add(startMessage);
                         processableMessages.Add(endMessage);
 
-                        var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
+                        var interestedColumns = userInterestedColumns as Tuple<string, string, string>[] ?? userInterestedColumns.ToArray();
                         foreach (var userInterestedColumn in interestedColumns)
                         {
                             var deleteMessage = $"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Item1}";
@@ -607,14 +824,14 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static string ConvertFormat(Tuple<string, SqlDbType, string> userInterestedColumn)
+        private static string ConvertFormat(Tuple<string, string, string> userInterestedColumn)
         {
-            return (userInterestedColumn.Item2 == SqlDbType.DateTime || userInterestedColumn.Item2 == SqlDbType.Date) ? ", 121" : string.Empty;
+            return (userInterestedColumn.Item2 == "datetime" || userInterestedColumn.Item2 == "date") ? ", 121" : string.Empty;
         }
 
-        private static string ConvertValueByType(Tuple<string, SqlDbType, string> userInterestedColumn)
+        private static string ConvertValueByType(Tuple<string, string, string> userInterestedColumn)
         {
-            if (userInterestedColumn.Item2 == SqlDbType.Binary || userInterestedColumn.Item2 == SqlDbType.VarBinary)
+            if (userInterestedColumn.Item2 == "binary" || userInterestedColumn.Item2 == "varbinary")
             {
                 return $"@{userInterestedColumn.Item1.Replace(" ", string.Empty)}";
             }
@@ -622,7 +839,7 @@ namespace TableDependency.SqlClient
             return $"CONVERT(NVARCHAR(MAX), @{userInterestedColumn.Item1.Replace(" ", string.Empty)}{ConvertFormat(userInterestedColumn)})";
         }
 
-        private static string PrepareSendConversation(string databaseObjectsNaming, string dmlType, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
+        private static string PrepareSendConversation(string databaseObjectsNaming, string dmlType, IEnumerable<Tuple<string, string, string>> userInterestedColumns)
         {
             var sendList = userInterestedColumns
                 .Select(insterestedColumn => $"IF @{insterestedColumn.Item1.Replace(" ", string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Item1}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Item1}] (0x)" + Environment.NewLine + "END")
@@ -634,71 +851,15 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, sendList);
         }
 
-        private static string PrepareSelectForSetVarialbes(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
+        private static string PrepareSelectForSetVarialbes(IEnumerable<Tuple<string, string, string>> userInterestedColumns)
         {
             return string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"@{insterestedColumn.Item1.Replace(" ", string.Empty)} = [{insterestedColumn.Item1}]"));
         }
 
-        private static string PrepareDeclareVariableStatement(IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
+        private static string PrepareDeclareVariableStatement(IEnumerable<Tuple<string, string, string>> userInterestedColumns)
         {
             var colonne = (from insterestedColumn in userInterestedColumns let variableName = insterestedColumn.Item1.Replace(" ", string.Empty) let variableType = $"{insterestedColumn.Item2.ToString().ToUpper()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Item3) ? string.Empty : $"({insterestedColumn.Item3})") select $"DECLARE @{variableName} {variableType.ToUpper()}").ToList();
             return string.Join(Environment.NewLine, colonne);
-        }
-
-        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
-        {
-            DropDatabaseObjects(connectionString, databaseObjectsNaming, this._userInterestedColumns);
-        }
-
-        private void DropDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<Tuple<string, SqlDbType, string>> userInterestedColumns)
-        {
-            var dropMessageStartEnd = new List<string>()
-            {
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming)}];",
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(EndMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(EndMessageTemplate, databaseObjectsNaming)}];"
-            };
-
-            var interestedColumns = userInterestedColumns as Tuple<string, SqlDbType, string>[] ?? userInterestedColumns.ToArray();
-            var dropContracts = interestedColumns
-                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1}];" + Environment.NewLine)
-                .Concat(dropMessageStartEnd)
-                .ToList();
-
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts));
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
-
-            Debug.WriteLine("SqlTableDependency: Database objects destroyed.");
-        }
-
-        private static void PreliminaryChecks(string connectionString, string tableName)
-        {
-            CheckIfConnectionStringIsValid(connectionString);
-            CheckIfUserHasPermission();
-
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    sqlConnection.Open();
-                }
-                catch (SqlException exception)
-                {
-                    throw new InvalidConnectionStringException(exception);
-                }
-
-                CheckIfServiceBrokerIsEnabled(sqlConnection);
-                CheckIfTableExists(sqlConnection, tableName);
-            }
         }
 
         private static void CheckIfConnectionStringIsValid(string connectionString)
@@ -743,14 +904,14 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private IEnumerable<Tuple<string, SqlDbType, string>> GetUserInterestedColumns(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList)
+        private IEnumerable<Tuple<string, string, string>> GetUserInterestedColumns(IEnumerable<Tuple<string, string, string>> tableColumnsList)
         {
             var modelPropertyInfos = ModelUtil.GetModelPropertiesInfo<T>();
 
             return (from modelPropertyInfo in modelPropertyInfos let propertyMappedTo = this._mapper?.GetMapping(modelPropertyInfo) select propertyMappedTo ?? modelPropertyInfo.Name into propertyName select tableColumnsList.FirstOrDefault(column => string.Equals(column.Item1.ToLower(), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase)) into tableColumn where tableColumn != null select tableColumn).ToList();
         }
 
-        private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, SqlDbType, string>> tableColumnsList, IEnumerable<string> updateOf)
+        private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
         {
             if (updateOf != null)
             {
@@ -762,7 +923,7 @@ namespace TableDependency.SqlClient
                     throw new UpdateOfException("updateOf parameter contains a null or empty value.");
                 }
 
-                var tableColumns = tableColumnsList as Tuple<string, SqlDbType, string>[] ?? tableColumnsList.ToArray();
+                var tableColumns = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
                 var dbColumnNames = tableColumns.Select(t => t.Item1.ToLower()).ToList();
                 foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
                 {
