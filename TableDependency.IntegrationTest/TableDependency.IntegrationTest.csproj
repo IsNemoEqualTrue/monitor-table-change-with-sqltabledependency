@@ -72,11 +72,10 @@
     <Compile Include="EventForSpecificColumnsTestOracle.cs" />
     <Compile Include="LoadAndCountTestSqlServer.cs" />
     <Compile Include="LoadAndCountTestOracle.cs" />
-    <Compile Include="Models\Item3.cs" />
     <Compile Include="Models\Item2.cs" />
+    <Compile Include="Models\Item3.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestOracle.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
-    <Compile Include="MultiDmlOperationsTestOracle.cs" />
     <Compile Include="Helpers\Oracle\OracleHelper.cs" />
     <Compile Include="Helpers\SqlServer\SqlServerHelper.cs" />
     <Compile Include="MargeTestSqlServer.cs" />
@@ -84,6 +83,7 @@
     <Compile Include="Models\Check_Model.cs" />
     <Compile Include="Models\Item.cs" />
     <Compile Include="Models\Item4.cs" />
+    <Compile Include="MultiDmlOperationsTestOracle.cs" />
     <Compile Include="MultiDmlOperationsTestSqlServer.cs" />
     <Compile Include="NoMapperUseTestOracle.cs" />
     <Compile Include="NoMapperUseTestSqlServer.cs" />
