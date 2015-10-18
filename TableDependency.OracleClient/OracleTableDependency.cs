@@ -59,7 +59,7 @@ namespace TableDependency.OracleClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         public OracleTableDependency(string connectionString)
-            : base(connectionString, null, null, (IEnumerable<string>)null, true)
+            : base(connectionString, null, null, (IList<string>)null, true)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -70,7 +70,7 @@ namespace TableDependency.OracleClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
         public OracleTableDependency(string connectionString, string tableName)
-            : base(connectionString, tableName, null, (IEnumerable<string>)null, true, null)
+            : base(connectionString, tableName, null, (IList<string>)null, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -82,7 +82,7 @@ namespace TableDependency.OracleClient
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">Model to columns table mapper.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
-            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, true, null)
+            : base(connectionString, tableName, mapper, (IList<string>)null, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -93,7 +93,7 @@ namespace TableDependency.OracleClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public OracleTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf)
+        public OracleTableDependency(string connectionString, string tableName, IList<string> updateOf)
             : base(connectionString, tableName, null, updateOf, true, null)
         {
             _tableName = _tableName.ToUpper();
@@ -106,7 +106,7 @@ namespace TableDependency.OracleClient
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf)
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf)
             : base(connectionString, tableName, mapper, updateOf, true, null)
         {
             _tableName = _tableName.ToUpper();
@@ -121,7 +121,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(connectionString, tableName, mapper, (IEnumerable<string>)null, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, (IList<string>)null, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -135,7 +135,7 @@ namespace TableDependency.OracleClient
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
-        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
             : base(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
@@ -149,7 +149,7 @@ namespace TableDependency.OracleClient
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
-        public OracleTableDependency(string connectionString, string tableName, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        public OracleTableDependency(string connectionString, string tableName, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
             : base(connectionString, tableName, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
@@ -162,7 +162,7 @@ namespace TableDependency.OracleClient
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
-        public OracleTableDependency(string connectionString, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        public OracleTableDependency(string connectionString, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
             : base(connectionString, null, null, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
@@ -173,7 +173,7 @@ namespace TableDependency.OracleClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public OracleTableDependency(string connectionString, IEnumerable<string> updateOf)
+        public OracleTableDependency(string connectionString, IList<string> updateOf)
             : base(connectionString, null, null, updateOf, true, null)
         {
             _tableName = _tableName.ToUpper();
@@ -270,28 +270,12 @@ namespace TableDependency.OracleClient
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
-            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
-            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");            
-
-            if (_task != null)
-            {
-                Debug.WriteLine("OracleTableDependency: Already called Start() method.");
-                return;
-            }
-
             if (OnChanged == null) throw new NoSubscriberException();
+
+            base.Start(timeOut, watchDogTimeOut);
+            
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
-
-            IList<string> processableMessages;
-            if (_needsToCreateDatabaseObjects)
-            {
-                processableMessages = CreateDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _updateOf, _dataBaseObjectsNamingConvention, timeOut, watchDogTimeOut);
-            }
-            else
-            {
-                processableMessages = RetrieveProcessableMessages(_userInterestedColumns, _dataBaseObjectsNamingConvention);
-            }
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
@@ -304,7 +288,7 @@ namespace TableDependency.OracleClient
                     _dataBaseObjectsNamingConvention,
                     watchDogTimeOut,
                     _mapper,
-                    processableMessages,
+                    _processableMessages,
                     _automaticDatabaseObjectsTeardown),
                 _cancellationTokenSource.Token);
 
@@ -332,6 +316,91 @@ namespace TableDependency.OracleClient
         #endregion
 
         #region Protected methods
+
+        protected override IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> columnsTableList, string databaseObjectsNaming)
+        {
+            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var messageBoundaries = new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming) };
+
+            return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
+        }
+
+        protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<Tuple<string, string, string>> userInterestedColumns, IList<string> updateOf, int timeOut, int timeOutWatchDog)
+        {
+            try
+            {
+                using (var connection = new OracleConnection(connectionString))
+                {
+                    connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT VARCHAR2(4000));";
+                        command.ExecuteNonQuery();
+                        command.CommandText = $"CREATE TYPE TBL_{dataBaseObjectsNamingConvention} IS TABLE OF TYPE_{dataBaseObjectsNamingConvention};";
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=> 'QT_{dataBaseObjectsNamingConvention}', queue_payload_type=> 'TYPE_{dataBaseObjectsNamingConvention}', multiple_consumers => FALSE); END;";
+                        command.ExecuteNonQuery();
+                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', queue_table => 'QT_{dataBaseObjectsNamingConvention}'); END;";
+                        command.ExecuteNonQuery();
+                        command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{dataBaseObjectsNamingConvention}'); END;";
+                        command.ExecuteNonQuery();
+
+                        var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " " + c.Item2 + ComputeVariableSize(c) + ";"));
+                        var startMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention);
+                        var endMessageStatement = string.Format(EndMessageTemplate, dataBaseObjectsNamingConvention);
+                        var setNewValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :NEW." + c.Item1 + ";"));
+                        var setOldValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :OLD." + c.Item1 + ";"));
+                        var insertDml = ChangeType.Insert.ToString();
+                        var updateDml = ChangeType.Update.ToString();
+                        var deleteDml = ChangeType.Delete.ToString();
+
+                        var enqueueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c =>
+                        {
+                            var messageType = $"'{dataBaseObjectsNamingConvention}/' || dmlType || '/{c.Item1.Replace("\"", string.Empty)}'";
+                            var variableName = "TO_CHAR(v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + ")";
+                            return string.Format(Scripts.EnqueueScript, dataBaseObjectsNamingConvention, dataBaseObjectsNamingConvention, messageType, variableName);
+                        }));
+
+                        command.CommandText = string.Format(
+                            Scripts.CreateTriggerEnqueueMessage,
+                            dataBaseObjectsNamingConvention,
+                            GetUpdateOfStatement(userInterestedColumns, updateOf),
+                            tableName,
+                            startMessageStatement,
+                            endMessageStatement,
+                            declareStatement,
+                            insertDml,
+                            setNewValueStatement,
+                            updateDml,
+                            setNewValueStatement,
+                            deleteDml,
+                            setOldValueStatement,
+                            enqueueStatement);
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = string.Format(Scripts.CreateProcedureDequeueMessage, dataBaseObjectsNamingConvention, timeOut, userInterestedColumns.Count() + 2);
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = string.Format(Scripts.ScriptJobCreate, dataBaseObjectsNamingConvention, (timeOutWatchDog / 60), string.Format(Scripts.ScriptDropAll, dataBaseObjectsNamingConvention).Replace("'", "''"));
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch
+            {
+                DropDatabaseObjects(connectionString, dataBaseObjectsNamingConvention);
+                throw;
+            }
+
+            Debug.WriteLine($"OracleTableDependency: Database objects created with naming {dataBaseObjectsNamingConvention}.");
+
+            return RetrieveProcessableMessages(userInterestedColumns, dataBaseObjectsNamingConvention);
+        }
+
 
         protected override IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
         {
@@ -567,16 +636,6 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> columnsTableList, string databaseObjectsNaming)
-        {
-            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1.Replace("\"", string.Empty)}").ToList();
-            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1.Replace("\"", string.Empty)}").ToList();
-            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1.Replace("\"", string.Empty)}").ToList();
-            var messageBoundaries = new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming) };
-
-            return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
-        }
-
         private void OnStatusChanged(TableDependencyStatus status)
         {
             _status = status;
@@ -631,80 +690,6 @@ namespace TableDependency.OracleClient
             if (string.IsNullOrWhiteSpace(column.Item3)) return string.Empty;
             if (Convert.ToInt32(column.Item3) > 0) return "(" + column.Item3 + ")";
             return string.Empty;
-        }
-
-        private IList<string> CreateDatabaseObjects(string connectionString, string tableName, IEnumerable<Tuple<string, string, string>> columnsTableList, IEnumerable<string> updateOf, string databaseObjectsNaming, int timeOut, int timeOutWatchDog)
-        {
-            try
-            {
-                using (var connection = new OracleConnection(connectionString))
-                {
-                    connection.Open();
-
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = $"CREATE TYPE TYPE_{databaseObjectsNaming} AS OBJECT(MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT VARCHAR2(4000));";
-                        command.ExecuteNonQuery();
-                        command.CommandText = $"CREATE TYPE TBL_{databaseObjectsNaming} IS TABLE OF TYPE_{databaseObjectsNaming};";
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=> 'QT_{databaseObjectsNaming}', queue_payload_type=> 'TYPE_{databaseObjectsNaming}', multiple_consumers => FALSE); END;";
-                        command.ExecuteNonQuery();
-                        command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE(queue_name => 'QUE_{databaseObjectsNaming}', queue_table => 'QT_{databaseObjectsNaming}'); END;";
-                        command.ExecuteNonQuery();
-                        command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{databaseObjectsNaming}'); END;";
-                        command.ExecuteNonQuery();
-
-                        var declareStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " " + c.Item2 + ComputeVariableSize(c) + ";"));
-                        var startMessageStatement = string.Format(StartMessageTemplate, databaseObjectsNaming);
-                        var endMessageStatement = string.Format(EndMessageTemplate, databaseObjectsNaming);
-                        var setNewValueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :NEW." + c.Item1 + ";"));
-                        var setOldValueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :OLD." + c.Item1 + ";"));
-                        var insertDml = ChangeType.Insert.ToString();
-                        var updateDml = ChangeType.Update.ToString();
-                        var deleteDml = ChangeType.Delete.ToString();
-
-                        var enqueueStatement = string.Join(Environment.NewLine, columnsTableList.Select(c =>
-                        {
-                            var messageType = $"'{databaseObjectsNaming}/' || dmlType || '/{c.Item1.Replace("\"", string.Empty)}'";
-                            var variableName = "TO_CHAR(v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + ")";
-                            return string.Format(Scripts.EnqueueScript, databaseObjectsNaming, databaseObjectsNaming, messageType, variableName);
-                        }));
-
-                        command.CommandText = string.Format(
-                            Scripts.CreateTriggerEnqueueMessage,
-                            databaseObjectsNaming,
-                            GetUpdateOfStatement(columnsTableList, updateOf),
-                            tableName,
-                            startMessageStatement,
-                            endMessageStatement,
-                            declareStatement,
-                            insertDml,
-                            setNewValueStatement,
-                            updateDml,
-                            setNewValueStatement,
-                            deleteDml,
-                            setOldValueStatement,
-                            enqueueStatement);
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = string.Format(Scripts.CreateProcedureDequeueMessage, databaseObjectsNaming, timeOut, columnsTableList.Count() + 2);
-                        command.ExecuteNonQuery();
-
-                        command.CommandText = string.Format(Scripts.ScriptJobCreate, databaseObjectsNaming, (timeOutWatchDog / 60), string.Format(Scripts.ScriptDropAll, databaseObjectsNaming).Replace("'", "''"));
-                        command.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch
-            {
-                DropDatabaseObjects(connectionString, databaseObjectsNaming);
-                throw;
-            }
-
-            Debug.WriteLine($"OracleTableDependency: Database objects created with naming {databaseObjectsNaming}.");
-
-            return RetrieveProcessableMessages(columnsTableList, databaseObjectsNaming);
         }
 
         private static void CheckIfConnectionStringIsValid(string connectionString)

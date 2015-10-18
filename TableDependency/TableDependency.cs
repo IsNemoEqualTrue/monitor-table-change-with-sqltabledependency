@@ -32,8 +32,9 @@ namespace TableDependency
         protected string _connectionString;
         protected string _tableName;
         protected Task _task;
+        protected IList<string> _processableMessages;
         protected IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
-        protected IEnumerable<string> _updateOf;
+        protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
         protected bool _disposed;
 
@@ -83,8 +84,33 @@ namespace TableDependency
 
         #region Public methods
 
-        public abstract void Start(int timeOut = 120, int watchDogTimeOut = 180);
+        /// <summary>
+        /// Starts monitoring table's content changes.
+        /// </summary>
+        /// <param name="timeOut">The WAITFOR timeout in seconds.</param>
+        /// <param name="watchDogTimeOut">The WATCHDOG timeout in seconds.</param>
+        /// <returns></returns>
+        /// <exception cref="NoSubscriberException"></exception>
+        /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
+        public virtual void Start(int timeOut = 120, int watchDogTimeOut = 180)
+        {
+            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
+            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
 
+            if (_task != null)
+            {
+                Debug.WriteLine("SqlTableDependency: Already called Start() method.");
+                return;
+            }
+           
+            this._processableMessages = this._needsToCreateDatabaseObjects 
+                ? this.CreateDatabaseObjects(this._connectionString, this._tableName, this._dataBaseObjectsNamingConvention, this._userInterestedColumns, this._updateOf, timeOut, watchDogTimeOut) 
+                : this.RetrieveProcessableMessages(this._userInterestedColumns, this._dataBaseObjectsNamingConvention);
+        }
+
+        /// <summary>
+        /// Stops monitoring table's content changes.
+        /// </summary>
         public virtual void Stop()
         {
             if (_task != null)
@@ -106,7 +132,7 @@ namespace TableDependency
 
         #region Constructors
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             _tableName = this.GetCandidateTableName(tableName);
@@ -126,7 +152,11 @@ namespace TableDependency
 
         #region Protected methods
 
-        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IEnumerable<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
+        protected abstract IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> userInterestedColumns, string databaseObjectsNaming);
+
+        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<Tuple<string, string, string>> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+
+        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
         {
             if (mapper != null && mapper.Count() == 0) throw new ModelToTableMapperException("Empty mapper");
 

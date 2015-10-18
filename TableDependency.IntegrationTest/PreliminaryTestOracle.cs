@@ -3,7 +3,6 @@ using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Exceptions;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
@@ -59,7 +58,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void NotExistingTableNameFromModelTest()
         {
-            using (new OracleTableDependency<Item>(ConnectionString))
+            using (new OracleTableDependency<Item1>(ConnectionString))
             {
             }
         }
