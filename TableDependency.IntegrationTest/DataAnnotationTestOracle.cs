@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;

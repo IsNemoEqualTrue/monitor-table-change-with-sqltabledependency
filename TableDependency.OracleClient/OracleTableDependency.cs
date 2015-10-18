@@ -798,23 +798,6 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
-        {
-            if (_mapper != null)
-            {
-                if (_mapper.Count() < 1) throw new ModelToTableMapperException();
-
-                // With ORACLE when define an column with "" it become case sensitive.
-                var dbColumnNames = tableColumnsList.Select(t => t.Item1).ToList();
-                var mappingNames = _mapper.GetMappings().Select(t => "\"" + t.Value.ToUpper() + "\"").ToList();
-
-                mappingNames.ForEach<string>(mapping =>
-                {
-                    if (dbColumnNames.Contains(mapping) == false) throw new ModelToTableMapperException();
-                });
-            }
-        }
-
         private static IEnumerable<Tuple<string, string, string>> GetTableColumnsList(string connectionString, string tableName)
         {
             var columnsList = new List<Tuple<string, string, string>>();
@@ -839,6 +822,34 @@ namespace TableDependency.OracleClient
             return columnsList;
         }
 
+        private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
+        {
+            if (_mapper != null)
+            {
+                if (_mapper.Count() < 1) throw new ModelToTableMapperException();
+
+                // With ORACLE when define an column with "" it become case sensitive.
+                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToUpper().Replace("\"", string.Empty)).ToList();
+                var mappingNames = _mapper.GetMappings().Select(t => t.Value.ToUpper()).ToList();
+
+                mappingNames.ForEach<string>(mapping =>
+                {
+                    var found = false;
+                    dbColumnNames.ForEach<string>(column =>
+                    {
+                        if (string.Compare(mapping, column, StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            found = true;
+                        }
+                    });
+
+                    if (!found)
+                    {
+                        throw new ModelToTableMapperException("Invalid mapper for property " + mapping);
+                    }
+                });
+            }
+        }
         #endregion
 
         #region IDisposable implementation

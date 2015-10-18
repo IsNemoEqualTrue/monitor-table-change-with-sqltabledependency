@@ -74,6 +74,7 @@
     <Compile Include="LoadAndCountTestOracle.cs" />
     <Compile Include="Models\Item2.cs" />
     <Compile Include="Models\Item3.cs" />
+    <Compile Include="Models\Item5.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestOracle.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
     <Compile Include="Helpers\Oracle\OracleHelper.cs" />
