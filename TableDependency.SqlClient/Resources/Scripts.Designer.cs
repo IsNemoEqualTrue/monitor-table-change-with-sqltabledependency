@@ -83,7 +83,7 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON [{1}] AFTER INSERT, DELETE, UPDATE AS 
+        ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
         ///BEGIN
         ///	-- stop if no row was affected
         ///	IF @@ROWCOUNT = 0 RETURN
@@ -102,7 +102,7 @@ namespace TableDependency.SqlClient.Resources {
         ///	
         ///	IF NOT EXISTS(SELECT * FROM INSERTED)
         ///	BEGIN
-        ///		SET  [rest of string was truncated]&quot;;.
+        ///		SET @dmlType = &apos;{12}&apos;        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {

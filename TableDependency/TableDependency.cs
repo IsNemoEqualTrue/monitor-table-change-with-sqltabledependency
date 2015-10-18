@@ -36,6 +36,7 @@ namespace TableDependency
         protected IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
         protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
+        protected DmlTriggerType _dmlTriggerType;
         protected bool _disposed;
 
         #endregion
@@ -102,9 +103,9 @@ namespace TableDependency
                 Debug.WriteLine("SqlTableDependency: Already called Start() method.");
                 return;
             }
-           
-            this._processableMessages = this._needsToCreateDatabaseObjects 
-                ? this.CreateDatabaseObjects(this._connectionString, this._tableName, this._dataBaseObjectsNamingConvention, this._userInterestedColumns, this._updateOf, timeOut, watchDogTimeOut) 
+
+            this._processableMessages = this._needsToCreateDatabaseObjects
+                ? this.CreateDatabaseObjects(this._connectionString, this._tableName, this._dataBaseObjectsNamingConvention, this._userInterestedColumns, this._updateOf, timeOut, watchDogTimeOut)
                 : this.RetrieveProcessableMessages(this._userInterestedColumns, this._dataBaseObjectsNamingConvention);
         }
 
@@ -132,20 +133,20 @@ namespace TableDependency
 
         #region Constructors
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             _tableName = this.GetCandidateTableName(tableName);
             PreliminaryChecks(connectionString, _tableName);
-            this.Initializer(connectionString, tableName, mapper, updateOf, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             _tableName = this.GetCandidateTableName(tableName);
             PreliminaryChecks(connectionString, _tableName);
-            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
         #endregion
@@ -156,9 +157,17 @@ namespace TableDependency
 
         protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<Tuple<string, string, string>> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
-        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
+        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
         {
             if (mapper != null && mapper.Count() == 0) throw new ModelToTableMapperException("Empty mapper");
+
+            if (!dmlTriggerType.HasFlag(DmlTriggerType.Update) && !dmlTriggerType.HasFlag(DmlTriggerType.All))
+            {
+                if (updateOf != null && updateOf.Any())
+                {
+                    throw new DmlTriggerTypeException("updateOf parameter can be specified only if DmlTriggerType parameter contains DmlTriggerType.Update too, not for DmlTriggerType.Delete or DmlTriggerType.Insert only.");
+                }
+            }
 
             _connectionString = connectionString;
             _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
@@ -167,6 +176,7 @@ namespace TableDependency
             _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
             _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention(namingConventionForDatabaseObjects);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
+            _dmlTriggerType = dmlTriggerType;
             _status = TableDependencyStatus.WaitingForStart;
         }
 
@@ -218,13 +228,13 @@ namespace TableDependency
             var updateOfList = new List<string>();
 
             if (updateOf != null && updateOf.Count() > 0)
-            {                
+            {
                 foreach (var propertyInfo in updateOf.GetPropertiesInfos())
                 {
                     var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
                     if (attribute != null)
                     {
-                        var dbColumnName = ((ColumnAttribute) attribute).Name;
+                        var dbColumnName = ((ColumnAttribute)attribute).Name;
                         updateOfList.Add(dbColumnName);
                     }
                     else

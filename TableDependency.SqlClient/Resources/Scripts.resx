@@ -134,7 +134,7 @@ BEGIN
 END</value>
   </data>
   <data name="CreateTrigger" xml:space="preserve">
-    <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER INSERT, DELETE, UPDATE AS 
+    <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
 BEGIN
 	-- stop if no row was affected
 	IF @@ROWCOUNT = 0 RETURN

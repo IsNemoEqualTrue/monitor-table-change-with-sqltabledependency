@@ -155,7 +155,7 @@ END;</value>
   </data>
   <data name="CreateTriggerEnqueueMessage" xml:space="preserve">
     <value>CREATE OR REPLACE TRIGGER TR_{0}
-AFTER DELETE OR INSERT OR UPDATE{1} ON {2}
+AFTER {13}{1} ON {2}
 REFERENCING OLD AS OLD NEW AS NEW 
 FOR EACH ROW
 BEGIN

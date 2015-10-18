@@ -42,9 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Delegates\ErrorEventHandler.cs" />
+    <Compile Include="Enums\DmlTriggerType.cs" />
     <Compile Include="Enums\TableDependencyStatus.cs" />
     <Compile Include="EventArgs\ErrorEventArgs.cs" />
     <Compile Include="Exceptions\ColumnTypeNotSupportedException.cs" />
+    <Compile Include="Exceptions\DmlTriggerTypeException.cs" />
     <Compile Include="Exceptions\MessageMisalignedException.cs" />
     <Compile Include="Exceptions\NoColumnsException.cs" />
     <Compile Include="Exceptions\SomeDatabaseObjectsNotPresentException.cs" />

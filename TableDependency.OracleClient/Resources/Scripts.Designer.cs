@@ -89,7 +89,7 @@ namespace TableDependency.OracleClient.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to CREATE OR REPLACE TRIGGER TR_{0}
-        ///AFTER DELETE OR INSERT OR UPDATE{1} ON {2}
+        ///AFTER {13}{1} ON {2}
         ///REFERENCING OLD AS OLD NEW AS NEW 
         ///FOR EACH ROW
         ///BEGIN
@@ -106,7 +106,8 @@ namespace TableDependency.OracleClient.Resources {
         ///    enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
         ///     
         ///    IF INSERTING THEN
-        ///      dmlT [rest of string was truncated]&quot;;.
+        ///      dmlType := &apos;{6}&apos;;
+        ///      { [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {

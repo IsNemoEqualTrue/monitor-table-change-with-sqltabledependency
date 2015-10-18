@@ -100,6 +100,8 @@
     <Compile Include="TableNameFromModelClassNameAndUpdateOfTestSqlServer.cs" />
     <Compile Include="TaskCancellationTestOracle.cs" />
     <Compile Include="TaskCancellationTestSqlServer.cs" />
+    <Compile Include="TriggerTypeTestOracle.cs" />
+    <Compile Include="TriggerTypeTestSqlServer.cs" />
     <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\BinaryBitCharVarbinaryTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
