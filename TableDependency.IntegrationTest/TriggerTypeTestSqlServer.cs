@@ -462,9 +462,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Name = "Christian", Description = "Del Bianco" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia", Description = "Del Bianco" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Mergherita" }, new Item()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
