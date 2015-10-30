@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest

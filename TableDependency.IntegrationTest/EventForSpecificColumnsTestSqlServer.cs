@@ -8,19 +8,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class EventForSpecificColumnsTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class EventForSpecificColumnsTestSqlServer
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
-        private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
+        private static Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -66,15 +74,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForSpecificColumnsTest()
         {
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<EventForSpecificColumnsTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<EventForSpecificColumnsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Check_Model>(
+                tableDependency = new SqlTableDependency<EventForSpecificColumnsTestSqlServerModel>(
                     _connectionString, 
                     TableName, 
                     mapper, new List<string>() { "second name" });
@@ -102,7 +110,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForSpecificColumnsTestSqlServerModel> e)
         {
             _counter++;
 
@@ -121,9 +129,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Christian", Surname = "Del Bianco" }, new Check_Model()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia" }, new Check_Model()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia", Surname = "Del Bianco" }, new Check_Model()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>(new EventForSpecificColumnsTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new EventForSpecificColumnsTestSqlServerModel()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>(new EventForSpecificColumnsTestSqlServerModel { Name = "Velia" }, new EventForSpecificColumnsTestSqlServerModel()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>(new EventForSpecificColumnsTestSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new EventForSpecificColumnsTestSqlServerModel()));
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {

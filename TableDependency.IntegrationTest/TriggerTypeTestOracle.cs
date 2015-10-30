@@ -9,18 +9,26 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class TriggerTypeTestOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class TriggerTypeTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private const string TableName = "CheckTriggerType";
         private static int _counter;
-        private static Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>> CheckValues = new Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -32,7 +40,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), DESCRIPTION varchar2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), SURNAME varchar2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -52,7 +60,7 @@ namespace TableDependency.IntegrationTest
             }
 
             _counter = 0;
-            CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+            CheckValues = new Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>>();
         }
 
         [ClassCleanup()]
@@ -65,12 +73,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException1()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -92,12 +100,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException2()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -119,12 +127,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException3()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -145,12 +153,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsert()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -175,7 +183,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -183,12 +191,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyDelete()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -213,7 +221,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -221,12 +229,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyUpdate()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -251,7 +259,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -259,12 +267,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsertDelete()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -289,10 +297,10 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 2);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -300,12 +308,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsertUpdate()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -330,10 +338,10 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 2);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -341,12 +349,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void DeleteInsertUpdate()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -371,13 +379,13 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 3);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -385,12 +393,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void All()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TriggerTypeTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(
+                tableDependency = new OracleTableDependency<TriggerTypeTestOracleModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -415,18 +423,18 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 3);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TriggerTypeTestOracleModel> e)
         {
             _counter++;
 
@@ -434,31 +442,31 @@ namespace TableDependency.IntegrationTest
             {
                 case ChangeType.Insert:
                     CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Update:
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Update.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Delete:
                     CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>(new TriggerTypeTestOracleModel { Id = 23, Name = "Pizza Mergherita", Surname = "Pizza Mergherita" }, new TriggerTypeTestOracleModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>(new TriggerTypeTestOracleModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Mergherita" }, new TriggerTypeTestOracleModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>(new TriggerTypeTestOracleModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Funghi" }, new TriggerTypeTestOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, DESCRIPTION) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Id}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}'); END;";
+                    command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, SURNAME) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Id}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}'); END;";
                     command.ExecuteNonQuery();
                     Thread.Sleep(2000);
 

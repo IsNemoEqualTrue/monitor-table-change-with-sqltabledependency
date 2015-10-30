@@ -9,18 +9,26 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class TriggerTypeTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class TriggerTypeTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "CheckTriggerType";
         private static int _counter;
-        private static Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static Dictionary<string, Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -37,7 +45,7 @@ namespace TableDependency.IntegrationTest
                         $"CREATE TABLE [{TableName}]( " +
                         "[Id] [int] IDENTITY(1, 1) NOT NULL, " +
                         "[Name] [NVARCHAR](50) NOT NULL, " +
-                        "[Description] [NVARCHAR](50) NOT NULL)";
+                        "[Surname] [NVARCHAR](50) NOT NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -57,7 +65,7 @@ namespace TableDependency.IntegrationTest
             }
 
             _counter = 0;
-            CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+            CheckValues = new Dictionary<string, Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>>();
         }
 
         [ClassCleanup()]
@@ -78,12 +86,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException1()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -105,12 +113,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException2()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -132,12 +140,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException3()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -158,12 +166,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsert()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -188,7 +196,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -196,12 +204,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyDelete()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -226,7 +234,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -234,12 +242,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyUdate()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -264,7 +272,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 1);
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -272,12 +280,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsertDelete()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -302,10 +310,10 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 2);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -313,12 +321,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void OnlyInsertUpdate()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -343,10 +351,10 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 2);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -354,12 +362,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void DeleteInsertUpdate()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -384,13 +392,13 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 3);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
@@ -398,12 +406,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void All()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(
+                tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
                     TableName,
                     null,
@@ -428,18 +436,18 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 3);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, "Pizza Mergherita");
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TriggerTypeTestSqlServerModel> e)
         {
             _counter++;
 
@@ -447,31 +455,31 @@ namespace TableDependency.IntegrationTest
             {
                 case ChangeType.Insert:
                     CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Delete:
                     CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Update:
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Update.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>(new TriggerTypeTestSqlServerModel { Id = 23, Name = "Pizza Mergherita", Surname = "Pizza Mergherita" }, new TriggerTypeTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>(new TriggerTypeTestSqlServerModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Mergherita" }, new TriggerTypeTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>(new TriggerTypeTestSqlServerModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Funghi" }, new TriggerTypeTestSqlServerModel()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Surname]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 

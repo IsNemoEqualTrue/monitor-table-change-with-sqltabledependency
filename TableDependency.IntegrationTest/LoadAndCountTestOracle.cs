@@ -5,14 +5,21 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class LoadAndCountTestOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class LoadAndCountTestOracle
     {
@@ -53,8 +60,8 @@ namespace TableDependency.IntegrationTest
             var token = cts.Token;
 
             var counterUpTo = 1000;
-            var mapper = new ModelToTableMapper<Item>();
-            mapper.AddMapping(c => c.Description, "Long Description");
+            var mapper = new ModelToTableMapper<LoadAndCountTestOracleModel>();
+            mapper.AddMapping(c => c.Name, "Long Description");
 
             var listenerTask = Task.Factory.StartNew(() => new ListenerOrc(ConnectionString, TableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
@@ -94,20 +101,20 @@ namespace TableDependency.IntegrationTest
 
     public class ListenerOrc
     {
-        readonly OracleTableDependency<Item> _tableDependency;
+        readonly OracleTableDependency<LoadAndCountTestOracleModel> _tableDependency;
         readonly ListenerResultOrc _listenerResult = new ListenerResultOrc();
 
         public string ObjectNaming { get; private set; }
 
-        public ListenerOrc(string connectionString, string tableName, ModelToTableMapper<Item> mapper)
+        public ListenerOrc(string connectionString, string tableName, ModelToTableMapper<LoadAndCountTestOracleModel> mapper)
         {
-            this._tableDependency = new OracleTableDependency<Item>(connectionString, tableName, mapper);
+            this._tableDependency = new OracleTableDependency<LoadAndCountTestOracleModel>(connectionString, tableName, mapper);
             this._tableDependency.OnChanged += this.TableDependency_OnChanged;
             this._tableDependency.Start(60, 120);
             this._listenerResult.ObjectNaming = this._tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Item> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<LoadAndCountTestOracleModel> e)
         {
             this._listenerResult.Counter = this._listenerResult.Counter + 1;
             if (this._listenerResult.Counter != e.Entity.Id)

@@ -7,21 +7,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class EventForAllColumnsTestOracleModel
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int Qty { get; set; }
+    }
+
     [TestClass]
     public class EventForAllColumnsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAA_Table".ToUpper();
         private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static readonly Dictionary<string, Tuple<EventForAllColumnsTestOracleModel, EventForAllColumnsTestOracleModel>> CheckValues = new Dictionary<string, Tuple<EventForAllColumnsTestOracleModel, EventForAllColumnsTestOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -53,15 +59,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<EventForAllColumnsTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Item>();
+                var mapper = new ModelToTableMapper<EventForAllColumnsTestOracleModel>();
                 mapper.AddMapping(c => c.Description, "Long Description");
 
-                tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper);
+                tableDependency = new OracleTableDependency<EventForAllColumnsTestOracleModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -85,7 +91,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForAllColumnsTestOracleModel> e)
         {
             switch (e.ChangeType)
             {
@@ -113,9 +119,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<EventForAllColumnsTestOracleModel, EventForAllColumnsTestOracleModel>(new EventForAllColumnsTestOracleModel { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new EventForAllColumnsTestOracleModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<EventForAllColumnsTestOracleModel, EventForAllColumnsTestOracleModel>(new EventForAllColumnsTestOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new EventForAllColumnsTestOracleModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<EventForAllColumnsTestOracleModel, EventForAllColumnsTestOracleModel>(new EventForAllColumnsTestOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new EventForAllColumnsTestOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {

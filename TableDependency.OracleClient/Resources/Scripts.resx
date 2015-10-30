@@ -120,10 +120,10 @@
   <data name="CreateProcedureDequeueMessage" xml:space="preserve">
     <value>CREATE OR REPLACE PROCEDURE DEQ_{0} (p_recordset OUT SYS_REFCURSOR) 
 AS 
-  obj TYPE_{0};
-  payload TBL_{0};
+  payload TYPE_{0};
+  payload_table TBL_{0};
   v_msgid RAW(16);
-
+  
   queueopts DBMS_AQ.DEQUEUE_OPTIONS_T;
   msgprops DBMS_AQ.MESSAGE_PROPERTIES_T;
    
@@ -132,25 +132,26 @@ AS
 BEGIN
   queueopts.wait := {1};
   queueopts.navigation := DBMS_AQ.NEXT_MESSAGE;
-  payload := TBL_{0}();
+  payload_table := TBL_{0}();
   
   FOR Lcntr IN 1..{2} LOOP
     BEGIN
-      DBMS_AQ.DEQUEUE ('QUE_{0}', queueopts, msgprops, obj, v_msgid);
-
-      payload.EXTEND;
-      payload(payload.LAST) := obj;
+    
+      payload_table.EXTEND;
+      
+      DBMS_AQ.DEQUEUE ('QUE_{0}', queueopts, msgprops, payload, v_msgid);
+      payload_table(payload_table.LAST) := payload;
       
       queueopts.wait := DBMS_AQ.NO_WAIT;
 
     EXCEPTION
       WHEN no_messages THEN
-        OPEN p_recordset FOR SELECT NULL AS message_type, NULL AS message_content FROM DUAL;
+        OPEN p_recordset FOR SELECT NULL AS message_type, NULL AS message FROM DUAL;
         RETURN;
     END;
   END LOOP;
    
-  OPEN p_recordset FOR SELECT message_type, message_content FROM TABLE(payload);     
+  OPEN p_recordset FOR SELECT message_type, message FROM TABLE(payload_table);     
 END;</value>
   </data>
   <data name="CreateTriggerEnqueueMessage" xml:space="preserve">
@@ -160,14 +161,19 @@ REFERENCING OLD AS OLD NEW AS NEW
 FOR EACH ROW
 BEGIN
   DECLARE
-    enqueue_options     DBMS_AQ.enqueue_options_t;
-    message_properties  DBMS_AQ.message_properties_t;
-    message_handle      RAW(16);
-    
+    enqueue_options DBMS_AQ.enqueue_options_t;
+    message_properties DBMS_AQ.message_properties_t;
+    message_handle RAW(16);
+    amount_to_write INT;
+    message_buffer BLOB;
+    message_content TYPE_{0};
+    lob_loc BLOB;
+    l_blob BLOB;
     messageStart VARCHAR2(50) := '{3}';
     messageEnd VARCHAR2(50) := '{4}';
     dmlType VARCHAR2(50);
     {5}
+    
   BEGIN
     enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
      
@@ -182,14 +188,10 @@ BEGIN
       {11}
     END IF;
        
-    DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{0}(messageStart,dmlType), msgid =&gt; message_handle);
-    {12}       
-    DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{0}(messageEnd, dmlType), msgid =&gt; message_handle);
+    {12}
+    
   END;
 END;</value>
-  </data>
-  <data name="EnqueueScript" xml:space="preserve">
-    <value>DBMS_AQ.ENQUEUE(queue_name =&gt; 'QUE_{0}', enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{1}({2}, {3}), msgid =&gt; message_handle);</value>
   </data>
   <data name="ScriptDropAll" xml:space="preserve">
     <value>BEGIN
@@ -294,18 +296,6 @@ END;</value>
     NAME =&gt; 'JOB_{0}', 
     ATTRIBUTE =&gt; 'restartable', 
     VALUE =&gt; TRUE);
-END;</value>
-  </data>
-  <data name="ScriptJobDisable" xml:space="preserve">
-    <value>BEGIN
-  DBMS_SCHEDULER.DISABLE('JOB_{0}', TRUE);
-  DBMS_SCHEDULER.SET_ATTRIBUTE_NULL('JOB_{0}', 'START_DATE');
-END;</value>
-  </data>
-  <data name="ScriptJobEnable" xml:space="preserve">
-    <value>BEGIN
-  DBMS_SCHEDULER.SET_ATTRIBUTE('JOB_{0}', 'START_DATE', SYSTIMESTAMP + INTERVAL '{1}' MINUTE);
-  DBMS_SCHEDULER.ENABLE('JOB_{0}');
 END;</value>
   </data>
 </root>

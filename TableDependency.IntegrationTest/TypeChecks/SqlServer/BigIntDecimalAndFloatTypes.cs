@@ -8,22 +8,29 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
 {
+    public class BigIntDecimalAndFloatModel
+    {
+        public long? bigintColumn { get; set; }
+        public decimal? decimal18Column { get; set; }
+        public decimal? decimal54Column { get; set; }
+        public float? floatColumn { get; set; }
+    }
+
     [TestClass]
     public class BigIntDecimalAndFloatTypesTestSqlServer
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static string TableName = "CheckDecimalAndFloat";
-        private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
+        private static readonly Dictionary<string, Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>> CheckValues = new Dictionary<string, Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -49,7 +56,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -63,12 +70,12 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<BigIntDecimalAndFloatModel> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName);
+                tableDependency = new SqlTableDependency<BigIntDecimalAndFloatModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -84,66 +91,66 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.bigintColumn, _checkValues[ChangeType.Insert.ToString()].Item1.bigintColumn);
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.decimal18Column, _checkValues[ChangeType.Insert.ToString()].Item1.decimal18Column);
-            Assert.IsNull(_checkValues[ChangeType.Insert.ToString()].Item2.decimal54Column);
-            Assert.IsNull(_checkValues[ChangeType.Insert.ToString()].Item2.floatColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.bigintColumn, CheckValues[ChangeType.Insert.ToString()].Item1.bigintColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.decimal18Column, CheckValues[ChangeType.Insert.ToString()].Item1.decimal18Column);
+            Assert.IsNull(CheckValues[ChangeType.Insert.ToString()].Item2.decimal54Column);
+            Assert.IsNull(CheckValues[ChangeType.Insert.ToString()].Item2.floatColumn);
 
-            Assert.IsNull(_checkValues[ChangeType.Update.ToString()].Item2.bigintColumn);
-            Assert.IsNull(_checkValues[ChangeType.Update.ToString()].Item2.decimal18Column);
-            Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.decimal54Column, _checkValues[ChangeType.Update.ToString()].Item1.decimal54Column);
-            Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.floatColumn, _checkValues[ChangeType.Update.ToString()].Item1.floatColumn);
+            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.bigintColumn);
+            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.decimal18Column);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.decimal54Column, CheckValues[ChangeType.Update.ToString()].Item1.decimal54Column);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.floatColumn, CheckValues[ChangeType.Update.ToString()].Item1.floatColumn);
 
-            Assert.IsNull(_checkValues[ChangeType.Delete.ToString()].Item2.bigintColumn);
-            Assert.IsNull(_checkValues[ChangeType.Delete.ToString()].Item2.decimal18Column);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.decimal54Column, _checkValues[ChangeType.Delete.ToString()].Item1.decimal54Column);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.floatColumn, _checkValues[ChangeType.Delete.ToString()].Item1.floatColumn);
+            Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.bigintColumn);
+            Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.decimal18Column);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.decimal54Column, CheckValues[ChangeType.Delete.ToString()].Item1.decimal54Column);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.floatColumn, CheckValues[ChangeType.Delete.ToString()].Item1.floatColumn);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<BigIntDecimalAndFloatModel> e)
         {
 
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    _checkValues[ChangeType.Insert.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.floatColumn = e.Entity.floatColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.floatColumn = e.Entity.floatColumn;
 
                     break;
                 case ChangeType.Update:
-                    _checkValues[ChangeType.Update.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
-                    _checkValues[ChangeType.Update.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
-                    _checkValues[ChangeType.Update.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
-                    _checkValues[ChangeType.Update.ToString()].Item2.floatColumn = e.Entity.floatColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
+                    CheckValues[ChangeType.Update.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
+                    CheckValues[ChangeType.Update.ToString()].Item2.floatColumn = e.Entity.floatColumn;
                     break;
                 case ChangeType.Delete:
-                    _checkValues[ChangeType.Delete.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.floatColumn = e.Entity.floatColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.bigintColumn = e.Entity.bigintColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.decimal18Column = e.Entity.decimal18Column;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.decimal54Column = e.Entity.decimal54Column;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.floatColumn = e.Entity.floatColumn;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { bigintColumn = 123, decimal18Column = 987654321, decimal54Column = null, floatColumn = null }, new Check_Model()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { bigintColumn = null, decimal18Column = null, decimal54Column = 6.77M, floatColumn = 7.55F }, new Check_Model()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { bigintColumn = null, decimal18Column = null, decimal54Column = 6.77M, floatColumn = 7.55F }, new Check_Model()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>(new BigIntDecimalAndFloatModel { bigintColumn = 123, decimal18Column = 987654321, decimal54Column = null, floatColumn = null }, new BigIntDecimalAndFloatModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>(new BigIntDecimalAndFloatModel { bigintColumn = null, decimal18Column = null, decimal54Column = 6.77M, floatColumn = 7.55F }, new BigIntDecimalAndFloatModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>(new BigIntDecimalAndFloatModel { bigintColumn = null, decimal18Column = null, decimal54Column = 6.77M, floatColumn = 7.55F }, new BigIntDecimalAndFloatModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([bigintColumn], [decimal18Column], [decimal54Column], [floatColumn]) VALUES ({_checkValues[ChangeType.Insert.ToString()].Item1.bigintColumn}, @decimal18Column, null, null)";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([bigintColumn], [decimal18Column], [decimal54Column], [floatColumn]) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.bigintColumn}, @decimal18Column, null, null)";
                     sqlCommand.Parameters.Add(new SqlParameter("@decimal18Column", SqlDbType.Decimal)
                     {
                         Precision = 18,
                         Scale = 0,
-                        Value = _checkValues[ChangeType.Insert.ToString()].Item1.decimal18Column
+                        Value = CheckValues[ChangeType.Insert.ToString()].Item1.decimal18Column
                     });
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
@@ -152,8 +159,8 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [bigintColumn] = null, [decimal18Column] = null, [decimal54Column] = @decimal54Column, [floatColumn] = @floatColumn";
-                    sqlCommand.Parameters.Add(new SqlParameter("@decimal54Column", SqlDbType.Decimal) { Value = _checkValues[ChangeType.Update.ToString()].Item1.decimal54Column });
-                    sqlCommand.Parameters.Add(new SqlParameter("@floatColumn", SqlDbType.Float) { Value = _checkValues[ChangeType.Update.ToString()].Item1.floatColumn });
+                    sqlCommand.Parameters.Add(new SqlParameter("@decimal54Column", SqlDbType.Decimal) { Value = CheckValues[ChangeType.Update.ToString()].Item1.decimal54Column });
+                    sqlCommand.Parameters.Add(new SqlParameter("@floatColumn", SqlDbType.Float) { Value = CheckValues[ChangeType.Update.ToString()].Item1.floatColumn });
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,18 +9,26 @@ using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    [Table("ItemsTable")]
+    public class Item5
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column("Long Description")]
+        public string Infos { get; set; }
+    }
+
     [TestClass]
     public class ModelWithAnnotationUsedWithCunstructorParameterTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAA";
-        private static int _counter = 0;
+        private static int _counter;
         private static readonly Dictionary<string, Item5> CheckValues = new Dictionary<string, Item5>();
 
         [ClassInitialize()]

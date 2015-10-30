@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,14 +6,21 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class MultiDmlOperationsTesOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class MultiDmlOperationsTestOracle
     {
@@ -52,14 +59,14 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForSpecificColumnsTest()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<MultiDmlOperationsTesOracleModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Item>();
-                mapper.AddMapping(c => c.Description, "Long Description");
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTesOracleModel>();
+                mapper.AddMapping(c => c.Name, "Long Description");
 
-                tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper);
+                tableDependency = new OracleTableDependency<MultiDmlOperationsTesOracleModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
 
@@ -78,13 +85,13 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_deletedValue, "XXXXXX");
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<MultiDmlOperationsTesOracleModel> e)
         {
             _counter++;
 
             if (e.ChangeType ==  ChangeType.Delete)
             {
-                _deletedValue = e.Entity.Description;
+                _deletedValue = e.Entity.Name;
             }
         }
 

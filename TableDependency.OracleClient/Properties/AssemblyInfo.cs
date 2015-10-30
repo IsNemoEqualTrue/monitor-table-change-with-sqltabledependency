@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TableDependency.OracleClient")]
-[assembly: AssemblyDescription("TableDependency.OracleClient is a C# component used to receive database notifications when table's contents has been changed")]
+[assembly: AssemblyDescription("TableDependency.OracleClient is a C# component used to receive Oracle ® database notifications when a table's contents has been changed.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Christian Del Bianco")]
 [assembly: AssemblyProduct("TableDependency.OracleClient")]
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.5.0.0")]
-[assembly: AssemblyFileVersion("4.5.0.0")]
+[assembly: AssemblyVersion("4.5.1.0")]
+[assembly: AssemblyFileVersion("4.5.1.0")]

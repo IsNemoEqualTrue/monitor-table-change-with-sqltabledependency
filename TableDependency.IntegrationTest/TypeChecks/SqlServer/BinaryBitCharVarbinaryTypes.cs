@@ -8,17 +8,27 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
 {
+    public class BinaryBitCharVarbinaryModel
+    {
+        public byte[] binary50Column { get; set; }
+        public bool? bitColumn { get; set; }
+        public bool bit2Column { get; set; }
+        public bool bit3Column { get; set; }
+        public char[] char10Column { get; set; }
+        public byte[] varbinary50Column { get; set; }
+        public byte[] varbinaryMAXColumn { get; set; }
+    }
+
     [TestClass]
-    public class BinaryBitCharVarbinaryTypesTestSqlServer
+    public class BinaryBitCharVarbinaryTypes
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static string TableName = "Test";
-        private static Dictionary<string, Tuple<Check_Model, Check_Model>> _checkValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
+        private static Dictionary<string, Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>> _checkValues = new Dictionary<string, Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -64,12 +74,12 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<BinaryBitCharVarbinaryModel> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName);
+                tableDependency = new SqlTableDependency<BinaryBitCharVarbinaryModel>(_connectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -105,7 +115,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
 
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<BinaryBitCharVarbinaryModel> e)
         {
 
             switch (e.ChangeType)
@@ -161,9 +171,9 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { binary50Column = GetBytes("Aurelia", 50), bit2Column = false, bit3Column = false, bitColumn = false, char10Column = null, varbinary50Column = GetBytes("Nonna"), varbinaryMAXColumn = null }, new Check_Model()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { binary50Column = GetBytes("Valentina", 50), bit2Column = true, bit3Column = true, bitColumn = true,  char10Column = new char[] { 'A' }, varbinary50Column = null, varbinaryMAXColumn = GetBytes("Velia") }, new Check_Model()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { binary50Column = GetBytes("Valentina", 50), bit2Column = true, bit3Column = true,  bitColumn = true,  char10Column = new char[] { 'A' }, varbinary50Column = null, varbinaryMAXColumn = GetBytes("Velia") }, new Check_Model()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>(new BinaryBitCharVarbinaryModel { binary50Column = GetBytes("Aurelia", 50), bit2Column = false, bit3Column = false, bitColumn = false, char10Column = null, varbinary50Column = GetBytes("Nonna"), varbinaryMAXColumn = null }, new BinaryBitCharVarbinaryModel()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>(new BinaryBitCharVarbinaryModel { binary50Column = GetBytes("Valentina", 50), bit2Column = true, bit3Column = true, bitColumn = true,  char10Column = new char[] { 'A' }, varbinary50Column = null, varbinaryMAXColumn = GetBytes("Velia") }, new BinaryBitCharVarbinaryModel()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>(new BinaryBitCharVarbinaryModel { binary50Column = GetBytes("Valentina", 50), bit2Column = true, bit3Column = true,  bitColumn = true,  char10Column = new char[] { 'A' }, varbinary50Column = null, varbinaryMAXColumn = GetBytes("Velia") }, new BinaryBitCharVarbinaryModel()));
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {

@@ -41,6 +41,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\ColumnInfo.cs" />
     <Compile Include="Delegates\ErrorEventHandler.cs" />
     <Compile Include="Enums\DmlTriggerType.cs" />
     <Compile Include="Enums\TableDependencyStatus.cs" />

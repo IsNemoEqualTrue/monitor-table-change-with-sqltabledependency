@@ -63,10 +63,10 @@ namespace TableDependency.OracleClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to CREATE OR REPLACE PROCEDURE DEQ_{0} (p_recordset OUT SYS_REFCURSOR) 
         ///AS 
-        ///  obj TYPE_{0};
-        ///  payload TBL_{0};
+        ///  payload TYPE_{0};
+        ///  payload_table TBL_{0};
         ///  v_msgid RAW(16);
-        ///
+        ///  
         ///  queueopts DBMS_AQ.DEQUEUE_OPTIONS_T;
         ///  msgprops DBMS_AQ.MESSAGE_PROPERTIES_T;
         ///   
@@ -75,11 +75,14 @@ namespace TableDependency.OracleClient.Resources {
         ///BEGIN
         ///  queueopts.wait := {1};
         ///  queueopts.navigation := DBMS_AQ.NEXT_MESSAGE;
-        ///  payload := TBL_{0}();
+        ///  payload_table := TBL_{0}();
         ///  
         ///  FOR Lcntr IN 1..{2} LOOP
         ///    BEGIN
-        ///      DBMS_AQ.DEQUEUE (&apos;QUE_{0}&apos;, queueopts, msgprops, obj, v_msgid [rest of string was truncated]&quot;;.
+        ///    
+        ///      payload_table.EXTEND;
+        ///      
+        ///       [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateProcedureDequeueMessage {
             get {
@@ -94,33 +97,25 @@ namespace TableDependency.OracleClient.Resources {
         ///FOR EACH ROW
         ///BEGIN
         ///  DECLARE
-        ///    enqueue_options     DBMS_AQ.enqueue_options_t;
-        ///    message_properties  DBMS_AQ.message_properties_t;
-        ///    message_handle      RAW(16);
-        ///    
+        ///    enqueue_options DBMS_AQ.enqueue_options_t;
+        ///    message_properties DBMS_AQ.message_properties_t;
+        ///    message_handle RAW(16);
+        ///    amount_to_write INT;
+        ///    message_buffer BLOB;
+        ///    message_content TYPE_{0};
+        ///    lob_loc BLOB;
+        ///    l_blob BLOB;
         ///    messageStart VARCHAR2(50) := &apos;{3}&apos;;
         ///    messageEnd VARCHAR2(50) := &apos;{4}&apos;;
         ///    dmlType VARCHAR2(50);
         ///    {5}
+        ///    
         ///  BEGIN
-        ///    enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
-        ///     
-        ///    IF INSERTING THEN
-        ///      dmlType := &apos;{6}&apos;;
-        ///      { [rest of string was truncated]&quot;;.
+        ///    en [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {
                 return ResourceManager.GetString("CreateTriggerEnqueueMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DBMS_AQ.ENQUEUE(queue_name =&gt; &apos;QUE_{0}&apos;, enqueue_options =&gt; enqueue_options, message_properties =&gt; message_properties, payload =&gt; TYPE_{1}({2}, {3}), msgid =&gt; message_handle);.
-        /// </summary>
-        internal static string EnqueueScript {
-            get {
-                return ResourceManager.GetString("EnqueueScript", resourceCulture);
             }
         }
         
@@ -174,30 +169,6 @@ namespace TableDependency.OracleClient.Resources {
         internal static string ScriptJobCreate {
             get {
                 return ResourceManager.GetString("ScriptJobCreate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BEGIN
-        ///  DBMS_SCHEDULER.DISABLE(&apos;JOB_{0}&apos;, TRUE);
-        ///  DBMS_SCHEDULER.SET_ATTRIBUTE_NULL(&apos;JOB_{0}&apos;, &apos;START_DATE&apos;);
-        ///END;.
-        /// </summary>
-        internal static string ScriptJobDisable {
-            get {
-                return ResourceManager.GetString("ScriptJobDisable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to BEGIN
-        ///  DBMS_SCHEDULER.SET_ATTRIBUTE(&apos;JOB_{0}&apos;, &apos;START_DATE&apos;, SYSTIMESTAMP + INTERVAL &apos;{1}&apos; MINUTE);
-        ///  DBMS_SCHEDULER.ENABLE(&apos;JOB_{0}&apos;);
-        ///END;.
-        /// </summary>
-        internal static string ScriptJobEnable {
-            get {
-                return ResourceManager.GetString("ScriptJobEnable", resourceCulture);
             }
         }
     }

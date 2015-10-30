@@ -8,8 +8,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
@@ -33,7 +35,7 @@ namespace TableDependency
         protected string _tableName;
         protected Task _task;
         protected IList<string> _processableMessages;
-        protected IEnumerable<Tuple<string, string, string>> _userInterestedColumns;
+        protected IEnumerable<ColumnInfo> _userInterestedColumns;
         protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
         protected DmlTriggerType _dmlTriggerType;
@@ -56,6 +58,14 @@ namespace TableDependency
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// Gets or sets the encoding use to convert database strings.
+        /// </summary>
+        /// <value>
+        /// The encoding.
+        /// </value>
+        public Encoding Encoding { get; set; }
 
         /// <summary>
         /// Return the database objects naming convention for created objects used to receive notifications. 
@@ -153,9 +163,9 @@ namespace TableDependency
 
         #region Protected methods
 
-        protected abstract IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> userInterestedColumns, string databaseObjectsNaming);
+        protected abstract IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming);
 
-        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<Tuple<string, string, string>> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
         protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
         {
@@ -172,7 +182,7 @@ namespace TableDependency
             _connectionString = connectionString;
             _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
             _updateOf = updateOf;
-            _userInterestedColumns = GetColumnsToUseForCreatingDbObjects(updateOf);
+            _userInterestedColumns = GetUserInterestedColumns(updateOf);
             _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
             _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention(namingConventionForDatabaseObjects);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
@@ -180,7 +190,7 @@ namespace TableDependency
             _status = TableDependencyStatus.WaitingForStart;
         }
 
-        protected abstract IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf);
+        protected abstract IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf);
 
         protected abstract string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects);
 
@@ -190,18 +200,18 @@ namespace TableDependency
 
         protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
-        protected string GetCandidateTableName(string tableName)
+        protected virtual string GetCandidateTableName(string tableName)
         {
             return !string.IsNullOrWhiteSpace(tableName) ? tableName : (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
         }
 
-        protected string GetTableNameFromTableDataAnnotation()
+        protected virtual string GetTableNameFromTableDataAnnotation()
         {
             var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Name.ToUpper();
         }
 
-        protected ModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
+        protected virtual ModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
         {
             ModelToTableMapper<T> mapper = null;
 
@@ -223,7 +233,7 @@ namespace TableDependency
             return mapper;
         }
 
-        protected IList<string> GetColumnNameListFromUpdateOfModel(UpdateOfModel<T> updateOf)
+        protected virtual IList<string> GetColumnNameListFromUpdateOfModel(UpdateOfModel<T> updateOf)
         {
             var updateOfList = new List<string>();
 
@@ -245,6 +255,11 @@ namespace TableDependency
             }
 
             return updateOfList;
+        }
+
+        protected virtual void CheckIfModelHasPropertiesWithSameName(ModelToTableMapper<T> mapper)
+        {
+            
         }
 
         #endregion

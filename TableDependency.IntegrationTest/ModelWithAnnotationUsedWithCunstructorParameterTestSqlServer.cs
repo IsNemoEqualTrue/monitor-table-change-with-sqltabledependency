@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
@@ -8,7 +7,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 

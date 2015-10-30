@@ -1,22 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class MultiDmlOperationsTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class MultiDmlOperationsTestSqlServer
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "MultiDmlOperations";
-        private static List<Check_Model> _checkValues = new List<Check_Model>();
+        private static List<MultiDmlOperationsTestSqlServerModel> _checkValues = new List<MultiDmlOperationsTestSqlServerModel>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -77,14 +86,14 @@ namespace TableDependency.IntegrationTest
         public void MultiDeleteTest()
         {
             _checkValues.Clear();
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -110,14 +119,14 @@ namespace TableDependency.IntegrationTest
         public void MultiUpdateTest()
         {
             _checkValues.Clear();
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -143,14 +152,14 @@ namespace TableDependency.IntegrationTest
         public void MultiInsertTest()
         {
             _checkValues.Clear();
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Check_Model>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -177,9 +186,9 @@ namespace TableDependency.IntegrationTest
             throw e.Error;
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<MultiDmlOperationsTestSqlServerModel> e)
         {
-            _checkValues.Add(new Check_Model { Name = e.Entity.Name, Surname = e.Entity.Surname });
+            _checkValues.Add(new MultiDmlOperationsTestSqlServerModel { Name = e.Entity.Name, Surname = e.Entity.Surname });
         }
 
         private static void MultiInsertOperation()

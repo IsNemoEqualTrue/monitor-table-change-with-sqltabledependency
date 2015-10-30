@@ -6,18 +6,25 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class MargeTestOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class MergeTestOracle
     {
-        private Item _modifiedValues;
-        private Item _insertedValues;
+        private MargeTestOracleModel _modifiedValues;
+        private MargeTestOracleModel _insertedValues;
 
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string SourceTableName = "AAAA_Source";
@@ -36,10 +43,10 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {SourceTableName} (ID number(10), NAME varchar2(50), qty number(10))";
+                    command.CommandText = $"CREATE TABLE {SourceTableName} (ID number(10), NAME varchar2(50), QUANTITY number(10))";
                     command.ExecuteNonQuery();
 
-                    command.CommandText = $"CREATE TABLE {TarghetTableName} (ID number(10), NAME varchar2(50), qty number(10))";
+                    command.CommandText = $"CREATE TABLE {TarghetTableName} (ID number(10), NAME varchar2(50), QUANTITY number(10))";
                     command.ExecuteNonQuery();
 
                     command.CommandText =
@@ -49,9 +56,9 @@ namespace TableDependency.IntegrationTest
                         $"USING {SourceTableName.ToUpper()}" + Environment.NewLine +
                         $"ON({SourceTableName.ToUpper()}.id =  {TarghetTableName.ToUpper()}.id)" + Environment.NewLine +
                         $"WHEN MATCHED THEN" + Environment.NewLine +
-                        $"  UPDATE SET name = {SourceTableName.ToUpper()}.name, qty = {SourceTableName.ToUpper()}.qty" + Environment.NewLine +
+                        $"  UPDATE SET name = {SourceTableName.ToUpper()}.name, QUANTITY = {SourceTableName.ToUpper()}.QUANTITY" + Environment.NewLine +
                         $"WHEN NOT MATCHED THEN" + Environment.NewLine +
-                        $"  INSERT(id, name, qty) VALUES({SourceTableName.ToUpper()}.id, {SourceTableName.ToUpper()}.name, {SourceTableName.ToUpper()}.qty);" + Environment.NewLine +
+                        $"  INSERT(id, name, QUANTITY) VALUES({SourceTableName.ToUpper()}.id, {SourceTableName.ToUpper()}.name, {SourceTableName.ToUpper()}.QUANTITY);" + Environment.NewLine +
                         $"END;";
                     command.ExecuteNonQuery();
                 }
@@ -68,10 +75,10 @@ namespace TableDependency.IntegrationTest
                 {
                     command.CommandText =
                         $"BEGIN " +
-                        $"  INSERT INTO {TarghetTableName.ToUpper()} (ID, NAME, QTY) VALUES (0, 'NOT MODIFIED', 0); " + Environment.NewLine +
-                        $"  INSERT INTO {TarghetTableName.ToUpper()} (ID, NAME, QTY) VALUES (1, 'UPDATE', 0); " + Environment.NewLine +
-                        $"  INSERT INTO {SourceTableName.ToUpper()} (ID, NAME, QTY) VALUES (2, 'INSERT', 100); " + Environment.NewLine +
-                        $"  INSERT INTO {SourceTableName.ToUpper()} (ID, NAME, QTY) VALUES (1, 'UPDATE', 200); " + Environment.NewLine +
+                        $"  INSERT INTO {TarghetTableName.ToUpper()} (ID, NAME, QUANTITY) VALUES (0, 'NOT MODIFIED', 0); " + Environment.NewLine +
+                        $"  INSERT INTO {TarghetTableName.ToUpper()} (ID, NAME, QUANTITY) VALUES (1, 'UPDATE', 0); " + Environment.NewLine +
+                        $"  INSERT INTO {SourceTableName.ToUpper()} (ID, NAME, QUANTITY) VALUES (2, 'INSERT', 100); " + Environment.NewLine +
+                        $"  INSERT INTO {SourceTableName.ToUpper()} (ID, NAME, QUANTITY) VALUES (1, 'UPDATE', 200); " + Environment.NewLine +
                         $"  COMMIT;" + Environment.NewLine +
                         $"END;";
                     command.ExecuteNonQuery();
@@ -82,11 +89,11 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void MergeTest()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<MargeTestOracleModel> tableDependency = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item>(ConnectionString, TarghetTableName);
+                tableDependency = new OracleTableDependency<MargeTestOracleModel>(ConnectionString, TarghetTableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -102,8 +109,8 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(this._insertedValues.qty, 100);
-            Assert.AreEqual(this._modifiedValues.qty, 200);
+            Assert.AreEqual(this._insertedValues.Quantity, 100);
+            Assert.AreEqual(this._modifiedValues.Quantity, 200);
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
@@ -111,15 +118,15 @@ namespace TableDependency.IntegrationTest
             throw e.Error;
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<MargeTestOracleModel> e)
         {
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    this._insertedValues = new Item { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
+                    this._insertedValues = new MargeTestOracleModel { Id = e.Entity.Id, Name = e.Entity.Name, Quantity = e.Entity.Quantity };
                     break;
                 case ChangeType.Update:
-                    this._modifiedValues = new Item { Id = e.Entity.Id, Name = e.Entity.Name, qty = e.Entity.qty };
+                    this._modifiedValues = new MargeTestOracleModel { Id = e.Entity.Id, Name = e.Entity.Name, Quantity = e.Entity.Quantity };
                     break;
             }
         }

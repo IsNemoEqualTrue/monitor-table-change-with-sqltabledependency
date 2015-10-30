@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,11 +9,23 @@ using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    [Table(TableName)]
+    public class Item4
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column(ColumnName)]
+        public string Description { get; set; }
+        private const string ColumnName = "Long Description";
+        public static string GetColumnName => ColumnName;    
+        private const string TableName = "ItemsTable";
+        public static string GetTableName => TableName;
+    }
+
     [TestClass]
     public class DataAnnotationTestOracle
     {

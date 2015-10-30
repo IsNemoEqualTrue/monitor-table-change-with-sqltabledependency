@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Oracle.DataAccess.Client;
+using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
@@ -30,13 +31,13 @@ using OracleParameter = Oracle.DataAccess.Client.OracleParameter;
 namespace TableDependency.OracleClient
 {
     /// <summary>
-    /// OracleTableDependency class.
+    /// TableDependency implementation for Oracle.
     /// </summary>
     public class OracleTableDependency<T> : TableDependency<T> where T : class
     {
-        #region Private variables
-
-        #endregion
+        private const string QUOTES = "\"";
+        private const string ORACLE_DATE_FORMAT = "MM-DD-YYYY HH24:MI:SS";
+        private const string ORACLE_DATESPAN_FORMAT = "MM-DD-YYYY HH24:MI:SS.FF";
 
         #region Events
 
@@ -336,7 +337,9 @@ namespace TableDependency.OracleClient
                     watchDogTimeOut,
                     _mapper,
                     _processableMessages,
-                    _automaticDatabaseObjectsTeardown),
+                    _automaticDatabaseObjectsTeardown,
+                    _userInterestedColumns,
+                    base.Encoding),
                 _cancellationTokenSource.Token);
 
             _status = TableDependencyStatus.Starting;
@@ -364,17 +367,17 @@ namespace TableDependency.OracleClient
 
         #region Protected methods
 
-        protected override IList<string> RetrieveProcessableMessages(IEnumerable<Tuple<string, string, string>> columnsTableList, string databaseObjectsNaming)
+        protected override IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> columnsTableList, string databaseObjectsNaming)
         {
-            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Item1.Replace("\"", string.Empty)}").ToList();
-            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Item1.Replace("\"", string.Empty)}").ToList();
-            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Item1.Replace("\"", string.Empty)}").ToList();
+            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name.Replace(QUOTES, string.Empty)}").ToList();
+            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Name.Replace(QUOTES, string.Empty)}").ToList();
+            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name.Replace(QUOTES, string.Empty)}").ToList();
             var messageBoundaries = new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming) };
 
             return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
         }
 
-        protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<Tuple<string, string, string>> userInterestedColumns, IList<string> updateOf, int timeOut, int timeOutWatchDog)
+        protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int timeOutWatchDog)
         {
             try
             {
@@ -384,7 +387,7 @@ namespace TableDependency.OracleClient
 
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(MESSAGE_TYPE VARCHAR2(50), MESSAGE_CONTENT VARCHAR2(4000));";
+                        command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(message_type VARCHAR2(100), message BLOB, message_length INT);";
                         command.ExecuteNonQuery();
                         command.CommandText = $"CREATE TYPE TBL_{dataBaseObjectsNamingConvention} IS TABLE OF TYPE_{dataBaseObjectsNamingConvention};";
                         command.ExecuteNonQuery();
@@ -396,21 +399,18 @@ namespace TableDependency.OracleClient
                         command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{dataBaseObjectsNamingConvention}'); END;";
                         command.ExecuteNonQuery();
 
-                        var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " " + c.Item2 + ComputeVariableSize(c) + ";"));
+                        var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " " + c.Type + ComputeVariableSize(c) + ";"));
                         var startMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention);
                         var endMessageStatement = string.Format(EndMessageTemplate, dataBaseObjectsNamingConvention);
-                        var setNewValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :NEW." + c.Item1 + ";"));
-                        var setOldValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + " := :OLD." + c.Item1 + ";"));
+                        var setNewValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " := :NEW." + c.Name + ";"));
+                        var setOldValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " := :OLD." + c.Name + ";"));
                         var insertDml = ChangeType.Insert.ToString();
                         var updateDml = ChangeType.Update.ToString();
                         var deleteDml = ChangeType.Delete.ToString();
 
-                        var enqueueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c =>
-                        {
-                            var messageType = $"'{dataBaseObjectsNamingConvention}/' || dmlType || '/{c.Item1.Replace("\"", string.Empty)}'";
-                            var variableName = "TO_CHAR(v_" + c.Item1.Replace(" ", "_").Replace("\"", string.Empty) + ")";
-                            return string.Format(Scripts.EnqueueScript, dataBaseObjectsNamingConvention, dataBaseObjectsNamingConvention, messageType, variableName);
-                        }));
+                        var enqueueStartMessage = this.PrepareStartEnqueueScript(dataBaseObjectsNamingConvention) + Environment.NewLine;
+                        var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
+                        var enqueueEndMessage = this.PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
@@ -426,7 +426,7 @@ namespace TableDependency.OracleClient
                             setNewValueStatement,
                             deleteDml,
                             setOldValueStatement,
-                            enqueueStatement,
+                            enqueueStartMessage + enqueueFieldsStatement + enqueueEndMessage,
                             string.Join(" OR ", GetDmlTriggerType(_dmlTriggerType)));
                         command.ExecuteNonQuery();
 
@@ -449,19 +449,18 @@ namespace TableDependency.OracleClient
             return RetrieveProcessableMessages(userInterestedColumns, dataBaseObjectsNamingConvention);
         }
 
-        protected override IEnumerable<Tuple<string, string, string>> GetColumnsToUseForCreatingDbObjects(IEnumerable<string> updateOf)
+        protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
         {
             var tableColumns = GetTableColumnsList(_connectionString, _tableName);
-            var tableColumnsList = tableColumns as Tuple<string, string, string>[] ?? tableColumns.ToArray();
-            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
+            if (!tableColumns.Any()) throw new NoColumnsException(_tableName);
 
-            CheckUpdateOfValidity(tableColumnsList, updateOf);
-            CheckMapperValidity(tableColumnsList);
+            CheckUpdateOfValidity(tableColumns, updateOf);
+            CheckMapperValidity(tableColumns);
 
-            var userIterestedColumns = GetUserInterestedColumns(tableColumnsList);
+            var userIterestedColumns = PrivateGetUserInterestedColumns(tableColumns);
 
-            var columnsToUseForCreatingDbObjects = userIterestedColumns as Tuple<string, string, string>[] ?? userIterestedColumns.ToArray();
-            CheckIfUserInterestedColumnsCanBeManaged(columnsToUseForCreatingDbObjects);
+            var columnsToUseForCreatingDbObjects = userIterestedColumns as ColumnInfo[] ?? userIterestedColumns.ToArray();
+            CheckIfUserInterestedColumnsCanBeManaged(userIterestedColumns);
             return columnsToUseForCreatingDbObjects;
         }
 
@@ -571,6 +570,94 @@ namespace TableDependency.OracleClient
 
         #region Private methods
 
+        private string PrepareStartEnqueueScript(string dataBaseObjectsNamingConvention)
+        {
+            return
+                $"select utl_raw.cast_to_raw(dmlType) into message_buffer from dual;" + Environment.NewLine +
+                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageStart, message_buffer, amount_to_write), msgid => message_handle);" + Environment.NewLine;
+        }
+
+        private string PrepareEndEnqueueScript(string dataBaseObjectsNamingConvention)
+        {
+            return
+                $"select utl_raw.cast_to_raw(dmlType) into message_buffer from dual;" + Environment.NewLine +
+                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageEnd, message_buffer, amount_to_write), msgid => message_handle);" + Environment.NewLine;
+        }
+
+        private string PrepareEnqueueScript(ColumnInfo column, string dataBaseObjectsNamingConvention)
+        {
+            var messageType = $"'{dataBaseObjectsNamingConvention}/' || dmlType || '/{column.Name.Replace(QUOTES, string.Empty)}'";
+
+            if (column.Type == "DATE") return PrepareEnqueueScriptForDate(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type == "TIMESTAMP") return PrepareEnqueueScriptForTimeStamp(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type == "XMLTYPE") return PrepareEnqueueScriptForXmlType(column, messageType, dataBaseObjectsNamingConvention);
+            return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
+        }
+
+        private string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ".GETCLOBVAL())";
+            return
+                $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+        }
+
+        //private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        //{
+        //    var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")";
+
+        //    return
+        //        $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+        //        $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+        //        $"message_content:= TYPE_{dataBaseObjectsNamingConvention} ({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+        //        $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+        //        $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+        //        $"DBMS_LOB.WRITE(lob_loc, LENGTH({variable}), 1, message_buffer);" + Environment.NewLine;
+        //}
+
+        private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty);
+
+            return
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), LENGTH({variable}));" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.WRITE(lob_loc, LENGTH({variable}), 1, UTL_RAW.CAST_TO_RAW(SUBSTR({variable}, 1, LENGTH({variable}))));" + Environment.NewLine;
+        }
+
+        private string PrepareEnqueueScriptForTimeStamp(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + $", '{ORACLE_DATESPAN_FORMAT}')";
+
+            return
+                $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+        }
+
+        private string PrepareEnqueueScriptForDate(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + $", '{ORACLE_DATE_FORMAT}')";
+
+            return
+                $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+        }
+
         private async static Task WaitForNotification(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
@@ -581,48 +668,50 @@ namespace TableDependency.OracleClient
             int timeOutWatchDog,
             ModelToTableMapper<T> modelMapper,
             ICollection<string> processableMessages,
-            bool automaticDatabaseObjectsTeardown)
+            bool automaticDatabaseObjectsTeardown,
+            IEnumerable<ColumnInfo> userInterestedColumns,
+            Encoding encoding = null)
         {
             setStatus(TableDependencyStatus.Started);
 
-            var messagesBag = new MessagesBag(string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
+            var messagesBag = new MessagesBag(encoding ?? Encoding.UTF8, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             try
             {
                 while (true)
                 {
-                    if (automaticDatabaseObjectsTeardown) StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
-
-                    using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
+                    try
                     {
-                        using (var connection = new OracleConnection(connectionString))
+                        if (automaticDatabaseObjectsTeardown) await StartWatchDog(cancellationToken, connectionString, databaseObjectsNaming, timeOutWatchDog);
+
+                        using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
                         {
-                            await connection.OpenAsync(cancellationToken);
-
-                            using (var getQueueMessageCommand = connection.CreateCommand())
+                            using (var connection = new OracleConnection(connectionString))
                             {
-                                getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
-                                getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
-                                getQueueMessageCommand.CommandTimeout = 0;
-                                getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
+                                await connection.OpenAsync(cancellationToken);
 
-                                try
+                                using (var getQueueMessageCommand = connection.CreateCommand())
                                 {
+                                    getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
+                                    getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
+                                    getQueueMessageCommand.CommandTimeout = 0;
+                                    getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
+
                                     setStatus(TableDependencyStatus.WaitingForNotification);
 
                                     using (var reader = await getQueueMessageCommand.ExecuteReaderAsync(cancellationToken))
                                     {
                                         while (await reader.ReadAsync(cancellationToken))
                                         {
-                                            var messageType = reader.GetString(0);
+                                            var messageType = reader.IsDBNull(0) ? null : reader.GetString(0);
                                             if (processableMessages.Contains(messageType))
                                             {
-                                                var messageContent = reader.IsDBNull(1) ? null : reader.GetString(1);
+                                                var messageContent = reader.IsDBNull(1) ? null : (byte[])reader[1];
 
-                                                var messageStatus = messagesBag.AddMessage(messageType, GetBytes(messageContent));
+                                                var messageStatus = messagesBag.AddMessage(messageType, messageContent);
                                                 if (messageStatus == MessagesBagStatus.Closed)
                                                 {
-                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag);
+                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
                                                     transactionScope.Complete();
                                                     break;
                                                 }
@@ -630,16 +719,16 @@ namespace TableDependency.OracleClient
                                         }
                                     }
                                 }
-                                catch (Exception exception)
-                                {
-                                    ThrowIfOracleClientCancellationRequested(cancellationToken, exception);
-                                    throw;
-                                }
                             }
                         }
-                    }
 
-                    if (automaticDatabaseObjectsTeardown) StopWatchDog(connectionString, databaseObjectsNaming);
+                        if (automaticDatabaseObjectsTeardown) await StopWatchDog(cancellationToken, connectionString, databaseObjectsNaming);
+                    }
+                    catch (Exception exception)
+                    {
+                        ThrowIfOracleClientCancellationRequested(cancellationToken, exception);
+                        throw;
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -674,30 +763,30 @@ namespace TableDependency.OracleClient
             return afters;
         }
 
-        private static void StartWatchDog(string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
+        private async static Task StartWatchDog(CancellationToken cancellationToken, string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
         {
             using (var connection = new OracleConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = string.Format(Scripts.ScriptJobEnable, databaseObjectsNaming, (timeOutWatchDog / 60));
+                    command.CommandText = $"BEGIN DBMS_SCHEDULER.SET_ATTRIBUTE('JOB_{databaseObjectsNaming}', 'START_DATE', SYSTIMESTAMP + INTERVAL '{(timeOutWatchDog / 60)}' MINUTE); DBMS_SCHEDULER.ENABLE('JOB_{databaseObjectsNaming}'); END;";
                     command.CommandType = CommandType.Text;
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync(cancellationToken);
                 }
             }
         }
 
-        private static void StopWatchDog(string connectionString, string databaseObjectsNaming)
+        private async static Task StopWatchDog(CancellationToken cancellationToken, string connectionString, string databaseObjectsNaming)
         {
             using (var connection = new OracleConnection(connectionString))
             {
-                connection.Open();
+                await connection.OpenAsync(cancellationToken);
                 using (var watchDogDisableCommand = connection.CreateCommand())
                 {
-                    watchDogDisableCommand.CommandText = string.Format(Scripts.ScriptJobDisable, databaseObjectsNaming);
+                    watchDogDisableCommand.CommandText = $"BEGIN DBMS_SCHEDULER.DISABLE('JOB_{databaseObjectsNaming}', TRUE); DBMS_SCHEDULER.SET_ATTRIBUTE_NULL('JOB_{databaseObjectsNaming}', 'START_DATE'); END;";
                     watchDogDisableCommand.CommandType = CommandType.Text;
-                    watchDogDisableCommand.ExecuteNonQuery();
+                    await watchDogDisableCommand.ExecuteNonQueryAsync(cancellationToken);
                 }
             }
         }
@@ -705,15 +794,6 @@ namespace TableDependency.OracleClient
         private void OnStatusChanged(TableDependencyStatus status)
         {
             _status = status;
-        }
-
-        private static byte[] GetBytes(string str, int? lenght = null)
-        {
-            if (str == null) return null;
-
-            var bytes = lenght.HasValue ? new byte[lenght.Value] : new byte[str.Length * sizeof(char)];
-            Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, str.Length * sizeof(char));
-            return bytes;
         }
 
         private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
@@ -745,16 +825,16 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag)
+        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (delegates == null) return;
-            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new OracleRecordChangedEventArgs<T>(messagesBag, modelMapper) });
+            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new OracleRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
         }
 
-        private static string ComputeVariableSize(Tuple<string, string, string> column)
+        private static string ComputeVariableSize(ColumnInfo column)
         {
-            if (string.IsNullOrWhiteSpace(column.Item3)) return string.Empty;
-            if (Convert.ToInt32(column.Item3) > 0) return "(" + column.Item3 + ")";
+            if (string.IsNullOrWhiteSpace(column.Size)) return string.Empty;
+            if (Convert.ToInt32(column.Size) > 0) return "(" + column.Size + ")";
             return string.Empty;
         }
 
@@ -788,31 +868,33 @@ namespace TableDependency.OracleClient
             return Guid.NewGuid().ToString().Substring(5, 20).Replace("-", "_").ToUpper();
         }
 
-        private static string GetUpdateOfStatement(IEnumerable<Tuple<string, string, string>> tableColumns, IEnumerable<string> columnsUpdateOf)
+        private static string GetUpdateOfStatement(IEnumerable<ColumnInfo> tableColumns, IEnumerable<string> columnsUpdateOf)
         {
             if (columnsUpdateOf == null) return null;
-            var updateOfList = columnsUpdateOf.Select(updateOf => tableColumns.Where(c => c.Item1.ToUpper() == $"\"{updateOf.ToUpper()}\"").Select(c => c.Item1).FirstOrDefault()).ToList();
+            var updateOfList = columnsUpdateOf.Select(updateOf => tableColumns.Where(c => c.Name.ToUpper() == $"\"{updateOf.ToUpper()}\"").Select(c => c.Name).FirstOrDefault()).ToList();
             return " OF " + string.Join(", ", updateOfList);
         }
 
-        private void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<Tuple<string, string, string>> tableColumnsToUse)
+        private IEnumerable<ColumnInfo> CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse)
         {
             foreach (var tableColumn in tableColumnsToUse)
             {
-                switch (tableColumn.Item2.ToUpper())
+                switch (tableColumn.Type.ToUpper())
                 {
                     case "BFILE":
                     case "BLOB":
                     case "CLOB":
                     case "NLOB":
-                        throw new ColumnTypeNotSupportedException($"{tableColumn.Item2} type is not an admitted for SqlTableDependency.");
+                        throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for OracleTableDependency.");
                 }
             }
+
+            return tableColumnsToUse;
         }
 
-        private IEnumerable<Tuple<string, string, string>> GetUserInterestedColumns(IEnumerable<Tuple<string, string, string>> tableColumnsList)
+        private IEnumerable<ColumnInfo> PrivateGetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
         {
-            var tableColumnsListFiltered = new List<Tuple<string, string, string>>();
+            var tableColumnsListFiltered = new List<ColumnInfo>();
 
             foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
@@ -822,8 +904,13 @@ namespace TableDependency.OracleClient
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (string.Equals(tableColumn.Item1.ToLower(), "\"" + propertyName.ToLower() + "\"", StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(tableColumn.Name.ToLower(), QUOTES + propertyName.ToLower() + QUOTES, StringComparison.CurrentCultureIgnoreCase))
                     {
+                        if (tableColumnsListFiltered.Any(ci => ci.Name.ToLower() == tableColumn.Name.ToLower()))
+                        {
+                            throw new ModelToTableMapperException("Model with columns having same name.");
+                        }
+
                         tableColumnsListFiltered.Add(tableColumn);
                         break;
                     }
@@ -833,25 +920,25 @@ namespace TableDependency.OracleClient
             return tableColumnsListFiltered;
         }
 
-        private static void CheckUpdateOfValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList, IEnumerable<string> updateOf)
+        private static void CheckUpdateOfValidity(IEnumerable<ColumnInfo> tableColumnsList, IEnumerable<string> updateOf)
         {
             if (updateOf != null)
             {
                 if (!updateOf.Any()) throw new UpdateOfException("updateOf parameter is empty.");
                 if (updateOf.Any(string.IsNullOrWhiteSpace)) throw new UpdateOfException("updateOf parameter contains a null or empty value.");
 
-                var tableColumns = tableColumnsList as Tuple<string, string, string>[] ?? tableColumnsList.ToArray();
-                var dbColumnNames = tableColumns.Select(t => t.Item1.ToUpper()).ToList();
-                foreach (var columnToMonitorDuringUpdate in updateOf.Where(columnToMonitor => !dbColumnNames.Contains("\"" + columnToMonitor.ToUpper() + "\"")))
+                var tableColumns = tableColumnsList as ColumnInfo[] ?? tableColumnsList.ToArray();
+                var dbColumnNames = tableColumns.Select(t => t.Name.ToUpper()).ToList();
+                foreach (var columnToMonitorDuringUpdate in updateOf.Where(columnToMonitor => !dbColumnNames.Contains(QUOTES + columnToMonitor.ToUpper() + QUOTES)))
                 {
                     throw new UpdateOfException($"updateOf define column {columnToMonitorDuringUpdate} that does not exists.");
                 }
             }
         }
 
-        private static IEnumerable<Tuple<string, string, string>> GetTableColumnsList(string connectionString, string tableName)
+        private static IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString, string tableName)
         {
-            var columnsList = new List<Tuple<string, string, string>>();
+            var columnsList = new List<ColumnInfo>();
 
             using (var connection = new OracleConnection(connectionString))
             {
@@ -865,7 +952,7 @@ namespace TableDependency.OracleClient
                         var name = reader.GetString(0);
                         var type = reader.GetString(1);
                         var size = reader.GetString(2);
-                        columnsList.Add(new Tuple<string, string, string>("\"" + name + "\"", type, size));
+                        columnsList.Add(new ColumnInfo(QUOTES + name + QUOTES, type, size));
                     }
                 }
             }
@@ -873,14 +960,14 @@ namespace TableDependency.OracleClient
             return columnsList;
         }
 
-        private void CheckMapperValidity(IEnumerable<Tuple<string, string, string>> tableColumnsList)
+        private void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
         {
             if (_mapper != null)
             {
                 if (_mapper.Count() < 1) throw new ModelToTableMapperException();
 
                 // With ORACLE when define an column with "" it become case sensitive.
-                var dbColumnNames = tableColumnsList.Select(t => t.Item1.ToUpper().Replace("\"", string.Empty)).ToList();
+                var dbColumnNames = tableColumnsList.Select(t => t.Name.ToUpper().Replace(QUOTES, string.Empty)).ToList();
                 var mappingNames = _mapper.GetMappings().Select(t => t.Value.ToUpper()).ToList();
 
                 mappingNames.ForEach<string>(mapping =>

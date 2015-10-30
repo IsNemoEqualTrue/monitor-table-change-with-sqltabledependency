@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 

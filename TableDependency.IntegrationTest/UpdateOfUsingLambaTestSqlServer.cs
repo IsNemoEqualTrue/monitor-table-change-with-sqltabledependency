@@ -7,21 +7,28 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class UpdateOfUsingLambaTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class UpdateOfUsingLambaTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static readonly string TableName = typeof(Item).Name.ToUpper();
+        private static readonly string TableName = typeof(UpdateOfUsingLambaTestSqlServerModel).Name.ToUpper();
         private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static readonly Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -38,7 +45,7 @@ namespace TableDependency.IntegrationTest
                         $"CREATE TABLE [{TableName}]( " +
                         $"[Id][int] IDENTITY(1, 1) NOT NULL, " +
                         $"[Name] [NVARCHAR](50) NOT NULL, " +
-                        $"[Description] [NVARCHAR](MAX) NOT NULL)";
+                        $"[Surname] [NVARCHAR](MAX) NOT NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -66,15 +73,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<Item> tableDependency = null;
+            SqlTableDependency<UpdateOfUsingLambaTestSqlServerModel> tableDependency = null;
             string naming = null;
 
-            var updateOfModel = new UpdateOfModel<Item>();
-            updateOfModel.Add(i => i.Description);
+            var updateOfModel = new UpdateOfModel<UpdateOfUsingLambaTestSqlServerModel>();
+            updateOfModel.Add(i => i.Name);
 
             try
             {
-                tableDependency = new SqlTableDependency<Item>(ConnectionString, updateOfModel);
+                tableDependency = new SqlTableDependency<UpdateOfUsingLambaTestSqlServerModel>(ConnectionString, updateOfModel);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -93,18 +100,18 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 3);
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, CheckValues[ChangeType.Insert.ToString()].Item1.Description);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, CheckValues[ChangeType.Insert.ToString()].Item1.Surname);
 
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, CheckValues[ChangeType.Update.ToString()].Item1.Name);
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, CheckValues[ChangeType.Update.ToString()].Item1.Description);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, CheckValues[ChangeType.Update.ToString()].Item1.Surname);
 
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, CheckValues[ChangeType.Delete.ToString()].Item1.Surname);
 
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<UpdateOfUsingLambaTestSqlServerModel> e)
         {
             _counter++;
 
@@ -112,31 +119,31 @@ namespace TableDependency.IntegrationTest
             {
                 case ChangeType.Insert:
                     CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Update:
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Update.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
                 case ChangeType.Delete:
                     CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.Description = e.Entity.Description;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Name = "Christian", Description = "Del Bianco" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia", Description = "Ceccarelli" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia", Description = "Ceccarelli" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>(new UpdateOfUsingLambaTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new UpdateOfUsingLambaTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>(new UpdateOfUsingLambaTestSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new UpdateOfUsingLambaTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>(new UpdateOfUsingLambaTestSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new UpdateOfUsingLambaTestSqlServerModel()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Surname]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
@@ -144,7 +151,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Surname] = '{CheckValues[ChangeType.Update.ToString()].Item1.Surname}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 

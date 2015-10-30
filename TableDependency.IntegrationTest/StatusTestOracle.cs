@@ -1,21 +1,29 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class StatusTestOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class StatusTestOracle
     {
-        private OracleTableDependency<Item> _tableDependency = null;
+        private OracleTableDependency<StatusTestOracleModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private const string TableName = "StatusCheckTest";
 
@@ -48,7 +56,7 @@ namespace TableDependency.IntegrationTest
             try
             {
 
-                this._tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName);
+                this._tableDependency = new OracleTableDependency<StatusTestOracleModel>(ConnectionString, TableName);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
 
                 Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForStart);
@@ -70,7 +78,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestOracleModel> e)
         {
             Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification || this._tableDependency.Status == TableDependencyStatus.NotificationConsuming || this._tableDependency.Status == TableDependencyStatus.NotificationConsumed);
         }

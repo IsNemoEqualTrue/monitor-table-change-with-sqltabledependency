@@ -6,21 +6,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class NoProblemDurignCommandTimeoutForNoMessagesTestOracle
     {
         private static string _dbObjectsNaming;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAA_Table".ToUpper();
-        private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static readonly Dictionary<string, Tuple<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel, NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>> CheckValues = new Dictionary<string, Tuple<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel, NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -64,7 +70,7 @@ namespace TableDependency.IntegrationTest
 
         public class RunsInAnotherAppDomainNoMessageOrc : MarshalByRefObject
         {
-            SqlTableDependency<Check_Model> _tableDependency = null;
+            SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel> _tableDependency = null;
 
             public TableDependencyStatus GetTableDependencyStatus()
             {
@@ -73,13 +79,13 @@ namespace TableDependency.IntegrationTest
 
             public string RunTableDependency(string connectionString, string tableName)
             {
-                this._tableDependency = new SqlTableDependency<Check_Model>(connectionString, tableName);
+                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>(connectionString, tableName);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
                 return this._tableDependency.DataBaseObjectsNamingConvention;
             }
 
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel> e)
             {
             }
         }

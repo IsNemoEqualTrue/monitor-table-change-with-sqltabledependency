@@ -21,7 +21,7 @@ namespace TableDependency.Messages
         #endregion
 
         #region Properties
-
+        public Encoding Encoding { get; }
         public List<Message> MessageSheets { get; }
         public ChangeType MessageType { get; private set; }
         public MessagesBagStatus Status { get; private set; }
@@ -30,11 +30,12 @@ namespace TableDependency.Messages
 
         #region Constructors
 
-        internal MessagesBag(string startMessageSignature, string endMessageSignature)
-        {
+        internal MessagesBag(Encoding encoding, string startMessageSignature, string endMessageSignature)
+        {            
             this.MessageSheets = new List<Message>();
             this.Status = MessagesBagStatus.Open;
 
+            this.Encoding = encoding;
             this._endMessageSignature = endMessageSignature;
             this._startMessageSignature = startMessageSignature;
         }
@@ -46,15 +47,15 @@ namespace TableDependency.Messages
         internal MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
             if (rawMessageType == this._startMessageSignature)
-            {               
-                this.MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue));
+            {
+                this.MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue));
                 this.MessageSheets.Clear();
                 return (this.Status = MessagesBagStatus.Open);
             }
 
             if (rawMessageType == this._endMessageSignature)
             {
-                if ((ChangeType)Enum.Parse(typeof(ChangeType), Encoding.Unicode.GetString(messageValue)) != this.MessageType) throw new DataMisalignedException();
+                if ((ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue)) != this.MessageType) throw new DataMisalignedException();
                 return (this.Status = MessagesBagStatus.Closed);
             }
 

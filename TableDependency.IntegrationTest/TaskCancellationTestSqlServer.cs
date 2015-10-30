@@ -1,16 +1,24 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class TaskCancellationTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class TaskCancellationTestSqlServer
     {
@@ -71,14 +79,14 @@ namespace TableDependency.IntegrationTest
         public void TaskCancellationTest()
         {
             string naming = null;
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<TaskCancellationTestSqlServerModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<TaskCancellationTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<TaskCancellationTestSqlServerModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -97,7 +105,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TaskCancellationTestSqlServerModel> e)
         {
         }
     }

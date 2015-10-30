@@ -5,25 +5,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class LoadAndCountTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class LoadAndCountTestSqlServer
     {
-        private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static string TableName = "TestTable";
         private int _counter = 1;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -45,7 +52,7 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -59,7 +66,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -77,12 +84,12 @@ namespace TableDependency.IntegrationTest
             var token = cts.Token;
 
             var counterUpTo = 1000;
-            var mapper = new ModelToTableMapper<Check_Model>();
+            var mapper = new ModelToTableMapper<LoadAndCountTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
-            var listenerTask = Task.Factory.StartNew(() => new ListenerSlq(_connectionString, TableName, mapper).Run(counterUpTo, token), token);
+            var listenerTask = Task.Factory.StartNew(() => new ListenerSlq(ConnectionString, TableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -104,7 +111,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
         }
     }
 
@@ -117,20 +124,20 @@ namespace TableDependency.IntegrationTest
 
     public class ListenerSlq
     {
-        readonly SqlTableDependency<Check_Model> _tableDependency;
+        readonly SqlTableDependency<LoadAndCountTestSqlServerModel> _tableDependency;
         readonly ListenerResultSql _listenerResult = new ListenerResultSql();
 
         public string ObjectNaming{ get; private set; }
 
-        public ListenerSlq(string connectionString, string tableName, ModelToTableMapper<Check_Model> mapper)
+        public ListenerSlq(string connectionString, string tableName, ModelToTableMapper<LoadAndCountTestSqlServerModel> mapper)
         {
-            this._tableDependency = new SqlTableDependency<Check_Model>(connectionString, tableName, mapper);
+            this._tableDependency = new SqlTableDependency<LoadAndCountTestSqlServerModel>(connectionString, tableName, mapper);
             this._tableDependency.OnChanged += this.TableDependency_OnChanged;
             this._tableDependency.Start(60, 120);
             this._listenerResult.ObjectNaming = this._tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<Check_Model> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<LoadAndCountTestSqlServerModel> e)
         {
             this._listenerResult.Counter = this._listenerResult.Counter + 1;
             if (this._listenerResult.Counter.ToString() != e.Entity.Surname)

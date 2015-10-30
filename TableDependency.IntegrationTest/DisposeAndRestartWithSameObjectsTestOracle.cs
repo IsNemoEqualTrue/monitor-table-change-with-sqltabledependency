@@ -7,21 +7,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class DisposeAndRestartWithSameObjectsTestOracleModel
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int Qty { get; set; }
+    }
+
     [TestClass]
     public class DisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private const string TableName = "Item";
         private static int _counter;
-        private static Dictionary<string, Tuple<Item, Item>> _checkValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>> _checkValues = new Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -50,10 +56,10 @@ namespace TableDependency.IntegrationTest
         {
             var namingToUse = "CustomNaming";
 
-            var mapper = new ModelToTableMapper<Item>();
+            var mapper = new ModelToTableMapper<DisposeAndRestartWithSameObjectsTestOracleModel>();
             mapper.AddMapping(c => c.Description, "Long Description");
 
-            using (var tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper, false))
+            using (var tableDependency = new OracleTableDependency<DisposeAndRestartWithSameObjectsTestOracleModel>(ConnectionString, TableName, mapper, false))
             {
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
@@ -63,7 +69,7 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1 * 60 * 1000);
 
-            using (var tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper, true, namingToUse))
+            using (var tableDependency = new OracleTableDependency<DisposeAndRestartWithSameObjectsTestOracleModel>(ConnectionString, TableName, mapper, true, namingToUse))
             {
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
@@ -85,7 +91,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Description, _checkValues[ChangeType.Delete.ToString()].Item1.Description);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DisposeAndRestartWithSameObjectsTestOracleModel> e)
         {
             _counter++;
 
@@ -108,9 +114,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Name = "Christian", Description = "Del Bianco" }, new Item()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia", Description = "Ceccarelli" }, new Item()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Name = "Velia", Description = "Ceccarelli" }, new Item()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>(new DisposeAndRestartWithSameObjectsTestOracleModel { Name = "Christian", Description = "Del Bianco" }, new DisposeAndRestartWithSameObjectsTestOracleModel()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>(new DisposeAndRestartWithSameObjectsTestOracleModel { Name = "Velia", Description = "Ceccarelli" }, new DisposeAndRestartWithSameObjectsTestOracleModel()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>(new DisposeAndRestartWithSameObjectsTestOracleModel { Name = "Velia", Description = "Ceccarelli" }, new DisposeAndRestartWithSameObjectsTestOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {

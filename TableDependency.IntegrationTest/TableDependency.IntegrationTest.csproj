@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TableDependency.IntegrationTest</RootNamespace>
     <AssemblyName>TableDependency.IntegrationTest</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -16,6 +16,7 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,10 +37,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Oracle.DataAccess, Version=4.112.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\oraclexe\product\11.2.0\client_1\odp.net\bin\4\Oracle.DataAccess.dll</HintPath>
-    </Reference>
+    <Reference Include="Oracle.DataAccess, Version=4.112.3.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -72,19 +71,12 @@
     <Compile Include="EventForSpecificColumnsTestOracle.cs" />
     <Compile Include="LoadAndCountTestSqlServer.cs" />
     <Compile Include="LoadAndCountTestOracle.cs" />
-    <Compile Include="Models\Item2.cs" />
-    <Compile Include="Models\Item3.cs" />
-    <Compile Include="Models\Item1.cs" />
-    <Compile Include="Models\Item5.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestOracle.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
     <Compile Include="Helpers\Oracle\OracleHelper.cs" />
     <Compile Include="Helpers\SqlServer\SqlServerHelper.cs" />
     <Compile Include="MargeTestSqlServer.cs" />
     <Compile Include="MergeTestOracle.cs" />
-    <Compile Include="Models\Check_Model.cs" />
-    <Compile Include="Models\Item.cs" />
-    <Compile Include="Models\Item4.cs" />
     <Compile Include="MultiDmlOperationsTestOracle.cs" />
     <Compile Include="MultiDmlOperationsTestSqlServer.cs" />
     <Compile Include="NoMapperUseTestOracle.cs" />
@@ -102,6 +94,9 @@
     <Compile Include="TaskCancellationTestSqlServer.cs" />
     <Compile Include="TriggerTypeTestOracle.cs" />
     <Compile Include="TriggerTypeTestSqlServer.cs" />
+    <Compile Include="TypeChecks\Oracle\DateTypes.cs" />
+    <Compile Include="TypeChecks\Oracle\FloatAndIntegerTypes.cs" />
+    <Compile Include="TypeChecks\Oracle\XmlAndVarchar2Type.cs" />
     <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\BinaryBitCharVarbinaryTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
@@ -129,6 +124,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

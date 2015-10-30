@@ -7,20 +7,27 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class NoMapperUseTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class NoMapperUseTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<Check_Model, Check_Model>> CheckValues = new Dictionary<string, Tuple<Check_Model, Check_Model>>();
+        private static readonly Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -65,12 +72,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<Check_Model> tableDependency = null;
+            SqlTableDependency<NoMapperUseTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<NoMapperUseTestSqlServerModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -96,7 +103,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoMapperUseTestSqlServerModel> e)
         {
             _counter++;
 
@@ -119,9 +126,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Christian", Surname = "Del Bianco" }, new Check_Model()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia", Surname = "Ceccarelli" }, new Check_Model()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Check_Model, Check_Model>(new Check_Model { Name = "Velia", Surname = "Ceccarelli" }, new Check_Model()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>(new NoMapperUseTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new NoMapperUseTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>(new NoMapperUseTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoMapperUseTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>(new NoMapperUseTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoMapperUseTestSqlServerModel()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {

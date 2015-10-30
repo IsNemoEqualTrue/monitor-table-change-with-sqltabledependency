@@ -4,14 +4,21 @@ using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class DatabaseObjectCleanUpTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class DatabaseObjectCleanUpTestSqlServer
     {
@@ -90,16 +97,16 @@ namespace TableDependency.IntegrationTest
     {
         public string RunTableDependency(string connectionString, string tableName)
         {
-            var mapper = new ModelToTableMapper<Check_Model>();
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<Check_Model>(connectionString, tableName, mapper);
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(connectionString, tableName, mapper);
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpTestSqlServerModel> e)
         {
         }
     }

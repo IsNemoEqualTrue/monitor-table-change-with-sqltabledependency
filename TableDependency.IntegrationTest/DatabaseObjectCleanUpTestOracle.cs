@@ -4,14 +4,20 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class DatabaseObjectCleanUpTestOracleModel
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int Qty { get; set; }
+    }
+
     [TestClass]
     public class DatabaseObjectCleanUpTestOracle
     {
@@ -63,14 +69,14 @@ namespace TableDependency.IntegrationTest
 
         public class AppDomainOracleCleannUpOracle : MarshalByRefObject
         {
-            OracleTableDependency<Item> _tableDependency = null;
+            OracleTableDependency<DatabaseObjectCleanUpTestOracleModel> _tableDependency = null;
 
             public string RunTableDependency(string connectionString, string tableName)
             {
-                var mapper = new ModelToTableMapper<Item>();
+                var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestOracleModel>();
                 mapper.AddMapping(c => c.Description, "Long Description");
 
-                this._tableDependency = new OracleTableDependency<Item>(connectionString, tableName, mapper);
+                this._tableDependency = new OracleTableDependency<DatabaseObjectCleanUpTestOracleModel>(connectionString, tableName, mapper);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
                 Thread.Sleep(2000);
@@ -84,7 +90,7 @@ namespace TableDependency.IntegrationTest
 #endif
             }
 
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpTestOracleModel> e)
             {
             }
         }

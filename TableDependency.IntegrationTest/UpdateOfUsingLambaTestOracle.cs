@@ -7,21 +7,28 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class UpdateOracleModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class UpdateOfUsingLambaTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = typeof(Item).Name.ToUpper();
+        private static readonly string TableName = typeof(UpdateOracleModel).Name.ToUpper();
         private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<Item, Item>> CheckValues = new Dictionary<string, Tuple<Item, Item>>();
+        private static readonly Dictionary<string, Tuple<UpdateOracleModel, UpdateOracleModel>> CheckValues = new Dictionary<string, Tuple<UpdateOracleModel, UpdateOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -33,7 +40,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), Description varchar2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), DESCRIPTION varchar2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -48,16 +55,16 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<UpdateOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                var updateOfModel = new UpdateOfModel<Item>();
+                var updateOfModel = new UpdateOfModel<UpdateOracleModel>();
                 updateOfModel.Add(i => i.Description);
 
 
-                tableDependency = new OracleTableDependency<Item>(ConnectionString, updateOf: updateOfModel);
+                tableDependency = new OracleTableDependency<UpdateOracleModel>(ConnectionString, updateOf: updateOfModel);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -86,7 +93,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<UpdateOracleModel> e)
         {
             _counter++;
 
@@ -111,9 +118,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new Item()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item, Item>(new Item { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new Item()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new UpdateOracleModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new UpdateOracleModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new UpdateOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {

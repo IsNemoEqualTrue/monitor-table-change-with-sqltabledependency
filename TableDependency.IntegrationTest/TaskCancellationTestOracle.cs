@@ -1,15 +1,24 @@
-﻿using System.Configuration;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class TaskCancellationTestOracleModel
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column(ColumnName)]
+        public string FamilyName { get; set; }
+        private const string ColumnName = "SURNAME";
+        public static string GetColumnName => ColumnName;
+    }
+
     [TestClass]
     public class TaskCancellationTestOracle
     {
@@ -46,14 +55,14 @@ namespace TableDependency.IntegrationTest
         public void TaskCancellationTest()
         {
             string naming = null;
-            OracleTableDependency<Item> tableDependency = null;
+            OracleTableDependency<TaskCancellationTestOracleModel> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<Item>();
-                mapper.AddMapping(c => c.Description, "Long Description");
+                var mapper = new ModelToTableMapper<TaskCancellationTestOracleModel>();
+                mapper.AddMapping(c => c.Name, "Long Description");
 
-                tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper);
+                tableDependency = new OracleTableDependency<TaskCancellationTestOracleModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += (sender, e) => { };
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;

@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class Item2
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+    }
+
     [TestClass]
     public class NoMapperUseTestOracle
     {

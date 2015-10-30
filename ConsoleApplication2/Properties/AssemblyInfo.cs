@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TableDependency.OracleClient.IntegrationTest")]
+[assembly: AssemblyTitle("ConsoleApplication2")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TableDependency.OracleClient.IntegrationTest")]
+[assembly: AssemblyProduct("ConsoleApplication2")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("bb357b14-7a97-4ab4-b18a-51642d156cb1")]
+[assembly: Guid("bd53f304-5b51-450c-804d-0d39c74009bb")]
 
 // Version information for an assembly consists of the following four values:
 //

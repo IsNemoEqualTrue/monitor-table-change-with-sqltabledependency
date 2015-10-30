@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,14 +8,22 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class Item3
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column(ColumnName)]
+        public string FamilyName { get; set; }
+        private const string ColumnName = "SURNAME";
+        public static string GetColumnName => ColumnName;
+    }
+
     [TestClass]
     public class TableNameFromModelClassNameAndUpdateOfTestOracle
     {

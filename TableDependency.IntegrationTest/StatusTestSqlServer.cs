@@ -1,20 +1,29 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Models;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class StatusTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class StatusTestSqlServer
     {        
-        private SqlTableDependency<Check_Model> _tableDependency = null;
+        private SqlTableDependency<StatusTestSqlServerModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "StatusCheckTest";
 
@@ -64,17 +73,17 @@ namespace TableDependency.IntegrationTest
         {
             try
             {
-                var mapper = new ModelToTableMapper<Check_Model>();
+                var mapper = new ModelToTableMapper<StatusTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
-                this._tableDependency = new SqlTableDependency<Check_Model>(ConnectionString, TableName, mapper);
+                this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionString, TableName, mapper);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
 
                 Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForStart);
 
                 this._tableDependency.Start();
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1 * 60 * 1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
@@ -89,7 +98,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestSqlServerModel> e)
         {
             Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification || this._tableDependency.Status == TableDependencyStatus.NotificationConsuming || this._tableDependency.Status == TableDependencyStatus.NotificationConsumed);
         }
