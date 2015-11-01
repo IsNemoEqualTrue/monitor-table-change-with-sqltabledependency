@@ -608,22 +608,9 @@ namespace TableDependency.OracleClient
                 $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
         }
 
-        //private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
-        //{
-        //    var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")";
-
-        //    return
-        //        $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
-        //        $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-        //        $"message_content:= TYPE_{dataBaseObjectsNamingConvention} ({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
-        //        $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
-        //        $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-        //        $"DBMS_LOB.WRITE(lob_loc, LENGTH({variable}), 1, message_buffer);" + Environment.NewLine;
-        //}
-
         private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
-            var variable = "v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty);
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")";
 
             return
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), LENGTH({variable}));" + Environment.NewLine +
