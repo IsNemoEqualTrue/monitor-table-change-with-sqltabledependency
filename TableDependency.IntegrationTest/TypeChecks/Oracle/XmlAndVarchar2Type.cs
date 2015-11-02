@@ -50,7 +50,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         }
 
         [TestMethod]
-        public void CheckDateTypeTest()
+        public void CheckTest()
         {
             OracleTableDependency<XmlAndVarchar2Model> tableDependency = null;
 
@@ -106,7 +106,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                     command.ExecuteNonQuery();
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
             }
         }
     }

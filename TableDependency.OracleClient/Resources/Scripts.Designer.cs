@@ -100,7 +100,6 @@ namespace TableDependency.OracleClient.Resources {
         ///    enqueue_options DBMS_AQ.enqueue_options_t;
         ///    message_properties DBMS_AQ.message_properties_t;
         ///    message_handle RAW(16);
-        ///    amount_to_write INT;
         ///    message_buffer BLOB;
         ///    message_content TYPE_{0};
         ///    lob_loc BLOB;
@@ -111,7 +110,7 @@ namespace TableDependency.OracleClient.Resources {
         ///    {5}
         ///    
         ///  BEGIN
-        ///    en [rest of string was truncated]&quot;;.
+        ///    enqueue_options.visibility : [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {

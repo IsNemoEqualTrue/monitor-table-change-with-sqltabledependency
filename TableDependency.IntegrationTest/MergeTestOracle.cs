@@ -15,8 +15,6 @@ namespace TableDependency.IntegrationTest
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
         public int Quantity { get; set; }
     }
 
@@ -52,13 +50,13 @@ namespace TableDependency.IntegrationTest
                     command.CommandText =
                         $"CREATE PROCEDURE {ProcedureName} AS " + Environment.NewLine +
                         $"BEGIN" + Environment.NewLine +
-                        $"MERGE into {TarghetTableName.ToUpper()}" + Environment.NewLine +
+                        $"MERGE INTO {TarghetTableName.ToUpper()}" + Environment.NewLine +
                         $"USING {SourceTableName.ToUpper()}" + Environment.NewLine +
-                        $"ON({SourceTableName.ToUpper()}.id =  {TarghetTableName.ToUpper()}.id)" + Environment.NewLine +
+                        $"ON({SourceTableName.ToUpper()}.ID =  {TarghetTableName.ToUpper()}.ID)" + Environment.NewLine +
                         $"WHEN MATCHED THEN" + Environment.NewLine +
-                        $"  UPDATE SET name = {SourceTableName.ToUpper()}.name, QUANTITY = {SourceTableName.ToUpper()}.QUANTITY" + Environment.NewLine +
+                        $"  UPDATE SET NAME = {SourceTableName.ToUpper()}.NAME, QUANTITY = {SourceTableName.ToUpper()}.QUANTITY" + Environment.NewLine +
                         $"WHEN NOT MATCHED THEN" + Environment.NewLine +
-                        $"  INSERT(id, name, QUANTITY) VALUES({SourceTableName.ToUpper()}.id, {SourceTableName.ToUpper()}.name, {SourceTableName.ToUpper()}.QUANTITY);" + Environment.NewLine +
+                        $"  INSERT(ID, NAME, QUANTITY) VALUES({SourceTableName.ToUpper()}.ID, {SourceTableName.ToUpper()}.NAME, {SourceTableName.ToUpper()}.QUANTITY);" + Environment.NewLine +
                         $"END;";
                     command.ExecuteNonQuery();
                 }
@@ -97,8 +95,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
 
                 var t = new Task(MergeOperation);
                 t.Start();
@@ -142,8 +139,9 @@ namespace TableDependency.IntegrationTest
                     command.CommandType = System.Data.CommandType.StoredProcedure;
                     command.CommandText = ProcedureName;
                     command.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
+
+                Thread.Sleep(5000);
             }
         }
 

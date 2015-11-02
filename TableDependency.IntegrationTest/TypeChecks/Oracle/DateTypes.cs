@@ -58,7 +58,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "CREATE TABLE DATETIMETESTS(DATECOLUM DATE,TIMESTAMPCOLUMN TIMESTAMP(6),TIMESTAMPWITHLOCALTIMEZONE TIMESTAMP WITH LOCAL TIME ZONE,TIMESTAMPWITHTIMEZONE TIMESTAMP WITH TIME ZONE,INTERVALDAYTOSECONDCOLUMN INTERVAL DAY(2) TO SECOND(6),INTERVALYEARTOMONTHCOLUMN INTERVAL YEAR(2) TO MONTH)";
+                    command.CommandText = $"CREATE TABLE {TableName}(DATECOLUM DATE,TIMESTAMPCOLUMN TIMESTAMP(6),TIMESTAMPWITHLOCALTIMEZONE TIMESTAMP WITH LOCAL TIME ZONE,TIMESTAMPWITHTIMEZONE TIMESTAMP WITH TIME ZONE,INTERVALDAYTOSECONDCOLUMN INTERVAL DAY(2) TO SECOND(6),INTERVALYEARTOMONTHCOLUMN INTERVAL YEAR(2) TO MONTH)";
                     command.ExecuteNonQuery();
                 }
             }
@@ -149,7 +149,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                     command.ExecuteNonQuery();
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
             }
         }
     }

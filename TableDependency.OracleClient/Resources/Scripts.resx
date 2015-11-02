@@ -164,7 +164,6 @@ BEGIN
     enqueue_options DBMS_AQ.enqueue_options_t;
     message_properties DBMS_AQ.message_properties_t;
     message_handle RAW(16);
-    amount_to_write INT;
     message_buffer BLOB;
     message_content TYPE_{0};
     lob_loc BLOB;

@@ -10,20 +10,18 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest.TypeChecks.Oracle
 {
-    public class FloatAndIntegerTypesModel
+    public class RAWTypeModel
     {
-        public decimal FLOATCOLUMN { get; set; }
-        public decimal INTEGERCOLUMN { get; set; }
-        public decimal NUMBERCOLUMN { get; set; }
+        public byte[] RAWCOLUMN { get; set; }
     }
 
     [TestClass]
-    public class FloatAndIntegerTypes
+    public class RAWTypeTest
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "AFLOATANDINTEGERTYPES";
-        private static FloatAndIntegerTypesModel GotModel = new FloatAndIntegerTypesModel();
-        private static FloatAndIntegerTypesModel SetModel = new FloatAndIntegerTypesModel();
+        private static readonly string TableName = "ARAWSTABLE";
+        private static RAWTypeModel GotModel = new RAWTypeModel();
+        private static RAWTypeModel SetModel = new RAWTypeModel();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -35,7 +33,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName}(FLOATCOLUMN FLOAT,INTEGERCOLUMN INTEGER, NUMBERCOLUMN NUMBER(9, 1))";
+                    command.CommandText = $"CREATE TABLE {TableName}(RAWCOLUMN RAW(2000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -50,13 +48,13 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         [TestMethod]
         public void CheckTypeTest()
         {
-            OracleTableDependency<FloatAndIntegerTypesModel> tableDependency = null;
+            OracleTableDependency<RAWTypeModel> tableDependency = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<FloatAndIntegerTypesModel>(ConnectionString, TableName);
+                tableDependency = new OracleTableDependency<RAWTypeModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
-                tableDependency.OnError += this.TableDependency_OnError;
+                tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
                 Thread.Sleep(5000);
 
@@ -69,9 +67,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(GotModel.FLOATCOLUMN, SetModel.FLOATCOLUMN);
-            Assert.AreEqual(GotModel.FLOATCOLUMN, SetModel.FLOATCOLUMN);
-            Assert.AreEqual(GotModel.NUMBERCOLUMN, SetModel.NUMBERCOLUMN);            
+            Assert.AreEqual(GetString(SetModel.RAWCOLUMN), GetString(GotModel.RAWCOLUMN));
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
@@ -79,23 +75,19 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             throw e.Error;
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<FloatAndIntegerTypesModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<RAWTypeModel> e)
         {
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    GotModel.FLOATCOLUMN = e.Entity.FLOATCOLUMN;
-                    GotModel.INTEGERCOLUMN = e.Entity.INTEGERCOLUMN;
-                    GotModel.NUMBERCOLUMN = e.Entity.NUMBERCOLUMN;
+                    GotModel.RAWCOLUMN = e.Entity.RAWCOLUMN;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            SetModel.FLOATCOLUMN = 12.3M;
-            SetModel.INTEGERCOLUMN = 34.1M;
-            SetModel.INTEGERCOLUMN = 4751132.7M;
+            SetModel.RAWCOLUMN = GetBytes("Nonna Dirce");
 
             using (var connection = new OracleConnection(ConnectionString))
             {
@@ -103,18 +95,30 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
 
                 using (var command = connection.CreateCommand())
                 {
-                    var parameters = new[] {
-                        new OracleParameter("FLOATCOLUMNvar", SetModel.FLOATCOLUMN),
-                        new OracleParameter("INTEGERCOLUMNvar", SetModel.INTEGERCOLUMN),
-                        new OracleParameter("NUMBERCOLUMNvar", SetModel.NUMBERCOLUMN)};
-                    
-                    command.CommandText = $"BEGIN INSERT INTO {TableName}(FLOATCOLUMN,INTEGERCOLUMN,NUMBERCOLUMN) VALUES (:FLOATCOLUMNvar, :INTEGERCOLUMNvar, :NUMBERCOLUMNvar); END;";
+                    var parameters = new[] {new OracleParameter() { ParameterName = "rawvalue", OracleDbType = OracleDbType.Raw, Value = SetModel.RAWCOLUMN } };
+                    command.CommandText = $"BEGIN INSERT INTO {TableName}(RAWCOLUMN) VALUES (:rawvalue); END;";
                     command.Parameters.AddRange(parameters);
                     command.ExecuteNonQuery();
                 }
 
                 Thread.Sleep(5000);
             }
+        }
+
+        static byte[] GetBytes(string str)
+        {
+            if (str == null) return null;
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        static string GetString(byte[] bytes)
+        {
+            if (bytes == null) return null;
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
         }
     }
 }

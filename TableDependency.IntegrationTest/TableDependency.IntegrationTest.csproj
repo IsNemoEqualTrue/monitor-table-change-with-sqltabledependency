@@ -94,7 +94,9 @@
     <Compile Include="TaskCancellationTestSqlServer.cs" />
     <Compile Include="TriggerTypeTestOracle.cs" />
     <Compile Include="TriggerTypeTestSqlServer.cs" />
+    <Compile Include="TypeChecks\Oracle\CharTypes.cs" />
     <Compile Include="TypeChecks\Oracle\DateTypes.cs" />
+    <Compile Include="TypeChecks\Oracle\RawTypes.cs" />
     <Compile Include="TypeChecks\Oracle\FloatAndIntegerTypes.cs" />
     <Compile Include="TypeChecks\Oracle\XmlAndVarchar2Type.cs" />
     <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />

@@ -39,7 +39,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName} (ID NUMBER(10), NAME VARCHAR2(50), \"Long Description\" VARCHAR2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -84,10 +84,19 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 3);
+
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Id, CheckValues[ChangeType.Insert.ToString()].Item1.Id);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, CheckValues[ChangeType.Insert.ToString()].Item1.Description);
+
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Id, CheckValues[ChangeType.Update.ToString()].Item1.Id);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, CheckValues[ChangeType.Update.ToString()].Item1.Name);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, CheckValues[ChangeType.Update.ToString()].Item1.Description);
+
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Id, CheckValues[ChangeType.Delete.ToString()].Item1.Id);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
+
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
@@ -104,6 +113,7 @@ namespace TableDependency.IntegrationTest
 
                 case ChangeType.Update:
                     _counter++;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Id = e.Entity.Id;
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
                     CheckValues[ChangeType.Update.ToString()].Item2.Description = e.Entity.Description;
                     break;

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
@@ -12,23 +13,45 @@ using TableDependency.OracleClient;
 
 namespace ConsoleApplication2
 {
+    public class AModel1
+    {
+        public DateTime DateColum { get; set; }
+        public DateTime TimeStampColumn { get; set; }
+        public DateTime TimeStampWithLocalTimeZone { get; set; }
+        public DateTime TimeStampWithTimeZone { get; set; }
+        public TimeSpan IntervalDayToSecondColumn { get; set; }
+        public Int64 IntervalYearToMonthColumn { get; set; }
+
+    }
+
     internal class Program
     {
+        static string TableName = "AModel1";
+        static string ConnectionString = "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT= 1521)))(CONNECT_DATA=(SERVICE_NAME = XE)));User Id=SYSTEM;password=tiger;";
+
         private static void Main(string[] args)
         {
-            OracleTableDependency<Check_Model1> tableDependency = null;
+
+            OracleHelper.DropTable(ConnectionString, TableName);
+
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"CREATE TABLE {TableName}(DATECOLUM DATE,TIMESTAMPCOLUMN TIMESTAMP(6),TIMESTAMPWITHLOCALTIMEZONE TIMESTAMP WITH LOCAL TIME ZONE,TIMESTAMPWITHTIMEZONE TIMESTAMP WITH TIME ZONE,INTERVALDAYTOSECONDCOLUMN INTERVAL DAY(2) TO SECOND(6),INTERVALYEARTOMONTHCOLUMN INTERVAL YEAR(2) TO MONTH)";
+                    command.ExecuteNonQuery();
+                }
+            }
+
+
+            OracleTableDependency<AModel1> tableDependency = null;
             string naming = null;
 
             try
             {
-                //var mapper = new ModelToTableMapper<Check_Model1>();
-                //mapper.AddMapping(c => c.Name, "COLUMN1");
-                //mapper.AddMapping(c => c.Id, "COLUMN2");
-                //mapper.AddMapping(c => c.Surname, "Long Description");
-                //mapper.AddMapping(c => c.Born, "NATO");
-                tableDependency = new OracleTableDependency<Check_Model1>(
-                    "Data Source=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST=127.0.0.1)(PORT= 1521)))(CONNECT_DATA=(SERVICE_NAME = XE)));User Id=SYSTEM;password=tiger;",
-                    "AAA");
+
+                tableDependency = new OracleTableDependency<AModel1>(ConnectionString, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
 
@@ -49,11 +72,13 @@ namespace ConsoleApplication2
 
         private static void TableDependency_OnError(object sender, ErrorEventArgs e)
         {
-            Console.WriteLine(e.Error.Message);
+            throw e.Error;
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Check_Model1> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<AModel1> e)
         {
+            Console.WriteLine(e.Entity.DateColum);
+           
         }
     }
 }

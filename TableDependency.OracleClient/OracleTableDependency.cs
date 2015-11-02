@@ -387,7 +387,7 @@ namespace TableDependency.OracleClient
 
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(message_type VARCHAR2(100), message BLOB, message_length INT);";
+                        command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(message_type VARCHAR2(100), message BLOB);";
                         command.ExecuteNonQuery();
                         command.CommandText = $"CREATE TYPE TBL_{dataBaseObjectsNamingConvention} IS TABLE OF TYPE_{dataBaseObjectsNamingConvention};";
                         command.ExecuteNonQuery();
@@ -399,7 +399,7 @@ namespace TableDependency.OracleClient
                         command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{dataBaseObjectsNamingConvention}'); END;";
                         command.ExecuteNonQuery();
 
-                        var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " " + c.Type + ComputeVariableSize(c) + ";"));
+                        var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " " + c.Type + c.Size + ";"));
                         var startMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention);
                         var endMessageStatement = string.Format(EndMessageTemplate, dataBaseObjectsNamingConvention);
                         var setNewValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + " := :NEW." + c.Name + ";"));
@@ -573,17 +573,15 @@ namespace TableDependency.OracleClient
         private string PrepareStartEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
-                $"select utl_raw.cast_to_raw(dmlType) into message_buffer from dual;" + Environment.NewLine +
-                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageStart, message_buffer, amount_to_write), msgid => message_handle);" + Environment.NewLine;
+                $"SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageStart, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
         private string PrepareEndEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
-                $"select utl_raw.cast_to_raw(dmlType) into message_buffer from dual;" + Environment.NewLine +
-                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageEnd, message_buffer, amount_to_write), msgid => message_handle);" + Environment.NewLine;
+                $"SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageEnd, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
         private string PrepareEnqueueScript(ColumnInfo column, string dataBaseObjectsNamingConvention)
@@ -593,7 +591,18 @@ namespace TableDependency.OracleClient
             if (column.Type == "DATE") return PrepareEnqueueScriptForDate(column, messageType, dataBaseObjectsNamingConvention);
             if (column.Type == "TIMESTAMP") return PrepareEnqueueScriptForTimeStamp(column, messageType, dataBaseObjectsNamingConvention);
             if (column.Type == "XMLTYPE") return PrepareEnqueueScriptForXmlType(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type == "RAW") return PrepareEnqueueScriptForRawType(column, messageType, dataBaseObjectsNamingConvention);
             return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
+        }
+
+        private string PrepareEnqueueScriptForRawType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty);
+            return
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+               $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH({variable}), 1, {variable});" + Environment.NewLine;
         }
 
         private string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -601,11 +610,10 @@ namespace TableDependency.OracleClient
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ".GETCLOBVAL())";
             return
                 $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
-                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+                $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
         }
 
         private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -613,7 +621,7 @@ namespace TableDependency.OracleClient
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")";
 
             return
-                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), LENGTH({variable}));" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
                 $"DBMS_LOB.WRITE(lob_loc, LENGTH({variable}), 1, UTL_RAW.CAST_TO_RAW(SUBSTR({variable}, 1, LENGTH({variable}))));" + Environment.NewLine;
@@ -625,11 +633,10 @@ namespace TableDependency.OracleClient
 
             return
                 $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
-                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+                $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
         }
 
         private string PrepareEnqueueScriptForDate(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -638,11 +645,10 @@ namespace TableDependency.OracleClient
 
             return
                 $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
-                $"amount_to_write:= UTL_RAW.LENGTH(message_buffer);" + Environment.NewLine +
-                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB(), amount_to_write);" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-                $"DBMS_LOB.WRITE(lob_loc, amount_to_write, 1, message_buffer);" + Environment.NewLine;
+                $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
         }
 
         private async static Task WaitForNotification(
@@ -818,13 +824,6 @@ namespace TableDependency.OracleClient
             foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new OracleRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
         }
 
-        private static string ComputeVariableSize(ColumnInfo column)
-        {
-            if (string.IsNullOrWhiteSpace(column.Size)) return string.Empty;
-            if (Convert.ToInt32(column.Size) > 0) return "(" + column.Size + ")";
-            return string.Empty;
-        }
-
         private static void CheckIfConnectionStringIsValid(string connectionString)
         {
             try
@@ -872,6 +871,9 @@ namespace TableDependency.OracleClient
                     case "BLOB":
                     case "CLOB":
                     case "NLOB":
+                    // {"ORA-04093: references to columns of type LONG are not allowed in triggers"}
+                    case "LONG ROW":
+                    case "LONG":
                         throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for OracleTableDependency.");
                 }
             }
@@ -932,19 +934,56 @@ namespace TableDependency.OracleClient
                 connection.Open();
                 using (var cmmand = connection.CreateCommand())
                 {
-                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, TO_CHAR(NVL(CHAR_LENGTH, 0)) AS CHAR_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE UPPER(TABLE_NAME) = '{tableName.ToUpper()}' ORDER BY COLUMN_ID";
+                    cmmand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, CHAR_LENGTH, CHAR_USED, DATA_PRECISION, DATA_SCALE, DATA_LENGTH FROM SYS.USER_TAB_COLUMNS WHERE UPPER(TABLE_NAME) = '{tableName.ToUpper()}' ORDER BY COLUMN_ID";
                     var reader = cmmand.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        var name = reader.GetString(0);
-                        var type = reader.GetString(1);
-                        var size = reader.GetString(2);
-                        columnsList.Add(new ColumnInfo(QUOTES + name + QUOTES, type, size));
-                    }
+                    while (reader.Read()) columnsList.Add(PrepareColumnInfo(reader));
                 }
             }
 
             return columnsList;
+        }
+
+        private static ColumnInfo PrepareColumnInfo(OracleDataReader reader)
+        {
+            var name = reader.GetString(0);
+            var type = reader.GetString(1);
+
+            if ((type.StartsWith("INTERVAL") || type.StartsWith("TIMESTAMP"))) return new ColumnInfo(QUOTES + name + QUOTES, type);
+
+            var charLength = reader.IsDBNull(2) ? null : reader.GetInt32(2).ToString();
+            if (charLength != "0")
+            {
+                var charUsed = reader.IsDBNull(3) ? null : reader.GetString(3);
+                var size = "(" + charLength + " " + (charUsed == "B" ? "BYTE" : "CHAR") + ")";
+                return new ColumnInfo(QUOTES + name + QUOTES, type, size);
+            }
+
+            var dataPrecision = reader.IsDBNull(4) ? null : reader.GetInt32(4).ToString();
+            if (dataPrecision != null)
+            {
+                var dataScale = reader.IsDBNull(5) ? null : reader.GetInt32(5).ToString();
+                var size = "(" + dataPrecision + (!string.IsNullOrWhiteSpace(dataScale) ? ", " + dataScale : string.Empty) + ")";
+                return new ColumnInfo(QUOTES + name + QUOTES, type, size);
+            }
+
+            var dataLength = reader.IsDBNull(6) ? null : reader.GetInt32(6).ToString();
+            if (dataLength != null)
+            {
+                var size = "(" + dataLength + ")";
+                return new ColumnInfo(QUOTES + name + QUOTES, type, size);
+            }
+
+            return new ColumnInfo(QUOTES + name + QUOTES, type);
+        }
+
+        private static string ComposeSize(string type, string charLenght, string dataPrecision, string dataScale)
+        {
+            if (dataPrecision != "0")
+            {
+                return dataPrecision + "," + dataScale;
+            }
+
+            return charLenght;
         }
 
         private void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)

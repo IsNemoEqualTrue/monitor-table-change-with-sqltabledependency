@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using Oracle.DataAccess.Types;
 using TableDependency.Classes;
 using TableDependency.EventArgs;
@@ -19,6 +18,7 @@ namespace TableDependency.OracleClient.EventArgs
     public sealed class OracleRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
     {
         private const string QUOTES = "\"";
+        private const string DATE_FORMAT = "MM-dd-yyyy HH:mm:ss";
 
         #region Constructors
 
@@ -52,7 +52,7 @@ namespace TableDependency.OracleClient.EventArgs
                 // DATE
                 if (columnInfo.Type == "DATE")
                 {
-                    return DateTime.ParseExact(stringValue, "MM-dd-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    return DateTime.ParseExact(stringValue, DATE_FORMAT, CultureInfo.InvariantCulture);
                 }
 
                 // INTERVAL YEAR(n) TO MONTH
@@ -97,6 +97,11 @@ namespace TableDependency.OracleClient.EventArgs
                 if (columnInfo.Type.StartsWith("XMLTYPE"))
                 {
                     return stringValue;
+                }
+                // RAW
+                if(columnInfo.Type.StartsWith("RAW"))
+                {
+                    return message;
                 }
 
                 return base.GetValue(entityPropertyInfo, columnInfo, message);
