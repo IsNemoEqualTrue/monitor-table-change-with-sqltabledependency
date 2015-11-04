@@ -35,9 +35,6 @@ namespace TableDependency.OracleClient.EventArgs
             return base._userInterestedColumns.First(uic => string.Equals(uic.Name.Replace(QUOTES, ""), columnName, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        /// <summary>
-        /// https://msdn.microsoft.com/en-us/library/cc716726%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
-        /// </summary>
         /// <remarks>
         /// 1 - .NET DateTime structure has a precision of tick - 100 nanoseconds - 0.0000001 of second - 7 decimal positions after the point.
         ///     Oracle TimeStamp has a precision of up to nanosecond - 0.000000001 - 9 decimal positions after the point.

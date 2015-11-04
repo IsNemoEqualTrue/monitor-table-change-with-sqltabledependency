@@ -63,6 +63,8 @@
     <Compile Include="DataAnnotationTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="GetMessageAfterRestartTestSqlServer.cs" />
+    <Compile Include="NoDisposeAndRestartWithSameObjectsTestSqlServer.cs" />
     <Compile Include="DisposeAndRestartWithSameObjectsTestSqlServer.cs" />
     <Compile Include="DisposeAndRestartWithSameObjectsTestOracle.cs" />
     <Compile Include="EventForAllColumnsTestOracle.cs" />

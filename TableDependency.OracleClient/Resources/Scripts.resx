@@ -171,6 +171,15 @@ BEGIN
     messageStart VARCHAR2(50) := '{3}';
     messageEnd VARCHAR2(50) := '{4}';
     dmlType VARCHAR2(50);
+
+l_clob        clob;
+  l_amt         integer := dbms_lob.lobmaxsize;
+  l_dest_offset integer := 1;
+  l_src_offset  integer := 1;
+  l_csid        integer := dbms_lob.default_csid;
+  l_ctx         integer := dbms_lob.default_lang_ctx;
+  l_warn        integer;
+
     {5}
     
   BEGIN

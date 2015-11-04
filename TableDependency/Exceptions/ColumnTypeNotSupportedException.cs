@@ -6,6 +6,7 @@ using System;
 
 namespace TableDependency.Exceptions
 {
+    [Serializable]
     public class ColumnTypeNotSupportedException : TableDependencyException
     {
         protected internal ColumnTypeNotSupportedException(string message = null, Exception exception = null)

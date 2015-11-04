@@ -6,6 +6,7 @@ using System;
 
 namespace TableDependency.Exceptions
 {
+    [Serializable]
     public class NoSubscriberException : TableDependencyException
     {
         protected internal NoSubscriberException(Exception innerException = null)

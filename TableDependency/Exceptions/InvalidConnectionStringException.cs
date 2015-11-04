@@ -6,6 +6,7 @@ using System;
 
 namespace TableDependency.Exceptions
 {
+    [Serializable]
     public class InvalidConnectionStringException : TableDependencyException
     {
         protected internal InvalidConnectionStringException(Exception innerException = null)

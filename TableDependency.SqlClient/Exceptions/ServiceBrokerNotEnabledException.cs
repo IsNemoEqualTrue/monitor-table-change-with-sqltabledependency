@@ -7,6 +7,7 @@ using TableDependency.Exceptions;
 
 namespace TableDependency.SqlClient.Exceptions
 {
+    [Serializable]
     public class ServiceBrokerNotEnabledException : TableDependencyException
     {
         protected internal ServiceBrokerNotEnabledException(Exception innerException = null)

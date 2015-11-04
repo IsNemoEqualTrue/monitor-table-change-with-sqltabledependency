@@ -6,6 +6,7 @@ using System;
 
 namespace TableDependency.Exceptions
 {
+    [Serializable]
     public class TableDependencyException : Exception
     {
         public TableDependencyException(string message, Exception innerException = null)

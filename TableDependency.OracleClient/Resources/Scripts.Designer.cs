@@ -107,10 +107,9 @@ namespace TableDependency.OracleClient.Resources {
         ///    messageStart VARCHAR2(50) := &apos;{3}&apos;;
         ///    messageEnd VARCHAR2(50) := &apos;{4}&apos;;
         ///    dmlType VARCHAR2(50);
-        ///    {5}
-        ///    
-        ///  BEGIN
-        ///    enqueue_options.visibility : [rest of string was truncated]&quot;;.
+        ///
+        ///l_clob        clob;
+        ///  l_amt         integer := dbms_l [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {

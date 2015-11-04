@@ -7,6 +7,7 @@ using TableDependency.Exceptions;
 
 namespace TableDependency.SqlClient.Exceptions
 {
+    [Serializable]
     public class UserWithNoPermissionException : TableDependencyException
     {
         protected internal UserWithNoPermissionException(Exception innerException = null)
