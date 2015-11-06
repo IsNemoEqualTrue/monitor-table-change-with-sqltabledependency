@@ -44,9 +44,9 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText =
                         $"CREATE TABLE [{TableName}]( " +
                         "[Id][int] IDENTITY(1, 1) NOT NULL, " +
-                        "[First Name] [nvarchar](50) NULL, " +
-                        "[Second Name] [nvarchar](50) NULL, " +
-                        "[Born] [datetime] NULL)";
+                        "[First Name] [NVARCHAR](50) NULL, " +
+                        "[Second Name] [NVARCHAR](50) NULL, " +
+                        "[Born] [DATETIME] NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -79,7 +79,7 @@ namespace TableDependency.IntegrationTest
             var tableDependency = new SqlTableDependency<NoDisposeAndRestartWithSameObjectsTestSqlServerModel>(ConnectionString, TableName, mapper, false, namingToUse);
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start();
-            Thread.Sleep(1 * 25 * 1000);            
+            Thread.Sleep(1 * 25 * 1000);
         }
 
         /// <summary>

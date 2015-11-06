@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -36,11 +37,13 @@ namespace TableDependency.OracleClient.EventArgs
         }
 
         /// <remarks>
-        /// 1 - .NET DateTime structure has a precision of tick - 100 nanoseconds - 0.0000001 of second - 7 decimal positions after the point.
-        ///     Oracle TimeStamp has a precision of up to nanosecond - 0.000000001 - 9 decimal positions after the point.
+        /// .NET DateTime structure has a precision of tick - 100 nanoseconds - 0.0000001 of second - 7 decimal positions after the point.
+        ///  Oracle TimeStamp has a precision of up to nanosecond - 0.000000001 - 9 decimal positions after the point.
         /// </remarks>
         internal override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
+            object value = null;
+
             if (message != null)
             {
                 var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture);
@@ -101,10 +104,12 @@ namespace TableDependency.OracleClient.EventArgs
                     return message;
                 }
 
-                return base.GetValue(entityPropertyInfo, columnInfo, message);
+                value = TypeDescriptor
+                    .GetConverter(entityPropertyInfo.PropertyType)
+                    .ConvertFromString(null, CultureInfo.CurrentCulture, this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
             }
 
-            return null;
+            return value;
         }
 
         #endregion

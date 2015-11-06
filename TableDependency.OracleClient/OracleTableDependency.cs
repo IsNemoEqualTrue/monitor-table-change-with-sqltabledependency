@@ -607,13 +607,18 @@ namespace TableDependency.OracleClient
 
         private string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
-            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ".GETCLOBVAL())";
             return
-                $"SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-                $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
+                "DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
+                "   v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ".GETCLOBVAL()," + Environment.NewLine +
+                "   l_amt," + Environment.NewLine +
+                "   l_dest_offset," + Environment.NewLine +
+                "   l_src_offset," + Environment.NewLine +
+                "   l_csid," + Environment.NewLine +
+                "   l_ctx," + Environment.NewLine +
+                "   l_warn); " + Environment.NewLine;                
         }
 
         private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -949,13 +954,15 @@ namespace TableDependency.OracleClient
             var name = reader.GetString(0);
             var type = reader.GetString(1);
 
+            if (type.StartsWith("DATE")) return new ColumnInfo(QUOTES + name + QUOTES, type);
+            if (type.StartsWith("XMLTYPE")) return new ColumnInfo(QUOTES + name + QUOTES, type);
             if ((type.StartsWith("INTERVAL") || type.StartsWith("TIMESTAMP"))) return new ColumnInfo(QUOTES + name + QUOTES, type);
 
             var charLength = reader.IsDBNull(2) ? null : reader.GetInt32(2).ToString();
             if (charLength != "0")
             {
                 var charUsed = reader.IsDBNull(3) ? null : reader.GetString(3);
-                var size = "(" + charLength + " " + (charUsed == "B" ? "BYTE" : "CHAR") + ")";
+                var size = "(" + charLength + (charUsed == "B" ? string.Empty : " CHAR") + ")";
                 return new ColumnInfo(QUOTES + name + QUOTES, type, size);
             }
 

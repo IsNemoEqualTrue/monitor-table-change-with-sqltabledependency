@@ -1,62 +1,53 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.OracleClient;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class GetMessageAfterRestartTestSqlServerModel
+    public class GetMessageAfterRestartTestSqlOracleModel
     {
         public string Name { get; set; }
     }
 
     [TestClass]
-    public class GetMessageAfterRestartTestSqlServer
+    public class GetMessageAfterRestartTestOracleTest
     {
-        public static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        public static readonly string TableName = "ANoDispose";
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString; public static readonly string TableName = "ANoDispose";
         public static string NamingToUse = "AAAG";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
-                    sqlCommand.ExecuteNonQuery();
-
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Name] [NVARCHAR](50) NULL)";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
+            OracleHelper.DropTable(ConnectionString, TableName);
         }
 
         [TestInitialize()]
         public void TestInitialize()
         {
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = $"CREATE TABLE {TableName} (NAME VARCHAR2(50))";
+                    command.ExecuteNonQuery();
+                }
+            }
         }
 
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
+            OracleHelper.DropTable(ConnectionString, TableName);
         }
 
         /// <summary>
@@ -65,7 +56,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            using (var tableDependency = new SqlTableDependency<GetMessageAfterRestartTestSqlServerModel>(
+            using (var tableDependency = new OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel>(
                 ConnectionString,
                 TableName,
                 mapper: null,
@@ -73,7 +64,7 @@ namespace TableDependency.IntegrationTest
                 automaticDatabaseObjectsTeardown: false,
                 namingConventionForDatabaseObjects: NamingToUse))
             {
-                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlServerModel> e) => { };
+                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlOracleModel> e) => { };
                 tableDependency.Start();
             }
 
@@ -84,8 +75,8 @@ namespace TableDependency.IntegrationTest
 
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
-            var domain = AppDomain.CreateDomain("AppDomainGetMessageAfterRestart", adevidence, domaininfo);
-            var otherDomainObject = (AppDomainGetMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomainGetMessageAfterRestart).Assembly.FullName, typeof(AppDomainGetMessageAfterRestart).FullName);
+            var domain = AppDomain.CreateDomain("AppDomainGMessageAfterRestart", adevidence, domaininfo);
+            var otherDomainObject = (AppDomainGMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomainGMessageAfterRestart).Assembly.FullName, typeof(AppDomainGMessageAfterRestart).FullName);
             var nameUsed = otherDomainObject.RunTableDependency(ConnectionString, TableName, NamingToUse);
             Thread.Sleep(5 * 60 * 1000);
             var checkValues = otherDomainObject.GetResult();
@@ -96,25 +87,25 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual("Valentina", results[0]);
             Assert.AreEqual("Christian", results[1]);
             Assert.AreEqual("Christian", results[2]);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
         }
 
         private static void ModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var connection = new OracleConnection(ConnectionString))
             {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
+                connection.Open();
+                using (var sqlCommand = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name]) VALUES ('Valentina')";
+                    sqlCommand.CommandText = $"INSERT INTO {TableName} (NAME) VALUES ('Valentina')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = 'Christian'";
+                    sqlCommand.CommandText = $"UPDATE {TableName} SET NAME = 'Christian'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.CommandText = $"DELETE FROM {TableName}";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
@@ -122,14 +113,14 @@ namespace TableDependency.IntegrationTest
         }
     }
 
-    public class AppDomainGetMessageAfterRestart : MarshalByRefObject
+    public class AppDomainGMessageAfterRestart : MarshalByRefObject
     {
-        public SqlTableDependency<GetMessageAfterRestartTestSqlServerModel> TableDependency;
+        public OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel> TableDependency;
         private readonly List<string> _checkValues = new List<string>();
 
         public string RunTableDependency(string connectionString, string tableName, string namingToUse)
         {
-            this.TableDependency = new SqlTableDependency<GetMessageAfterRestartTestSqlServerModel>(connectionString,
+            this.TableDependency = new OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel>(connectionString,
                 tableName,
                 mapper: null,
                 updateOf: (List<string>)null,
@@ -151,7 +142,7 @@ namespace TableDependency.IntegrationTest
             this.TableDependency.Stop();
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlServerModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlOracleModel> e)
         {
             switch (e.ChangeType)
             {

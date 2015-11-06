@@ -1,7 +1,6 @@
 ﻿using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
 using TableDependency.EventArgs;
@@ -11,19 +10,17 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest.TypeChecks.Oracle
 {
-    public class XmlAndVarchar2Model
+    public class Varchar2Model
     {
-        public string XmlColumn { get; set; }
         public string Name { get; set; }
     }
 
     [TestClass]
-    public class XmlAndVarchar2Type
+    public class Varchar2Type
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "AAATESTS";
+        private static readonly string TableName = "AAATEST";
         private static string _name;
-        private string _xml;
 
         public TestContext TestContext { get; set; }
 
@@ -52,15 +49,14 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         [TestMethod]
         public void CheckTest()
         {
-            OracleTableDependency<XmlAndVarchar2Model> tableDependency = null;
+            OracleTableDependency<Varchar2Model> tableDependency = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<XmlAndVarchar2Model>();
+                var mapper = new ModelToTableMapper<Varchar2Model>();
                 mapper.AddMapping(c => c.Name, "COLUMN3");
-                mapper.AddMapping(c => c.XmlColumn, "XMLCOLUMN");
 
-                tableDependency = new OracleTableDependency<XmlAndVarchar2Model>(ConnectionString, TableName, mapper);
+                tableDependency = new OracleTableDependency<Varchar2Model>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 Thread.Sleep(5000);
@@ -74,20 +70,12 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency?.Dispose();
             }
 
-
-            var expectedXml = new XmlDocument();
-            expectedXml.LoadXml("<names><name>Velia</name><name>Alfredina</name><name>Luciano</name></names>");
-            var gotXml = new XmlDocument();
-            gotXml.LoadXml(_xml);
-
             Assert.AreEqual(new string('*', 4000), _name);
-            Assert.AreEqual(gotXml.InnerXml, expectedXml.InnerXml);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<XmlAndVarchar2Model> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<Varchar2Model> e)
         {
             _name = e.Entity.Name;
-            _xml = e.Entity.XmlColumn;
         }
 
         private static void ModifyTableContent()
@@ -98,11 +86,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
 
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = 
-                        $"BEGIN INSERT INTO {TableName}(COLUMN3, XMLCOLUMN) VALUES ('" + 
-                        new string('*', 4000) + "'," +
-                        "XMLType('<names><name>Velia</name><name>Alfredina</name><name>Luciano</name></names>')); END;";
-
+                    command.CommandText = $"BEGIN INSERT INTO {TableName}(COLUMN3) VALUES ('" + new string('*', 4000) + "'); END;";
                     command.ExecuteNonQuery();
                 }
 

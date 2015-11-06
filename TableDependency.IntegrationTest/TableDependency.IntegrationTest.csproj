@@ -63,6 +63,8 @@
     <Compile Include="DataAnnotationTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="GetMessageAfterRestartTestOracle.cs" />
+    <Compile Include="NoDisposeAndRestartWithSameObjectsTestOracle.cs" />
     <Compile Include="GetMessageAfterRestartTestSqlServer.cs" />
     <Compile Include="NoDisposeAndRestartWithSameObjectsTestSqlServer.cs" />
     <Compile Include="DisposeAndRestartWithSameObjectsTestSqlServer.cs" />
@@ -96,11 +98,14 @@
     <Compile Include="TaskCancellationTestSqlServer.cs" />
     <Compile Include="TriggerTypeTestOracle.cs" />
     <Compile Include="TriggerTypeTestSqlServer.cs" />
-    <Compile Include="TypeChecks\Oracle\CharTypes.cs" />
+    <Compile Include="TypeChecks\Oracle\CharType.cs" />
     <Compile Include="TypeChecks\Oracle\DateTypes.cs" />
+    <Compile Include="TypeChecks\Oracle\NCharType.cs" />
+    <Compile Include="TypeChecks\Oracle\NVarchar2Type.cs" />
     <Compile Include="TypeChecks\Oracle\RawTypes.cs" />
     <Compile Include="TypeChecks\Oracle\FloatAndIntegerTypes.cs" />
-    <Compile Include="TypeChecks\Oracle\XmlAndVarchar2Type.cs" />
+    <Compile Include="TypeChecks\Oracle\Varchar2Type.cs" />
+    <Compile Include="TypeChecks\Oracle\XmlType.cs" />
     <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\BinaryBitCharVarbinaryTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
