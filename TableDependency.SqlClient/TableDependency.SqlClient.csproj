@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enumerations\SqlServerRequiredPermission.cs" />
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />
     <Compile Include="Exceptions\ServiceBrokerWithTriggerOrTableNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotExistingException.cs" />

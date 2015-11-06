@@ -167,7 +167,7 @@ BEGIN
     message_buffer BLOB;
     message_content TYPE_{0};
     lob_loc BLOB;
-    l_blob BLOB;
+    l_clob CLOB;
     messageStart VARCHAR2(50) := '{3}';
     messageEnd VARCHAR2(50) := '{4}';
     dmlType VARCHAR2(50);

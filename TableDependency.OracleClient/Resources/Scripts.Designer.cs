@@ -103,7 +103,7 @@ namespace TableDependency.OracleClient.Resources {
         ///    message_buffer BLOB;
         ///    message_content TYPE_{0};
         ///    lob_loc BLOB;
-        ///    l_blob BLOB;
+        ///    l_clob CLOB;
         ///    messageStart VARCHAR2(50) := &apos;{3}&apos;;
         ///    messageEnd VARCHAR2(50) := &apos;{4}&apos;;
         ///    dmlType VARCHAR2(50);

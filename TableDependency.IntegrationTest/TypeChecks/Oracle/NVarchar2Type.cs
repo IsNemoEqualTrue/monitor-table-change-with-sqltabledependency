@@ -20,8 +20,9 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "ANVARCHARTABLE";
         private static string STRING_TEST_1 = "Désolé";
-        private static string STRING_TEST_2 = new string('Ü', 4000);
+        private static string STRING_TEST_2 = new string('Ü', 2000);
         private static string STRING_TEST_3 = "这里输要读的文字或";
+        private static string STRING_TEST_4 = "أنا ما هنت في وطني ولا صغرت أكتافي";
         private static string _gotString;
 
         [ClassInitialize()]
@@ -34,7 +35,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName}(NVARCHARCOLUMN NVARCHAR2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName}(NVARCHARCOLUMN NVARCHAR2(2000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -121,6 +122,31 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(_gotString, STRING_TEST_3);
         }
 
+        [TestMethod]
+        public void CheckTypeTest4()
+        {
+            OracleTableDependency<NVarchar2CharModel> tableDependency = null;
+
+            try
+            {
+                tableDependency = new OracleTableDependency<NVarchar2CharModel>(ConnectionString, TableName);
+                tableDependency.OnChanged += this.TableDependency_Changed;
+                tableDependency.OnError += TableDependency_OnError;
+                tableDependency.Start();
+                Thread.Sleep(5000);
+
+                var t = new Task(ModifyTableContent4);
+                t.Start();
+                t.Wait(20000);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
+
+            Assert.AreEqual(_gotString, STRING_TEST_4);
+        }
+
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
         {
             throw e.Error;
@@ -144,6 +170,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         private static void ModifyTableContent3()
         {
             ModifyTableContent(STRING_TEST_3);
+        }
+
+        private static void ModifyTableContent4()
+        {
+            ModifyTableContent(STRING_TEST_4);
         }
 
         private static void ModifyTableContent(string p)

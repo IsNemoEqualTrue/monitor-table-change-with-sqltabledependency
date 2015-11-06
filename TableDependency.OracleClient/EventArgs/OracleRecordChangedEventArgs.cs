@@ -104,6 +104,13 @@ namespace TableDependency.OracleClient.EventArgs
                     return message;
                 }
 
+                // NCHAR & CHAR
+                if (columnInfo.Type == "NCHAR" || columnInfo.Type == "CHAR")
+                {
+                    return stringValue.ToCharArray();
+
+                }
+
                 value = TypeDescriptor
                     .GetConverter(entityPropertyInfo.PropertyType)
                     .ConvertFromString(null, CultureInfo.CurrentCulture, this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));

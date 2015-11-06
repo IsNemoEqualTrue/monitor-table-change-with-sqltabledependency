@@ -100,7 +100,6 @@
     <Compile Include="TriggerTypeTestSqlServer.cs" />
     <Compile Include="TypeChecks\Oracle\CharType.cs" />
     <Compile Include="TypeChecks\Oracle\DateTypes.cs" />
-    <Compile Include="TypeChecks\Oracle\NCharType.cs" />
     <Compile Include="TypeChecks\Oracle\NVarchar2Type.cs" />
     <Compile Include="TypeChecks\Oracle\RawTypes.cs" />
     <Compile Include="TypeChecks\Oracle\FloatAndIntegerTypes.cs" />
@@ -111,6 +110,7 @@
     <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
     <Compile Include="TypeChecks\SqlServer\RealTypesTest.cs" />
     <Compile Include="TypeChecks\SqlServer\GuidSmallMoneyTypes.cs" />
+    <Compile Include="TypeChecks\SqlServer\XmlNVarcharMaxAndVarcharMaxType2.cs" />
     <Compile Include="TypeChecks\SqlServer\XmlNVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="UpdateOfUsingLambaTestOracle.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />

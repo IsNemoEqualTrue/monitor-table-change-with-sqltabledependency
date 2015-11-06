@@ -20,7 +20,9 @@ using TableDependency.Extensions;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.Messages;
+using TableDependency.OracleClient.Enumerations;
 using TableDependency.OracleClient.EventArgs;
+using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
 using OracleConnection = Oracle.DataAccess.Client.OracleConnection;
@@ -35,9 +37,13 @@ namespace TableDependency.OracleClient
     /// </summary>
     public class OracleTableDependency<T> : TableDependency<T> where T : class
     {
+        #region Private variables
+
         private const string QUOTES = "\"";
         private const string ORACLE_DATE_FORMAT = "MM-DD-YYYY HH24:MI:SS";
         private const string ORACLE_DATESPAN_FORMAT = "MM-DD-YYYY HH24:MI:SS.FF";
+
+        #endregion
 
         #region Events
 
@@ -550,7 +556,7 @@ namespace TableDependency.OracleClient
         protected override void PreliminaryChecks(string connectionString, string tableName)
         {
             CheckIfConnectionStringIsValid(connectionString);
-
+            
             using (var connection = new OracleConnection(connectionString))
             {
                 try
@@ -562,6 +568,7 @@ namespace TableDependency.OracleClient
                     throw new InvalidConnectionStringException(exception);
                 }
 
+                CheckIfUserHasPermission(connection);
                 CheckIfTableExists(connection, tableName);
             }
         }
@@ -592,7 +599,9 @@ namespace TableDependency.OracleClient
             if (column.Type == "TIMESTAMP") return PrepareEnqueueScriptForTimeStamp(column, messageType, dataBaseObjectsNamingConvention);
             if (column.Type == "XMLTYPE") return PrepareEnqueueScriptForXmlType(column, messageType, dataBaseObjectsNamingConvention);
             if (column.Type == "RAW") return PrepareEnqueueScriptForRawType(column, messageType, dataBaseObjectsNamingConvention);
-            return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type == "NVARCHAR" || column.Type == "NVARCHAR2" || column.Type == "VARCHAR" || column.Type == "VARCHAR2") return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type == "NCHAR" || column.Type == "CHAR") return PrepareEnqueueScriptForChar(column, messageType, dataBaseObjectsNamingConvention);
+            return PrepareEnqueueScriptForOther(column, messageType, dataBaseObjectsNamingConvention);
         }
 
         private string PrepareEnqueueScriptForRawType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -621,7 +630,7 @@ namespace TableDependency.OracleClient
                 "   l_warn); " + Environment.NewLine;                
         }
 
-        private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private string PrepareEnqueueScriptForOther(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")";
 
@@ -631,6 +640,39 @@ namespace TableDependency.OracleClient
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
                 $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
+        }
+
+        private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            return
+                $"l_clob := TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ");" + Environment.NewLine +
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
+                $"   l_clob," + Environment.NewLine +
+                $"   l_amt," + Environment.NewLine +
+                $"   l_dest_offset," + Environment.NewLine +
+                $"   l_src_offset," + Environment.NewLine +
+                $"   l_csid," + Environment.NewLine +
+                $"   l_ctx," + Environment.NewLine +
+                $"   l_warn); " + Environment.NewLine;
+        }
+
+        private string PrepareEnqueueScriptForChar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            return
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
+                $"   TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(QUOTES, string.Empty) + ")," + Environment.NewLine +
+                $"   l_amt," + Environment.NewLine +
+                $"   l_dest_offset," + Environment.NewLine +
+                $"   l_src_offset," + Environment.NewLine +
+                $"   l_csid," + Environment.NewLine +
+                $"   l_ctx," + Environment.NewLine +
+                $"   l_warn); " + Environment.NewLine;
         }
 
         private string PrepareEnqueueScriptForTimeStamp(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -840,6 +882,31 @@ namespace TableDependency.OracleClient
             {
                 throw new InvalidConnectionStringException(exception);
             }
+        }
+
+        private static void CheckIfUserHasPermission(OracleConnection connection)
+        {
+            var privilegesTable = new DataTable();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT * FROM SESSION_PRIVS WHERE PRIVILEGE LIKE ('CREATE%') OR PRIVILEGE LIKE('DROP%')";
+                privilegesTable.Load(command.ExecuteReader());                
+            }
+
+            foreach (var permission in Enum.GetValues(typeof(OracleRequiredPermission)))
+            {
+                var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((OracleRequiredPermission)permission);
+                if (privilegesTable.AsEnumerable().All(r => r.Field<string>("PRIVILEGE").Replace("ANY ", string.Empty) != permissionToCkeck)) throw new UserWithNoPermissionException(permissionToCkeck);
+            }
+
+            var grantTable = new DataTable();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = $"SELECT DISTINCT ALL_TAB_PRIVS.TABLE_NAME FROM ALL_TAB_PRIVS WHERE (TABLE_NAME = 'DBMS_AQADM' OR TABLE_NAME = 'DBMS_AQ' OR TABLE_NAME = 'DBMS_SCHEDULER') AND PRIVILEGE = 'EXECUTE' AND GRANTEE IN (SELECT USER FROM DUAL)";
+                grantTable.Load(command.ExecuteReader());
+            }
+
+            if (grantTable.Rows.Count < 2) throw new UserWithNoGrantException("DBMS_AQADM or DBMS_AQ package or DBMS_SCHEDULER");
         }
 
         private static void CheckIfTableExists(OracleConnection connection, string tableName)
