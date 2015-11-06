@@ -20,7 +20,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
     [TestClass]
     public class XmlAType
     {
-        private static string XML = "<names><name>Velia</name><name>Alfredina</name><name>Luciano</name><name>" + new string('*', 4000) + "</name></names>";
+        private static string XML = "<names><name>Adélaïde</name><name>这里输要读的文字或</name><name>Згинуть наші воріженьки, як роса на сонці</name><name>أبوس الأرض تحت نعالكم</name><name>" + new string('*', 4000) + "</name></names>";
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAXMLTEST";
         private string _xml;
