@@ -21,6 +21,7 @@ using TableDependency.Exceptions;
 using TableDependency.Extensions;
 using TableDependency.Mappers;
 using TableDependency.Messages;
+using TableDependency.SqlClient.Enumerations;
 using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.EventArgs;
 using TableDependency.SqlClient.Exceptions;
@@ -898,6 +899,26 @@ namespace TableDependency.SqlClient
         {
             var colonne = (from insterestedColumn in userInterestedColumns let variableName = insterestedColumn.Name.Replace(" ", string.Empty) let variableType = $"{insterestedColumn.Type.ToUpper()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size) ? string.Empty : $"({insterestedColumn.Size})") select $"DECLARE @{variableName} {variableType.ToUpper()}").ToList();
             return string.Join(Environment.NewLine, colonne);
+        }
+
+        private static void CheckUserPermission(string connectionString)
+        {
+            var privilegesTable = new DataTable();
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = "SELECT [permission_name] FROM fn_my_permissions(NULL, 'DATABASE')";
+                    privilegesTable.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
+                }
+            }
+
+            foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
+            {
+                var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
+                if (privilegesTable.AsEnumerable().All(r => r.Field<string>("permission_name") != permissionToCkeck)) throw new UserWithNoPermissionException(permissionToCkeck);
+            }
         }
 
         private static void CheckIfConnectionStringIsValid(string connectionString)
