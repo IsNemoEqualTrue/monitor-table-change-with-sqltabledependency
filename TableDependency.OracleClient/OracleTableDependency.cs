@@ -512,11 +512,11 @@ namespace TableDependency.OracleClient
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'QUEUE' AND UPPER(OBJECT_NAME) = 'QUE_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add("QUEUE with name 'QUE_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"QUEUE with name 'QUE_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add("QUEUE TABLE with name 'QT_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"TABLE QUEUE with name 'QT_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TBL_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
