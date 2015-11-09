@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest
     {
         public static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         public static readonly string TableName = "ANoDispose";
-        public static string NamingToUse = "AAAG";
+        public static string NamingToUse = "AAA_GetMessageAfterRestartTestSqlServer";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -84,8 +84,8 @@ namespace TableDependency.IntegrationTest
 
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
-            var domain = AppDomain.CreateDomain("AppDomainGetMessageAfterRestart", adevidence, domaininfo);
-            var otherDomainObject = (AppDomainGetMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomainGetMessageAfterRestart).Assembly.FullName, typeof(AppDomainGetMessageAfterRestart).FullName);
+            var domain = AppDomain.CreateDomain("AppDomGetMessageAfterRestart", adevidence, domaininfo);
+            var otherDomainObject = (AppDomGetMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomGetMessageAfterRestart).Assembly.FullName, typeof(AppDomGetMessageAfterRestart).FullName);
             var nameUsed = otherDomainObject.RunTableDependency(ConnectionString, TableName, NamingToUse);
             Thread.Sleep(5 * 60 * 1000);
             var checkValues = otherDomainObject.GetResult();
@@ -122,7 +122,7 @@ namespace TableDependency.IntegrationTest
         }
     }
 
-    public class AppDomainGetMessageAfterRestart : MarshalByRefObject
+    public class AppDomGetMessageAfterRestart : MarshalByRefObject
     {
         public SqlTableDependency<GetMessageAfterRestartTestSqlServerModel> TableDependency;
         private readonly List<string> _checkValues = new List<string>();

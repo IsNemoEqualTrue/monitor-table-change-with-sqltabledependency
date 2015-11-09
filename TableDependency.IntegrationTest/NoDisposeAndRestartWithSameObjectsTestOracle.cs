@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class NoDisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private const string TableName = "AAAXTestOracleModel";
+        private static string TableName = "AAXesdel".ToUpper();
         private static int _counter;
         private static Dictionary<string, Tuple<TestOracleModel, TestOracleModel>> _checkValues = new Dictionary<string, Tuple<TestOracleModel, TestOracleModel>>();
 
@@ -65,7 +65,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            var namingToUse = "TestOracleModel";
+            var namingToUse = "AAAstOre";
 
             var mapper = new ModelToTableMapper<TestOracleModel>();
             mapper.AddMapping(c => c.Description, "Long Description");

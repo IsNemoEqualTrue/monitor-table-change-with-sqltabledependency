@@ -377,7 +377,7 @@ namespace TableDependency.SqlClient
 
         protected override bool CheckIfNeedsToCreateDatabaseObjects()
         {
-            IList<bool> allObjectAlreadyPresent = new List<bool>();
+            var allObjectAlreadyPresent = new Dictionary<string, bool>();
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -385,45 +385,45 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = 'tr_{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"TRIGGERS with name 'tr_{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.OBJECTS WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"PROCEDURE with name '{_dataBaseObjectsNamingConvention}_QueueActivation'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"SERVICE BROKER with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"QUEUE with name = N'{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"CONTRACT with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     foreach (var userInterestedColumn in _userInterestedColumns)
                     {
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add((int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
                     }
                 }
             }
 
-            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
-            if (allObjectAlreadyPresent.All(exist => exist)) return false;
+            if (allObjectAlreadyPresent.All(exist => !exist.Value)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist.Value)) return false;
 
             // Not all objects are present
-            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
+            throw new SomeDatabaseObjectsNotPresentException(allObjectAlreadyPresent);
         }
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)

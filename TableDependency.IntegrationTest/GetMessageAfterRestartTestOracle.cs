@@ -21,8 +21,9 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class GetMessageAfterRestartTestOracleTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString; public static readonly string TableName = "ANoDispose";
-        public static string NamingToUse = "AAAG";
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
+        public static readonly string TableName = "ANNNoi".ToUpper();
+        public static string NamingToUse = "AMESSAGEAFTERRESTART";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

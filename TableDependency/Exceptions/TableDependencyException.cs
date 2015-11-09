@@ -9,6 +9,9 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class TableDependencyException : Exception
     {
+        public TableDependencyException()
+        { }
+
         public TableDependencyException(string message, Exception innerException = null)
             : base(message, innerException)
         { }

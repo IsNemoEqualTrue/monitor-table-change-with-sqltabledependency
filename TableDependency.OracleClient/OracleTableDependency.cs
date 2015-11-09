@@ -493,7 +493,7 @@ namespace TableDependency.OracleClient
 
         protected override bool CheckIfNeedsToCreateDatabaseObjects()
         {
-            IList<bool> allObjectAlreadyPresent = new List<bool>();
+            var allObjectAlreadyPresent = new Dictionary<string, bool>();
 
             using (var connection = new OracleConnection(_connectionString))
             {
@@ -504,39 +504,35 @@ namespace TableDependency.OracleClient
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TRIGGER' AND UPPER(OBJECT_NAME) = 'TR_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"TRIGGER with name 'TR_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'PROCEDURE' AND UPPER(OBJECT_NAME) = 'DEQ_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"PROCEDURE with name 'DEQ_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'QUEUE' AND UPPER(OBJECT_NAME) = 'QUE_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add("QUEUE with name 'QUE_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
-
-                    command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE' AND UPPER(OBJECT_NAME) = 'QT_{_dataBaseObjectsNamingConvention}'; END;";
-                    command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add("QUEUE TABLE with name 'QT_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TBL_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"TABLE TYPE with name 'TBL_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
 
                     command.CommandText = $"BEGIN SELECT COUNT(*) INTO :exist FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TYPE' AND UPPER(OBJECT_NAME) = 'TYPE_{_dataBaseObjectsNamingConvention}'; END;";
                     command.ExecuteNonQuery();
-                    allObjectAlreadyPresent.Add(int.Parse(outParameter.Value.ToString()) > 0);
+                    allObjectAlreadyPresent.Add($"TYPE with name 'TYPE_{_dataBaseObjectsNamingConvention}'", int.Parse(outParameter.Value.ToString()) > 0);
                 }
             }
 
-            if (allObjectAlreadyPresent.All(exist => !exist)) return true;
-            if (allObjectAlreadyPresent.All(exist => exist)) return false;
+            if (allObjectAlreadyPresent.All(exist => !exist.Value)) return true;
+            if (allObjectAlreadyPresent.All(exist => exist.Value)) return false;
 
             // Not all objects are present
-            throw new SomeDatabaseObjectsNotPresentException(_dataBaseObjectsNamingConvention);
+            throw new SomeDatabaseObjectsNotPresentException(allObjectAlreadyPresent);
         }
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
