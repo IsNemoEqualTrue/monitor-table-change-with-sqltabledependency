@@ -78,8 +78,7 @@ namespace TableDependency.IntegrationTest
 
             var tableDependency = new SqlTableDependency<NoDisposeAndRestartWithSameObjectsTestSqlServerModel>(ConnectionString, TableName, mapper, false, namingToUse);
             tableDependency.OnChanged += TableDependency_Changed;
-            tableDependency.Start();
-            Thread.Sleep(1 * 25 * 1000);
+            tableDependency.Start(60, 120);
         }
 
         /// <summary>
@@ -94,7 +93,7 @@ namespace TableDependency.IntegrationTest
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
             RunFirstTime(namingToUse);
-            Thread.Sleep(5 * 60 * 1000);
+            Thread.Sleep(3 * 60 * 1000);
 
             using (var tableDependency = new SqlTableDependency<NoDisposeAndRestartWithSameObjectsTestSqlServerModel>(ConnectionString, TableName, mapper, true, namingToUse))
             {

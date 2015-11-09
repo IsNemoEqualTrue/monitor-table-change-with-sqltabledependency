@@ -74,10 +74,10 @@ namespace TableDependency.IntegrationTest
                 namingConventionForDatabaseObjects: NamingToUse))
             {
                 tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlServerModel> e) => { };
-                tableDependency.Start();
+                tableDependency.Start(60, 120);
             }
 
-            Thread.Sleep(5 * 60 * 1000);
+            Thread.Sleep(5000);
             Assert.IsFalse(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
             ModifyTableContent();
 
@@ -87,7 +87,7 @@ namespace TableDependency.IntegrationTest
             var domain = AppDomain.CreateDomain("AppDomGetMessageAfterRestart", adevidence, domaininfo);
             var otherDomainObject = (AppDomGetMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomGetMessageAfterRestart).Assembly.FullName, typeof(AppDomGetMessageAfterRestart).FullName);
             var nameUsed = otherDomainObject.RunTableDependency(ConnectionString, TableName, NamingToUse);
-            Thread.Sleep(5 * 60 * 1000);
+            Thread.Sleep(1 * 60 * 1000);
             var checkValues = otherDomainObject.GetResult();
             otherDomainObject.DisposeTableDependency();
             AppDomain.Unload(domain);

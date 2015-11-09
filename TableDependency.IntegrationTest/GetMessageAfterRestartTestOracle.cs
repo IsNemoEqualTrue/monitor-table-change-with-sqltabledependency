@@ -7,13 +7,11 @@ using Oracle.DataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.OracleClient;
-using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class GetMessageAfterRestartTestSqlOracleModel
+    public class GetMessageAfterRestartTestOracleModel
     {
         public string Name { get; set; }
     }
@@ -22,8 +20,8 @@ namespace TableDependency.IntegrationTest
     public class GetMessageAfterRestartTestOracleTest
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        public static readonly string TableName = "ANNNoi".ToUpper();
-        public static string NamingToUse = "AMESSAGEAFTERRESTART";
+        public static readonly string TableName = "ATABLET".ToUpper();
+        public static string NamingToUse = "ARESTARTK";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -57,7 +55,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            using (var tableDependency = new OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel>(
+            using (var tableDependency = new OracleTableDependency<GetMessageAfterRestartTestOracleModel>(
                 ConnectionString,
                 TableName,
                 mapper: null,
@@ -65,12 +63,12 @@ namespace TableDependency.IntegrationTest
                 automaticDatabaseObjectsTeardown: false,
                 namingConventionForDatabaseObjects: NamingToUse))
             {
-                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlOracleModel> e) => { };
-                tableDependency.Start();
+                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestOracleModel> e) => { };
+                tableDependency.Start(60, 120);
             }
 
-            Thread.Sleep(5 * 60 * 1000);
-            Assert.IsFalse(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
+            Thread.Sleep(5000);
+            Assert.IsFalse(OracleHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
             ModifyTableContent();
 
 
@@ -79,7 +77,7 @@ namespace TableDependency.IntegrationTest
             var domain = AppDomain.CreateDomain("AppDomainGMessageAfterRestart", adevidence, domaininfo);
             var otherDomainObject = (AppDomainGMessageAfterRestart)domain.CreateInstanceAndUnwrap(typeof(AppDomainGMessageAfterRestart).Assembly.FullName, typeof(AppDomainGMessageAfterRestart).FullName);
             var nameUsed = otherDomainObject.RunTableDependency(ConnectionString, TableName, NamingToUse);
-            Thread.Sleep(5 * 60 * 1000);
+            Thread.Sleep(1 * 60 * 1000);
             var checkValues = otherDomainObject.GetResult();
             otherDomainObject.DisposeTableDependency();
             AppDomain.Unload(domain);
@@ -116,12 +114,13 @@ namespace TableDependency.IntegrationTest
 
     public class AppDomainGMessageAfterRestart : MarshalByRefObject
     {
-        public OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel> TableDependency;
+        public OracleTableDependency<GetMessageAfterRestartTestOracleModel> TableDependency;
         private readonly List<string> _checkValues = new List<string>();
 
         public string RunTableDependency(string connectionString, string tableName, string namingToUse)
         {
-            this.TableDependency = new OracleTableDependency<GetMessageAfterRestartTestSqlOracleModel>(connectionString,
+            this.TableDependency = new OracleTableDependency<GetMessageAfterRestartTestOracleModel>(
+                connectionString,
                 tableName,
                 mapper: null,
                 updateOf: (List<string>)null,
@@ -143,7 +142,7 @@ namespace TableDependency.IntegrationTest
             this.TableDependency.Stop();
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<GetMessageAfterRestartTestSqlOracleModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<GetMessageAfterRestartTestOracleModel> e)
         {
             switch (e.ChangeType)
             {

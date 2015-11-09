@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class NoDisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static string TableName = "AAXesdel".ToUpper();
+        private static string TableName = "aaesdel".ToUpper();
         private static int _counter;
         private static Dictionary<string, Tuple<TestOracleModel, TestOracleModel>> _checkValues = new Dictionary<string, Tuple<TestOracleModel, TestOracleModel>>();
 
@@ -54,24 +54,23 @@ namespace TableDependency.IntegrationTest
         private void RunFirstTime(string namingToUse)
         {
             var mapper = new ModelToTableMapper<TestOracleModel>();
-            mapper.AddMapping(c => c.Description, "Long Description");
+            mapper.AddMapping(c => c.Description, "Long Description").AddMapping(c => c.Name, "Name");
 
             var tableDependency = new OracleTableDependency<TestOracleModel>(ConnectionString, TableName, mapper, false, namingToUse);
             tableDependency.OnChanged += TableDependency_Changed;
-            tableDependency.Start();
-            Thread.Sleep(1 * 25 * 1000);
+            tableDependency.Start(60, 120);
         }
 
         [TestMethod]
         public void Test()
         {
-            var namingToUse = "AAAstOre";
+            var namingToUse = "AAAOSTREGA";
 
             var mapper = new ModelToTableMapper<TestOracleModel>();
-            mapper.AddMapping(c => c.Description, "Long Description");
+            mapper.AddMapping(c => c.Description, "Long Description").AddMapping(c => c.Name, "Name");
 
             RunFirstTime(namingToUse);
-            Thread.Sleep(5 * 60 * 1000);
+            Thread.Sleep(3 * 60 * 1000);
 
             using (var tableDependency = new OracleTableDependency<TestOracleModel>(ConnectionString, TableName, mapper, true, namingToUse))
             {
@@ -129,15 +128,15 @@ namespace TableDependency.IntegrationTest
                 {
                     command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES ({_checkValues[ChangeType.Insert.ToString()].Item1.Id}, '{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Description}'); END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(500);
 
                     command.CommandText = $"BEGIN UPDATE {TableName} SET NAME = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}', \"Long Description\" = '{_checkValues[ChangeType.Update.ToString()].Item1.Description}'; END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(500);
 
                     command.CommandText = $"BEGIN DELETE FROM {TableName}; END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(500);
                 }
             }
         }
