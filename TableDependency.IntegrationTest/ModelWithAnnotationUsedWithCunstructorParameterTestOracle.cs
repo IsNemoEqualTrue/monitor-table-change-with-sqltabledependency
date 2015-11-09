@@ -14,7 +14,7 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
-    [Table("ItemsTable")]
+    [Table("AAWItemsTable")]
     public class Item5
     {
         public long Id { get; set; }

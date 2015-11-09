@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.DataAccess.Client;
-using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.OracleClient;
@@ -20,7 +19,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
     public class CharType
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "ACHATTABLE";
+        private static readonly string TableName = "ANCHATTABLE";
         private static CharModel GotModel = new CharModel();
         private static CharModel SetModel = new CharModel();
 
@@ -68,8 +67,8 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(GotModel.NCHARCOLUMN, SetModel.NCHARCOLUMN);
-            Assert.AreEqual(GotModel.CHARCOLUMN, SetModel.CHARCOLUMN);
+            Assert.AreEqual(new string(GotModel.CHARCOLUMN).Trim(), new string(SetModel.CHARCOLUMN).Trim());
+            Assert.AreEqual(new string(GotModel.NCHARCOLUMN).Trim(), new string(SetModel.NCHARCOLUMN).Trim());            
         }
 
         [TestMethod]
@@ -94,8 +93,8 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(GotModel.NCHARCOLUMN, SetModel.NCHARCOLUMN);
-            Assert.AreEqual(GotModel.CHARCOLUMN, SetModel.CHARCOLUMN);
+            Assert.AreEqual(new string(GotModel.CHARCOLUMN).Trim(), new string(SetModel.CHARCOLUMN).Trim());
+            Assert.AreEqual(new string(GotModel.NCHARCOLUMN).Trim(), new string(SetModel.NCHARCOLUMN).Trim());            
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
@@ -132,8 +131,8 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
 
         private static void ModifyTableContent2()
         {
-            SetModel.CHARCOLUMN = new string('À', 2000).ToCharArray();
-            SetModel.NCHARCOLUMN = new string('里', 1000).ToCharArray();
+            SetModel.CHARCOLUMN = new string('À', 1000).ToCharArray();
+            SetModel.NCHARCOLUMN = new string('里', 500).ToCharArray();
 
             using (var connection = new OracleConnection(ConnectionString))
             {
@@ -142,8 +141,8 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = $"BEGIN INSERT INTO {TableName}(CHARCOLUMN,NCHARCOLUMN) VALUES (:v3, :v4); END;";
-                    command.Parameters.Add(new OracleParameter("v3", OracleDbType.Char) { Value = SetModel.CHARCOLUMN });
-                    command.Parameters.Add(new OracleParameter("v4", OracleDbType.NChar) { Value = SetModel.NCHARCOLUMN });
+                    command.Parameters.Add(new OracleParameter("v3", OracleDbType.Char, SetModel.CHARCOLUMN.Length) { Value = SetModel.CHARCOLUMN });
+                    command.Parameters.Add(new OracleParameter("v4", OracleDbType.NChar, SetModel.NCHARCOLUMN.Length) { Value = SetModel.NCHARCOLUMN });
                     command.ExecuteNonQuery();
                 }
 

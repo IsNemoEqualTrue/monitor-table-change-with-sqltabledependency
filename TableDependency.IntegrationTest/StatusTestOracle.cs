@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     {
         private OracleTableDependency<StatusTestOracleModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private const string TableName = "StatusCheckTest";
+        private const string TableName = "AAA_StatusCheckTest";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

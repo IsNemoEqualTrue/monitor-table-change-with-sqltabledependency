@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
@@ -12,13 +13,24 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    [Table("ANItemsTableSQL")]
+    public class DataAnnotationTestSelServerModel
+    {
+        public long Id { get; set; }
+
+        public string Name { get; set; }
+
+        [Column("Long Description")]
+        public string Description { get; set; }
+    }
+
     [TestClass]
     public class DataAnnotationTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static readonly string TableName = Item4.GetTableName.ToUpper();
+        private static readonly string TableName = "ItemsTableSQL";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<Item4, Item4>> CheckValues = new Dictionary<string, Tuple<Item4, Item4>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -35,7 +47,7 @@ namespace TableDependency.IntegrationTest
                         $"CREATE TABLE [{TableName}]( " +
                         $"[Id] [int] IDENTITY(1, 1) NOT NULL, " +
                         $"[Name] [NVARCHAR](50) NULL, " +
-                        $"[{Item4.GetColumnName}] [NVARCHAR](MAX) NULL)";
+                        $"[Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -63,12 +75,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<Item4> tableDependency = null;
+            SqlTableDependency<DataAnnotationTestSelServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<Item4>(ConnectionString);
+                tableDependency = new SqlTableDependency<DataAnnotationTestSelServerModel>(ConnectionString);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -98,7 +110,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item4> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel> e)
         {
             _counter++;
 
@@ -121,20 +133,20 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item4, Item4>(new Item4 { Name = "Christian", Description = "Del Bianco" }, new Item4()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item4, Item4>(new Item4 { Name = "Velia", Description = "Ceccarelli" }, new Item4()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item4, Item4>(new Item4 { Name = "Velia", Description = "Ceccarelli" }, new Item4()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSelServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [{Item4.GetColumnName}]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [{Item4.GetColumnName}] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 

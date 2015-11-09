@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class DisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private const string TableName = "Item";
+        private const string TableName = "AAAItem";
         private static int _counter;
         private static Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>> _checkValues = new Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>>();
 

@@ -13,7 +13,7 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class UpdateOracleModel
+    public class AAA_UpdateOracleModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -26,9 +26,9 @@ namespace TableDependency.IntegrationTest
     public class UpdateOfUsingLambaTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = typeof(UpdateOracleModel).Name.ToUpper();
+        private static readonly string TableName = typeof(AAA_UpdateOracleModel).Name.ToUpper();
         private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<UpdateOracleModel, UpdateOracleModel>> CheckValues = new Dictionary<string, Tuple<UpdateOracleModel, UpdateOracleModel>>();
+        private static readonly Dictionary<string, Tuple<AAA_UpdateOracleModel, AAA_UpdateOracleModel>> CheckValues = new Dictionary<string, Tuple<AAA_UpdateOracleModel, AAA_UpdateOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -55,16 +55,16 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            OracleTableDependency<UpdateOracleModel> tableDependency = null;
+            OracleTableDependency<AAA_UpdateOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                var updateOfModel = new UpdateOfModel<UpdateOracleModel>();
+                var updateOfModel = new UpdateOfModel<AAA_UpdateOracleModel>();
                 updateOfModel.Add(i => i.Description);
 
 
-                tableDependency = new OracleTableDependency<UpdateOracleModel>(ConnectionString, updateOf: updateOfModel);
+                tableDependency = new OracleTableDependency<AAA_UpdateOracleModel>(ConnectionString, updateOf: updateOfModel);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -93,7 +93,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<UpdateOracleModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<AAA_UpdateOracleModel> e)
         {
             _counter++;
 
@@ -118,9 +118,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new UpdateOracleModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new UpdateOracleModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<UpdateOracleModel, UpdateOracleModel>(new UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new UpdateOracleModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<AAA_UpdateOracleModel, AAA_UpdateOracleModel>(new AAA_UpdateOracleModel { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new AAA_UpdateOracleModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<AAA_UpdateOracleModel, AAA_UpdateOracleModel>(new AAA_UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new AAA_UpdateOracleModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<AAA_UpdateOracleModel, AAA_UpdateOracleModel>(new AAA_UpdateOracleModel { Id = 23, Name = "Pizza Funghi", Description = "Pizza" }, new AAA_UpdateOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {

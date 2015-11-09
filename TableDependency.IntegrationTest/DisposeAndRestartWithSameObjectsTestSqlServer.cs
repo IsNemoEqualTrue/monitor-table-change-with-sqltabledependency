@@ -26,7 +26,7 @@ namespace TableDependency.IntegrationTest
     public class DisposeAndRestartWithSameObjectsTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private const string TableName = "DisposeAndRestartWithSameObjects";
+        private const string TableName = "AAAADisposeAndRestartWithSameObjects";
         private static int _counter;
         private static Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestSqlServerModel, DisposeAndRestartWithSameObjectsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestSqlServerModel, DisposeAndRestartWithSameObjectsTestSqlServerModel>>();
 

@@ -17,8 +17,8 @@ namespace TableDependency.IntegrationTest
     public class TableNameFromModelClassNameAndUpdateOfTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static readonly string TableName = typeof(Item3).Name.ToUpper();
-        private static readonly Dictionary<string, Tuple<Item3, Item3>> CheckValues = new Dictionary<string, Tuple<Item3, Item3>>();
+        private static readonly string TableName = typeof(AAA_Item3).Name.ToUpper();
+        private static readonly Dictionary<string, Tuple<AAA_Item3, AAA_Item3>> CheckValues = new Dictionary<string, Tuple<AAA_Item3, AAA_Item3>>();
         private static int _counter = 0;
 
         [ClassInitialize()]
@@ -64,15 +64,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<Item3> tableDependency = null;
+            SqlTableDependency<AAA_Item3> tableDependency = null;
             string naming = null;
 
             try
             {
-                UpdateOfModel<Item3> updateOF = new UpdateOfModel<Item3>();
+                UpdateOfModel<AAA_Item3> updateOF = new UpdateOfModel<AAA_Item3>();
                 updateOF.Add(model => model.FamilyName);
 
-                tableDependency = new SqlTableDependency<Item3>(ConnectionString, updateOF);
+                tableDependency = new SqlTableDependency<AAA_Item3>(ConnectionString, updateOF);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -99,7 +99,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item3> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<AAA_Item3> e)
         {
             _counter++;
 
@@ -122,9 +122,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item3, Item3>(new Item3 { Id = 23, Name = "Pizza Mergherita", FamilyName = "Pizza Mergherita" }, new Item3()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item3, Item3>(new Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new Item3()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item3, Item3>(new Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new Item3()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Mergherita", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {

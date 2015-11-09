@@ -563,7 +563,7 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static List<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
+        private static IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
         {
             var afters = new List<string>();
             if (dmlTriggerType.HasFlag(DmlTriggerType.All))

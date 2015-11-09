@@ -38,7 +38,11 @@ namespace TableDependency.OracleClient.EventArgs
 
         /// <remarks>
         /// .NET DateTime structure has a precision of tick - 100 nanoseconds - 0.0000001 of second - 7 decimal positions after the point.
-        ///  Oracle TimeStamp has a precision of up to nanosecond - 0.000000001 - 9 decimal positions after the point.
+        /// Oracle TimeStamp has a precision of up to nanosecond - 0.000000001 - 9 decimal positions after the point.
+        /// 
+        /// The length of a CHAR column is fixed to the length that you declare when you create the table.
+        /// When CHAR values are stored, they are right-padded with spaces to the specified length. 
+        /// When CHAR values are retrieved, trailing spaces are removed unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled. 
         /// </remarks>
         internal override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
@@ -108,12 +112,11 @@ namespace TableDependency.OracleClient.EventArgs
                 if (columnInfo.Type == "NCHAR" || columnInfo.Type == "CHAR")
                 {
                     return stringValue.ToCharArray();
-
                 }
 
                 value = TypeDescriptor
                     .GetConverter(entityPropertyInfo.PropertyType)
-                    .ConvertFromString(null, CultureInfo.CurrentCulture, this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
+                    .ConvertFromString(null, culture: CultureInfo.CurrentCulture, text: this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
             }
 
             return value;

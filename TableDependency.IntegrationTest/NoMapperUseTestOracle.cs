@@ -12,7 +12,7 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class Item2
+    public class AAAItem2
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -24,8 +24,8 @@ namespace TableDependency.IntegrationTest
     {
         private static string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<Item2, Item2>> CheckValues = new Dictionary<string, Tuple<Item2, Item2>>();
-        private static readonly string TableName = typeof(Item2).Name.ToUpper();
+        private static readonly Dictionary<string, Tuple<AAAItem2, AAAItem2>> CheckValues = new Dictionary<string, Tuple<AAAItem2, AAAItem2>>();
+        private static readonly string TableName = typeof(AAAItem2).Name.ToUpper();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -56,12 +56,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            OracleTableDependency<Item2> tableDependency = null;
+            OracleTableDependency<AAAItem2> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item2>(ConnectionString, TableName);
+                tableDependency = new OracleTableDependency<AAAItem2>(ConnectionString, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -87,7 +87,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item2> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<AAAItem2> e)
         {
             _counter++;
 
@@ -110,9 +110,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item2, Item2>(new Item2 { Name = "Christian", Surname = "Del Bianco" }, new Item2()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item2, Item2>(new Item2 { Name = "Velia", Surname = "Ceccarelli" }, new Item2()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item2, Item2>(new Item2 { Name = "Velia", Surname = "Ceccarelli" }, new Item2()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<AAAItem2, AAAItem2>(new AAAItem2 { Name = "Christian", Surname = "Del Bianco" }, new AAAItem2()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<AAAItem2, AAAItem2>(new AAAItem2 { Name = "Velia", Surname = "Ceccarelli" }, new AAAItem2()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<AAAItem2, AAAItem2>(new AAAItem2 { Name = "Velia", Surname = "Ceccarelli" }, new AAAItem2()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {

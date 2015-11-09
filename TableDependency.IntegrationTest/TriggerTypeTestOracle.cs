@@ -26,7 +26,7 @@ namespace TableDependency.IntegrationTest
     public class TriggerTypeTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private const string TableName = "CheckTriggerType";
+        private const string TableName = "AAA_CheckTriggerType";
         private static int _counter;
         private static Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>> CheckValues = new Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>>();
 

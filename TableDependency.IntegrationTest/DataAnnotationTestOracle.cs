@@ -13,26 +13,24 @@ using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
-    [Table(TableName)]
-    public class Item4
+    [Table("AAAItemsTableOracle")]
+    public class DataAnnotationTestOracleModel
     {
         public long Id { get; set; }
+
         public string Name { get; set; }
-        [Column(ColumnName)]
+
+        [Column("Long Description")]
         public string Description { get; set; }
-        private const string ColumnName = "Long Description";
-        public static string GetColumnName => ColumnName;    
-        private const string TableName = "ItemsTable";
-        public static string GetTableName => TableName;
     }
 
     [TestClass]
     public class DataAnnotationTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = Item4.GetTableName.ToUpper();
+        private static readonly string TableName = "AAAItemsTableOracle".ToUpper();
         private static int _counter = 0;
-        private static readonly Dictionary<string, Tuple<Item4, Item4>> CheckValues = new Dictionary<string, Tuple<Item4, Item4>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestOracleModel, DataAnnotationTestOracleModel>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestOracleModel, DataAnnotationTestOracleModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -44,7 +42,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName} (ID NUMBER(10), NAME VARCHAR2(50), \"Long Description\" VARCHAR2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -59,12 +57,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            OracleTableDependency<Item4> tableDependency = null;
+            OracleTableDependency<DataAnnotationTestOracleModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new OracleTableDependency<Item4>(ConnectionString);
+                tableDependency = new OracleTableDependency<DataAnnotationTestOracleModel>(ConnectionString);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -91,7 +89,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item4> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestOracleModel> e)
         {
             switch (e.ChangeType)
             {
@@ -104,6 +102,7 @@ namespace TableDependency.IntegrationTest
 
                 case ChangeType.Update:
                     _counter++;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Id = e.Entity.Id;
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
                     CheckValues[ChangeType.Update.ToString()].Item2.Description = e.Entity.Description;
                     break;
@@ -119,20 +118,20 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<Item4, Item4>(new Item4 { Id = 23, Name = "Pizza Mergherita", Description = "Pizza Mergherita" }, new Item4()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<Item4, Item4>(new Item4 { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item4()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<Item4, Item4>(new Item4 { Id = 23, Name = "Pizza Funghi", Description = "Pizza Funghi" }, new Item4()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestOracleModel, DataAnnotationTestOracleModel>(new DataAnnotationTestOracleModel { Id = 23, Name = "Pizza Mergherita", Description = "PIZZA MERGHERITA" }, new DataAnnotationTestOracleModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestOracleModel, DataAnnotationTestOracleModel>(new DataAnnotationTestOracleModel { Id = 23, Name = "Pizza Funghi", Description = "PIZZA FUNGHI" }, new DataAnnotationTestOracleModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestOracleModel, DataAnnotationTestOracleModel>(new DataAnnotationTestOracleModel { Id = 23, Name = "Pizza Funghi", Description = "PIZZA FUNGHI" }, new DataAnnotationTestOracleModel()));
 
             using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, \"{Item4.GetColumnName}\") VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Id}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}'); END;";
+                    command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, \"Long Description\") VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Id}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}'); END;";
                     command.ExecuteNonQuery();
                     Thread.Sleep(2000);
 
-                    command.CommandText = $"BEGIN UPDATE {TableName} SET NAME = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', \"{Item4.GetColumnName}\" = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'; END;";
+                    command.CommandText = $"BEGIN UPDATE {TableName} SET NAME = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', \"Long Description\" = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'; END;";
                     command.ExecuteNonQuery();
                     Thread.Sleep(2000);
 
