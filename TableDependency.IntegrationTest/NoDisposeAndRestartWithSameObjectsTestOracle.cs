@@ -39,7 +39,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (ID number(10), NAME varchar2(50), \"Long Description\" varchar2(4000))";
+                    command.CommandText = $"CREATE TABLE {TableName} (ID NUMBER(10), NAME VARCHAR2(50), \"Long Description\" VARCHAR2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -54,7 +54,7 @@ namespace TableDependency.IntegrationTest
         private void RunFirstTime(string namingToUse)
         {
             var mapper = new ModelToTableMapper<TestOracleModel>();
-            mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Description, "Second Name");
+            mapper.AddMapping(c => c.Description, "Long Description");
 
             var tableDependency = new OracleTableDependency<TestOracleModel>(ConnectionString, TableName, mapper, false, namingToUse);
             tableDependency.OnChanged += TableDependency_Changed;

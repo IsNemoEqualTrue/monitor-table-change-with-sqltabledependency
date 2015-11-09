@@ -28,7 +28,7 @@ namespace TableDependency.IntegrationTest
     public class DataAnnotationTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static readonly string TableName = "ItemsTableSQL";
+        private static readonly string TableName = "ANItemsTableSQL";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>>();
 
@@ -43,11 +43,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText =
-                        $"CREATE TABLE [{TableName}]( " +
-                        $"[Id] [int] IDENTITY(1, 1) NOT NULL, " +
-                        $"[Name] [NVARCHAR](50) NULL, " +
-                        $"[Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }

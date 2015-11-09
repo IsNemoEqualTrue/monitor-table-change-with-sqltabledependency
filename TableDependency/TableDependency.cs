@@ -65,7 +65,7 @@ namespace TableDependency
         /// <value>
         /// The encoding.
         /// </value>
-        public Encoding Encoding { get; set; }
+        public abstract Encoding Encoding { get; set; }
 
         /// <summary>
         /// Return the database objects naming convention for created objects used to receive notifications. 

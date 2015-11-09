@@ -44,6 +44,12 @@ namespace TableDependency.SqlClient
 
         #endregion
 
+        #region Properties
+
+        public override Encoding Encoding { get; set; } = Encoding.Unicode;
+
+        #endregion
+
         #region Events
 
         /// <summary>
@@ -314,7 +320,7 @@ namespace TableDependency.SqlClient
                     _mapper,
                     _automaticDatabaseObjectsTeardown,
                     _userInterestedColumns,
-                    base.Encoding),
+                    this.Encoding),
                 _cancellationTokenSource.Token);
 
             this._status = TableDependencyStatus.Starting;
@@ -595,7 +601,7 @@ namespace TableDependency.SqlClient
             ModelToTableMapper<T> modelMapper,
             bool automaticDatabaseObjectsTeardown,
             IEnumerable<ColumnInfo> userInterestedColumns,
-            Encoding encoding = null)
+            Encoding encoding)
         {
             setStatus(TableDependencyStatus.Started);
 

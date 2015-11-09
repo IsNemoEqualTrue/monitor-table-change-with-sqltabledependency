@@ -45,6 +45,12 @@ namespace TableDependency.OracleClient
 
         #endregion
 
+        #region Properties
+
+        public override Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        #endregion
+
         #region Events
 
         /// <summary>
@@ -345,7 +351,7 @@ namespace TableDependency.OracleClient
                     _processableMessages,
                     _automaticDatabaseObjectsTeardown,
                     _userInterestedColumns,
-                    base.Encoding),
+                    this.Encoding),
                 _cancellationTokenSource.Token);
 
             _status = TableDependencyStatus.Starting;
