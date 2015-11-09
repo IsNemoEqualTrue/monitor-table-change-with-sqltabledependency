@@ -617,17 +617,22 @@ namespace TableDependency.OracleClient
         private string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             return
+                $"l_dest_offset := 1;" + Environment.NewLine +
+                $"l_src_offset := 1;" + Environment.NewLine +
+                $"l_csid := dbms_lob.default_csid;" + Environment.NewLine +
+                $"l_ctx := dbms_lob.default_lang_ctx;" + Environment.NewLine +
+                $"l_warn := 0;" + Environment.NewLine +
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
-                "DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
-                "   v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + ".GETCLOBVAL()," + Environment.NewLine +
-                "   l_amt," + Environment.NewLine +
-                "   l_dest_offset," + Environment.NewLine +
-                "   l_src_offset," + Environment.NewLine +
-                "   l_csid," + Environment.NewLine +
-                "   l_ctx," + Environment.NewLine +
-                "   l_warn); " + Environment.NewLine;                
+                $"DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
+                $"   v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + ".GETCLOBVAL()," + Environment.NewLine +
+                $"   DBMS_LOB.LOBMAXSIZE," + Environment.NewLine +
+                $"   l_dest_offset," + Environment.NewLine +
+                $"   l_src_offset," + Environment.NewLine +
+                $"   l_csid," + Environment.NewLine +
+                $"   l_ctx," + Environment.NewLine +
+                $"   l_warn); " + Environment.NewLine;                
         }
 
         private string PrepareEnqueueScriptForOther(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
@@ -645,13 +650,18 @@ namespace TableDependency.OracleClient
         private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             return
+                $"l_dest_offset := 1;" + Environment.NewLine +
+                $"l_src_offset := 1;" + Environment.NewLine +
+                $"l_csid := dbms_lob.default_csid;" + Environment.NewLine +
+                $"l_ctx := dbms_lob.default_lang_ctx;" + Environment.NewLine +
+                $"l_warn := 0;" + Environment.NewLine +
                 $"l_clob := TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + ");" + Environment.NewLine +
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
                 $"SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
                 $"DBMS_LOB.CONVERTTOBLOB(lob_loc," + Environment.NewLine +
                 $"   l_clob," + Environment.NewLine +
-                $"   l_amt," + Environment.NewLine +
+                $"   DBMS_LOB.LOBMAXSIZE," + Environment.NewLine +
                 $"   l_dest_offset," + Environment.NewLine +
                 $"   l_src_offset," + Environment.NewLine +
                 $"   l_csid," + Environment.NewLine +

@@ -18,8 +18,12 @@ namespace TableDependency.OracleClient.EventArgs
 {
     public sealed class OracleRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
     {
+        #region Instance variables
+
         private const string QUOTES = "\"";
         private const string DATE_FORMAT = "MM-dd-yyyy HH:mm:ss";
+
+        #endregion
 
         #region Constructors
 
