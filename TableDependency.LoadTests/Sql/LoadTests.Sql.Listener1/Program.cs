@@ -12,8 +12,7 @@ namespace LoadTests.Sql.Listener1
         static void Main()
         {
             Console.Title = new string('*', 10) + " SqlTableDependency Listener 1 " + new string('*', 10);
-
-            var connectionString = "data source=.;initial catalog=TableDependencyDB;integrated security=True";
+            var connectionString = "data source=.;initial catalog=TableDependencyDB;integrated security=True";            
 
             var mapper = new ModelToTableMapper<Customer>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
