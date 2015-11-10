@@ -19,7 +19,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private static readonly string TableName = "ANVARCHARTABLE";
-        private static string STRING_TEST_1 = "Désolé";
+        private static string STRING_TEST_1 = "σ 'αγαπώ";
         private static string STRING_TEST_2 = new string('Ü', 2000);
         private static string STRING_TEST_3 = "这里输要读的文字或";
         private static string STRING_TEST_4 = "أنا ما هنت في وطني ولا صغرت أكتافي";

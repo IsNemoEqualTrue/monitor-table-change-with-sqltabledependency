@@ -67,7 +67,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start(60, 120);
             }
 
-            Thread.Sleep(5000);
+            Thread.Sleep(2 * 60 * 1000);
             Assert.IsFalse(OracleHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
             ModifyTableContent();
 
@@ -84,8 +84,6 @@ namespace TableDependency.IntegrationTest
 
             var results = checkValues.Split(',');
             Assert.AreEqual("Valentina", results[0]);
-            Assert.AreEqual("Christian", results[1]);
-            Assert.AreEqual("Christian", results[2]);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
         }
 
@@ -97,14 +95,6 @@ namespace TableDependency.IntegrationTest
                 using (var sqlCommand = connection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO {TableName} (NAME) VALUES ('Valentina')";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
-
-                    sqlCommand.CommandText = $"UPDATE {TableName} SET NAME = 'Christian'";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
-
-                    sqlCommand.CommandText = $"DELETE FROM {TableName}";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
@@ -148,14 +138,6 @@ namespace TableDependency.IntegrationTest
             {
                 case ChangeType.Insert:
                     _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.Update:
-                    _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.Delete:
-                    _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.None:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

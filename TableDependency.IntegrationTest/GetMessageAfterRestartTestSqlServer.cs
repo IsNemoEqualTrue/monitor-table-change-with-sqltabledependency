@@ -77,7 +77,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start(60, 120);
             }
 
-            Thread.Sleep(5000);
+            Thread.Sleep(2 * 60 * 1000);
             Assert.IsFalse(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
             ModifyTableContent();
 
@@ -94,8 +94,6 @@ namespace TableDependency.IntegrationTest
 
             var results = checkValues.Split(',');
             Assert.AreEqual("Valentina", results[0]);
-            Assert.AreEqual("Christian", results[1]);
-            Assert.AreEqual("Christian", results[2]);
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
         }
 
@@ -107,14 +105,6 @@ namespace TableDependency.IntegrationTest
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name]) VALUES ('Valentina')";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
-
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = 'Christian'";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
-
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
@@ -157,14 +147,6 @@ namespace TableDependency.IntegrationTest
             {
                 case ChangeType.Insert:
                     _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.Update:
-                    _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.Delete:
-                    _checkValues.Add(e.Entity.Name);
-                    break;
-                case ChangeType.None:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
