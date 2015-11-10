@@ -63,6 +63,7 @@ namespace TableDependency.SqlClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to CREATE PROCEDURE [{0}_QueueActivation] AS 
         ///BEGIN 
+        ///	SET NOCOUNT ON;
         ///	BEGIN TRANSACTION
         ///
         ///	IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N&apos;{0}&apos;)

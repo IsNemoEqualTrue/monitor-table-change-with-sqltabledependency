@@ -120,6 +120,7 @@
   <data name="CreateProcedureQueueActivation" xml:space="preserve">
     <value>CREATE PROCEDURE [{0}_QueueActivation] AS 
 BEGIN 
+	SET NOCOUNT ON;
 	BEGIN TRANSACTION
 
 	IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}')
