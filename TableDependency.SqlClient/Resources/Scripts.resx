@@ -137,9 +137,6 @@ END</value>
   <data name="CreateTrigger" xml:space="preserve">
     <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
 BEGIN
-	-- stop if no row was affected
-	IF @@ROWCOUNT = 0 RETURN
-
 	-- Turn off rows affected messages
 	SET NOCOUNT ON;
 
@@ -170,7 +167,7 @@ BEGIN
 		END
 	END
 
-	SET @rowsToProcess = @@ROWCOUNT
+	SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable
 	IF @rowsToProcess &lt; 1 RETURN
 
 	BEGIN TRY
