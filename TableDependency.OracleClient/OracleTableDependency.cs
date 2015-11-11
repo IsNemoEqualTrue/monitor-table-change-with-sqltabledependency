@@ -1033,23 +1033,23 @@ namespace TableDependency.OracleClient
             if (type.StartsWith("XMLTYPE")) return new ColumnInfo(Quotes + name + Quotes, type);
             if ((type.StartsWith("INTERVAL") || type.StartsWith("TIMESTAMP"))) return new ColumnInfo(Quotes + name + Quotes, type);
 
-            var charLength = reader.IsDBNull(2) ? null : reader.GetInt32(2).ToString();
+            var charLength = reader.IsDBNull(2) ? null : reader.GetValue(2).ToString(); // changed to GetValue
             if (charLength != "0")
             {
-                var charUsed = reader.IsDBNull(3) ? null : reader.GetString(3);
+                var charUsed = reader.IsDBNull(3) ? null : reader.GetValue(3).ToString();
                 var size = "(" + charLength + (charUsed == "B" ? string.Empty : " CHAR") + ")";
                 return new ColumnInfo(Quotes + name + Quotes, type, size);
             }
 
-            var dataPrecision = reader.IsDBNull(4) ? null : reader.GetInt32(4).ToString();
+            var dataPrecision = reader.IsDBNull(4) ? null : reader.GetValue(4).ToString();
             if (dataPrecision != null)
             {
-                var dataScale = reader.IsDBNull(5) ? null : reader.GetInt32(5).ToString();
+                var dataScale = reader.IsDBNull(5) ? null : reader.GetValue(5).ToString();
                 var size = "(" + dataPrecision + (!string.IsNullOrWhiteSpace(dataScale) ? ", " + dataScale : string.Empty) + ")";
                 return new ColumnInfo(Quotes + name + Quotes, type, size);
             }
 
-            var dataLength = reader.IsDBNull(6) ? null : reader.GetInt32(6).ToString();
+            var dataLength = reader.IsDBNull(6) ? null : reader.GetValue(6).ToString(); // changed to GetValue
             if (dataLength != null)
             {
                 var size = "(" + dataLength + ")";
