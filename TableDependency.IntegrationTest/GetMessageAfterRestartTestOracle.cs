@@ -27,11 +27,6 @@ namespace TableDependency.IntegrationTest
         public static void ClassInitialize(TestContext testContext)
         {
             OracleHelper.DropTable(ConnectionString, TableName);
-        }
-
-        [TestInitialize()]
-        public void TestInitialize()
-        {
             using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
@@ -41,6 +36,36 @@ namespace TableDependency.IntegrationTest
                     command.ExecuteNonQuery();
                 }
             }
+
+            using (var tableDependency = new OracleTableDependency<GetMessageAfterRestartTestOracleModel>(
+                ConnectionString,
+                TableName,
+                mapper: null,
+                updateOf: (List<string>)null,
+                automaticDatabaseObjectsTeardown: false,
+                namingConventionForDatabaseObjects: NamingToUse))
+            {
+                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestOracleModel> e) => { };
+                tableDependency.Start(60, 120);
+            }
+
+            Thread.Sleep(2 * 60 * 1000);
+        }
+
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            using (var connection = new OracleConnection(ConnectionString))
+            {
+                connection.Open();
+                using (var sqlCommand = connection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO {TableName} (NAME) VALUES ('Valentina')";
+                    sqlCommand.ExecuteNonQuery();                    
+                }
+            }
+
+            Thread.Sleep(500);
         }
 
         [ClassCleanup()]
@@ -55,22 +80,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            using (var tableDependency = new OracleTableDependency<GetMessageAfterRestartTestOracleModel>(
-                ConnectionString,
-                TableName,
-                mapper: null,
-                updateOf: (List<string>)null,
-                automaticDatabaseObjectsTeardown: false,
-                namingConventionForDatabaseObjects: NamingToUse))
-            {
-                tableDependency.OnChanged += (object sender, RecordChangedEventArgs<GetMessageAfterRestartTestOracleModel> e) => { };
-                tableDependency.Start(60, 120);
-            }
-
-            Thread.Sleep(2 * 60 * 1000);
             Assert.IsFalse(OracleHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
-            ModifyTableContent();
-
 
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
@@ -85,20 +95,6 @@ namespace TableDependency.IntegrationTest
             var results = checkValues.Split(',');
             Assert.AreEqual("Valentina", results[0]);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
-        }
-
-        private static void ModifyTableContent()
-        {
-            using (var connection = new OracleConnection(ConnectionString))
-            {
-                connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"INSERT INTO {TableName} (NAME) VALUES ('Valentina')";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
-                }
-            }
         }
     }
 
