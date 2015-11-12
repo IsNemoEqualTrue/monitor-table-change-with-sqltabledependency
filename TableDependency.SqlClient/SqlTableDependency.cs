@@ -400,21 +400,21 @@ namespace TableDependency.SqlClient
                     allObjectAlreadyPresent.Add($"CONTRACT with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name = '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     foreach (var userInterestedColumn in _userInterestedColumns)
                     {
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add($"MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
                     }
                 }
             }
