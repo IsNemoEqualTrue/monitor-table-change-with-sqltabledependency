@@ -1012,7 +1012,7 @@ namespace TableDependency.SqlClient
                 var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLower()).ToList();
                 foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
                 {
-                    throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' specified on updateOf list does not exists");
+                    throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' specified in updateOf list does not exists.");
                 }
             }
         }
