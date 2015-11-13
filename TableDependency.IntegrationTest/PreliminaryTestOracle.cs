@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oracle.DataAccess.Client;
+using Oracle.ManagedDataAccess.Client;
 using TableDependency.Exceptions;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.Mappers;

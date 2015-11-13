@@ -306,7 +306,7 @@ namespace TableDependency.SqlClient
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
-                WaitForNotification(
+                WaitForNotifications(
                     _cancellationTokenSource.Token,
                     onChangedSubscribedList,
                     onErrorSubscribedList,
@@ -587,7 +587,7 @@ namespace TableDependency.SqlClient
             return afters;
         }
 
-        private async static Task WaitForNotification(
+        private async static Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,

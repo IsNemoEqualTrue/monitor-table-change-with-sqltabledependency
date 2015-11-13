@@ -8,7 +8,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Oracle.DataAccess.Types;
+using Oracle.ManagedDataAccess.Types;
 using TableDependency.Classes;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;

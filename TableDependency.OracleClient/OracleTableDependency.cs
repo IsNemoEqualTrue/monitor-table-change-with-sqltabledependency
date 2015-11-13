@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using Oracle.DataAccess.Client;
+using Oracle.ManagedDataAccess.Client;
 using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
@@ -25,10 +25,6 @@ using TableDependency.OracleClient.EventArgs;
 using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
-using OracleConnection = Oracle.DataAccess.Client.OracleConnection;
-using OracleConnectionStringBuilder = Oracle.DataAccess.Client.OracleConnectionStringBuilder;
-using OracleException = Oracle.DataAccess.Client.OracleException;
-using OracleParameter = Oracle.DataAccess.Client.OracleParameter;
 
 namespace TableDependency.OracleClient
 {
@@ -339,7 +335,7 @@ namespace TableDependency.OracleClient
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
-                WaitForNotification(
+                WaitForNotifications(
                     _cancellationTokenSource.Token,
                     onChangedSubscribedList,
                     onErrorSubscribedList,
@@ -582,14 +578,14 @@ namespace TableDependency.OracleClient
         private string PrepareStartEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
-                $"SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                "SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageStart, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
         private string PrepareEndEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
-                $"SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                "SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageEnd, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
@@ -707,7 +703,7 @@ namespace TableDependency.OracleClient
                 $"DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine;
         }
 
-        private async static Task WaitForNotification(
+        private async static Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
@@ -731,47 +727,52 @@ namespace TableDependency.OracleClient
                 {
                     try
                     {
-                        if (automaticDatabaseObjectsTeardown) await StartWatchDog(cancellationToken, connectionString, databaseObjectsNaming, timeOutWatchDog);
+                        if (automaticDatabaseObjectsTeardown) StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
 
-                        using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
+                        var task = Task.Factory.StartNew(() =>
                         {
-                            using (var connection = new OracleConnection(connectionString))
+                            using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
                             {
-                                await connection.OpenAsync(cancellationToken);
-
-                                using (var getQueueMessageCommand = connection.CreateCommand())
+                                using (var connection = new OracleConnection(connectionString))
                                 {
-                                    getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
-                                    getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
-                                    getQueueMessageCommand.CommandTimeout = 0;
-                                    getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
+                                    connection.Open();
 
-                                    setStatus(TableDependencyStatus.WaitingForNotification);
-
-                                    using (var reader = await getQueueMessageCommand.ExecuteReaderAsync(cancellationToken))
+                                    using (var getQueueMessageCommand = connection.CreateCommand())
                                     {
-                                        while (await reader.ReadAsync(cancellationToken))
-                                        {
-                                            var messageType = reader.IsDBNull(0) ? null : reader.GetString(0);
-                                            if (processableMessages.Contains(messageType))
-                                            {
-                                                var messageContent = reader.IsDBNull(1) ? null : (byte[])reader[1];
+                                        getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
+                                        getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
+                                        getQueueMessageCommand.CommandTimeout = 0;
+                                        getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
 
-                                                var messageStatus = messagesBag.AddMessage(messageType, messageContent);
-                                                if (messageStatus == MessagesBagStatus.Closed)
+                                        setStatus(TableDependencyStatus.WaitingForNotification);
+
+                                        using (var reader = getQueueMessageCommand.ExecuteReader())
+                                        {
+                                            while (reader.Read())
+                                            {
+                                                var messageType = reader.IsDBNull(0) ? null : reader.GetString(0);
+                                                if (processableMessages.Contains(messageType))
                                                 {
-                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
-                                                    transactionScope.Complete();
-                                                    break;
+                                                    var messageContent = reader.IsDBNull(1) ? null : (byte[])reader[1];
+
+                                                    var messageStatus = messagesBag.AddMessage(messageType, messageContent);
+                                                    if (messageStatus == MessagesBagStatus.Closed)
+                                                    {
+                                                        RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                                        transactionScope.Complete();
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
+                        }, cancellationToken);
 
-                        if (automaticDatabaseObjectsTeardown) await StopWatchDog(cancellationToken, connectionString, databaseObjectsNaming);
+                        task.Wait(cancellationToken);
+                        if (automaticDatabaseObjectsTeardown) StopWatchDog(connectionString, databaseObjectsNaming);
+                        if (task.Status == TaskStatus.Running) task.Dispose();
                     }
                     catch (Exception exception)
                     {
@@ -812,30 +813,30 @@ namespace TableDependency.OracleClient
             return afters;
         }
 
-        private async static Task StartWatchDog(CancellationToken cancellationToken, string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
+        private static void StartWatchDog(string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
         {
             using (var connection = new OracleConnection(connectionString))
             {
-                await connection.OpenAsync(cancellationToken);
+                connection.Open();
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = $"BEGIN DBMS_SCHEDULER.SET_ATTRIBUTE('JOB_{databaseObjectsNaming}', 'START_DATE', SYSTIMESTAMP + INTERVAL '{(timeOutWatchDog / 60)}' MINUTE); DBMS_SCHEDULER.ENABLE('JOB_{databaseObjectsNaming}'); END;";
                     command.CommandType = CommandType.Text;
-                    await command.ExecuteNonQueryAsync(cancellationToken);
+                    command.ExecuteNonQuery();
                 }
             }
         }
 
-        private async static Task StopWatchDog(CancellationToken cancellationToken, string connectionString, string databaseObjectsNaming)
+        private static void StopWatchDog(string connectionString, string databaseObjectsNaming)
         {
             using (var connection = new OracleConnection(connectionString))
             {
-                await connection.OpenAsync(cancellationToken);
+                connection.Open();
                 using (var watchDogDisableCommand = connection.CreateCommand())
                 {
                     watchDogDisableCommand.CommandText = $"BEGIN DBMS_SCHEDULER.DISABLE('JOB_{databaseObjectsNaming}', TRUE); DBMS_SCHEDULER.SET_ATTRIBUTE_NULL('JOB_{databaseObjectsNaming}', 'START_DATE'); END;";
                     watchDogDisableCommand.CommandType = CommandType.Text;
-                    await watchDogDisableCommand.ExecuteNonQueryAsync(cancellationToken);
+                    watchDogDisableCommand.ExecuteNonQuery();
                 }
             }
         }

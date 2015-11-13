@@ -2,7 +2,7 @@
 using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oracle.DataAccess.Client;
+using Oracle.ManagedDataAccess.Client;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
