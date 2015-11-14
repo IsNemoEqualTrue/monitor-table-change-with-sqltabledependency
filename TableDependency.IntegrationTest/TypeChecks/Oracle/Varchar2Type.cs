@@ -46,6 +46,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTest1()
         {
@@ -73,6 +74,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(new string('*', 4000), _name);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTest2()
         {
@@ -100,6 +102,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual("stringa ccia", _name);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTest3()
         {

@@ -50,7 +50,8 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
-        [TestInitialize()]
+        [TestCategory("Oracle")]
+        [TestMethod()]
         public void TestInitialize()
         {
             var domaininfo = new AppDomainSetup();

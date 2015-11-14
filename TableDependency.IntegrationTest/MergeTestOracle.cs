@@ -84,6 +84,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void MergeTest()
         {

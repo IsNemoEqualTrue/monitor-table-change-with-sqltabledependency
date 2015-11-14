@@ -51,6 +51,7 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(InvalidConnectionStringException))]
         public void InvalidConnectionStringTest()

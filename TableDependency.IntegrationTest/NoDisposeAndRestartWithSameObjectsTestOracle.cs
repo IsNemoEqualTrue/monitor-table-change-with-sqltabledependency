@@ -60,6 +60,7 @@ namespace TableDependency.IntegrationTest
             tableDependency.Start(60, 120);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void Test()
         {

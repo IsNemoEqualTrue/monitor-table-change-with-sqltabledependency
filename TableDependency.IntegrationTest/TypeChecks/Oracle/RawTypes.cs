@@ -45,6 +45,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest()
         {

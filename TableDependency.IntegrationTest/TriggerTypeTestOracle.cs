@@ -69,6 +69,7 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException1()
@@ -96,6 +97,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException2()
@@ -123,6 +125,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException3()
@@ -150,6 +153,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void OnlyInsert()
         {
@@ -188,6 +192,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void OnlyDelete()
         {
@@ -226,6 +231,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void OnlyUpdate()
         {
@@ -264,6 +270,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void OnlyInsertDelete()
         {
@@ -305,6 +312,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void OnlyInsertUpdate()
         {
@@ -346,6 +354,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void DeleteInsertUpdate()
         {
@@ -390,6 +399,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void All()
         {

@@ -77,6 +77,7 @@ namespace TableDependency.IntegrationTest
         /// <summary>
         /// Tests this instance.
         /// </summary>
+        [TestCategory("Oracle")]
         [TestMethod]
         public void Test()
         {

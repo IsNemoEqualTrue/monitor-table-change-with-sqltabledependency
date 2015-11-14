@@ -51,8 +51,9 @@ namespace TableDependency.IntegrationTest
         public static void ClassCleanup()
         {
             OracleHelper.DropTable(ConnectionString, TableName);
-        }        
+        }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void LoadAndCountTest()
         {

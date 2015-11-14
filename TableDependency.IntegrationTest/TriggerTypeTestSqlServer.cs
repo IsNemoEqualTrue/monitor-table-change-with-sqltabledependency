@@ -82,6 +82,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException1()
@@ -109,6 +110,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException2()
@@ -136,6 +138,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException3()
@@ -163,6 +166,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void OnlyInsert()
         {
@@ -201,6 +205,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void OnlyDelete()
         {
@@ -239,6 +244,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void OnlyUdate()
         {
@@ -277,6 +283,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void OnlyInsertDelete()
         {
@@ -318,6 +325,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void OnlyInsertUpdate()
         {
@@ -359,6 +367,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void DeleteInsertUpdate()
         {
@@ -403,6 +412,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void All()
         {

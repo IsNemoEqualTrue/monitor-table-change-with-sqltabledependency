@@ -45,7 +45,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        [TestInitialize()]
+        [TestMethod()]
         public void TestInitialize()
         {
             var domaininfo = new AppDomainSetup();

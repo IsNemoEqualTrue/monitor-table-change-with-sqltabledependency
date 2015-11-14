@@ -77,6 +77,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void LoadAndCountTest()
         {

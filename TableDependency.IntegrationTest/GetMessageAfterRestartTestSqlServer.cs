@@ -59,9 +59,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        /// <summary>
-        /// Tests this instance.
-        /// </summary>
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void Test()
         {

@@ -81,9 +81,7 @@ namespace TableDependency.IntegrationTest
             tableDependency.Start(60, 120);
         }
 
-        /// <summary>
-        /// Tests this instance.
-        /// </summary>
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void Test()
         {

@@ -54,6 +54,7 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, "AAAB_Table");
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void Test()
         {

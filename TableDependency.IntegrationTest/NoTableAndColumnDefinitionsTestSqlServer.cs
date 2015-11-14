@@ -65,29 +65,30 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-    SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel> tableDependency = null;
-    string naming = null;
+            SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel> tableDependency = null;
+            string naming = null;
 
-    try
-    {
-        tableDependency = new SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel>(ConnectionString);
-        tableDependency.OnChanged += TableDependency_Changed;
-        tableDependency.Start();
-        naming = tableDependency.DataBaseObjectsNamingConvention;
+            try
+            {
+                tableDependency = new SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel>(ConnectionString);
+                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.Start();
+                naming = tableDependency.DataBaseObjectsNamingConvention;
 
-        Thread.Sleep(5000);
+                Thread.Sleep(5000);
 
-        var t = new Task(ModifyTableContent);
-        t.Start();
-        t.Wait(20000);
-    }
-    finally
-    {
-        tableDependency?.Dispose();
-    }
+                var t = new Task(ModifyTableContent);
+                t.Start();
+                t.Wait(20000);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
 
             Assert.AreEqual(_counter, 3);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);

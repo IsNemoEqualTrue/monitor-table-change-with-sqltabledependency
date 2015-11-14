@@ -61,6 +61,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void Test()
         {

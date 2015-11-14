@@ -56,6 +56,7 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void EventForSpecificColumnsTest()
         {

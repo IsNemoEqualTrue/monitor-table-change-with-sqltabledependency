@@ -47,6 +47,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest1()
         {
@@ -72,6 +73,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(_gotString, STRING_TEST_1);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest2()
         {
@@ -97,6 +99,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(_gotString, STRING_TEST_2);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest3()
         {
@@ -122,6 +125,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(_gotString, STRING_TEST_3);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest4()
         {

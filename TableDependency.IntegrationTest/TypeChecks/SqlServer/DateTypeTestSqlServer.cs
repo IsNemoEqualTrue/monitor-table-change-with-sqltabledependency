@@ -67,6 +67,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void CheckDateTypeTest()
         {

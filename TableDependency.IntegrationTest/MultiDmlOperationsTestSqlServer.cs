@@ -82,6 +82,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void MultiDeleteTest()
         {
@@ -115,6 +116,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual("CECCARELLI", _checkValues[0].Surname);
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void MultiUpdateTest()
         {
@@ -148,6 +150,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual("CECCARELLI", _checkValues[0].Surname);
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod]
         public void MultiInsertTest()
         {

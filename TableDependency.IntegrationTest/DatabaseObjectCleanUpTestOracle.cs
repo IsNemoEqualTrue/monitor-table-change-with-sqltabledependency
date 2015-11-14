@@ -53,6 +53,7 @@ namespace TableDependency.IntegrationTest
         /// <summary>
         /// THIS TEST MUST BE EXECUTED IN Debug RELEASE !!!
         /// </summary>
+        [TestCategory("Oracle")]
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {

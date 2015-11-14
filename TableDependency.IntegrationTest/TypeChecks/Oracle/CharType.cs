@@ -14,7 +14,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         public char[] CHARCOLUMN { get; set; }
         public char[] NCHARCOLUMN { get; set; }
     }
-
+    
     [TestClass]
     public class CharType
     {
@@ -45,6 +45,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest1()
         {
@@ -71,6 +72,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(new string(GotModel.NCHARCOLUMN).Trim(), new string(SetModel.NCHARCOLUMN).Trim());            
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         public void CheckTypeTest2()
         {
