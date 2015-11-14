@@ -719,6 +719,7 @@ namespace TableDependency.OracleClient
         {
             setStatus(TableDependencyStatus.Started);
 
+            var newMessageReadyToBeNotified = false;
             var messagesBag = new MessagesBag(encoding ?? Encoding.UTF8, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             try
@@ -758,14 +759,20 @@ namespace TableDependency.OracleClient
                                                     var messageStatus = messagesBag.AddMessage(messageType, messageContent);
                                                     if (messageStatus == MessagesBagStatus.Closed)
                                                     {
-                                                        RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
-                                                        transactionScope.Complete();
+                                                        newMessageReadyToBeNotified = true;
                                                         break;
                                                     }
                                                 }
                                             }
                                         }
                                     }
+                                }
+
+                                if (newMessageReadyToBeNotified)
+                                {
+                                    newMessageReadyToBeNotified = false;
+                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                    transactionScope.Complete();
                                 }
                             }
                         }, cancellationToken);
