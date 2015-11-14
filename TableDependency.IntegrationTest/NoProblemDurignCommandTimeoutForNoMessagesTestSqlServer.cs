@@ -11,7 +11,7 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NoProblemDurignCommandTimeoutForNoMessagesModel
+    public class NoProblemDurignCommandTimeoutForNoMessagesModelSql
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class NoProblemDurignCommandTimeoutForNoMessages
+    public class NoProblemDurignCommandTimeoutForNoMessagesSqlServer
     {
 
         private static string _dbObjectsNaming;
@@ -45,6 +45,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("SqlServer")]
         [TestMethod()]
         public void TestInitialize()
         {
@@ -79,7 +80,7 @@ namespace TableDependency.IntegrationTest
 
         public class RunsInAnotherAppDomainNoMessage : MarshalByRefObject
         {
-            private SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModel> _tableDependency = null;
+            private SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModelSql> _tableDependency = null;
 
             public TableDependencyStatus GetTableDependencyStatus()
             {
@@ -88,16 +89,16 @@ namespace TableDependency.IntegrationTest
 
             public string RunTableDependency(string connectionString, string tableName)
             {
-                var mapper = new ModelToTableMapper<NoProblemDurignCommandTimeoutForNoMessagesModel>();
+                var mapper = new ModelToTableMapper<NoProblemDurignCommandTimeoutForNoMessagesModelSql>();
                 mapper.AddMapping(c => c.Name, "First Name");
 
-                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModel>(connectionString, tableName, mapper);
+                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModelSql>(connectionString, tableName, mapper);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
                 return this._tableDependency.DataBaseObjectsNamingConvention;
             }
 
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesModel> e)
+            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesModelSql> e)
             {
             }
         }

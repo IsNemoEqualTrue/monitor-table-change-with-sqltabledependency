@@ -61,6 +61,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(NotExistingTableException))]
         public void NotExistingTableNameFromModelTest()
@@ -70,6 +71,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfModelListTest()
@@ -79,6 +81,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
@@ -88,6 +91,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void EmptyMappertTest()
@@ -99,6 +103,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithNullTest()
@@ -111,6 +116,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithEmptyTest()
@@ -123,6 +129,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(ModelToTableMapperException))]
         public void InvalidMappertTest()
@@ -135,6 +142,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
@@ -144,6 +152,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
@@ -153,6 +162,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
@@ -162,6 +172,7 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [TestCategory("Oracle")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
