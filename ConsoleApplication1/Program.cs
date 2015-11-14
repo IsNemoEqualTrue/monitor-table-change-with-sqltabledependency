@@ -6,7 +6,7 @@ namespace ConsoleApplication1
 {
     public class Product
     {
-        public long Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
     }
@@ -41,9 +41,6 @@ namespace ConsoleApplication1
                 Console.WriteLine("press a key");
                 Console.ReadKey();
             }
-
-            Console.WriteLine("Finito....");
-            Console.ReadKey();
         }
 
         static void tableDependency_OnError(object sender, ErrorEventArgs e)

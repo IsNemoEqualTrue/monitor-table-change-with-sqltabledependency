@@ -2,13 +2,13 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
+using Oracle.ManagedDataAccess.Types;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using Oracle.ManagedDataAccess.Types;
 using TableDependency.Classes;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;

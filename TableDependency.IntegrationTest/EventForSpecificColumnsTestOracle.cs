@@ -4,12 +4,12 @@ using System.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Oracle.ManagedDataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
+using Oracle.ManagedDataAccess.Client;
 
 namespace TableDependency.IntegrationTest
 {
