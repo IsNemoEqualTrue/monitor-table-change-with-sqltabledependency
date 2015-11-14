@@ -605,6 +605,7 @@ namespace TableDependency.SqlClient
         {
             setStatus(TableDependencyStatus.Started);
 
+            var newMessageReadyToBeNotified = false;
             var messagesBag = new MessagesBag(encoding ?? Encoding.Unicode, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             try
@@ -647,14 +648,20 @@ namespace TableDependency.SqlClient
                                                 var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
                                                 if (messageStatus == MessagesBagStatus.Closed)
                                                 {
-                                                    RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
-                                                    transactionScope.Complete();
+                                                    newMessageReadyToBeNotified = true;
                                                     break;
                                                 }
                                             }
                                         }
                                     }
                                 }
+                            }
+
+                            if (newMessageReadyToBeNotified)
+                            {
+                                newMessageReadyToBeNotified = false;
+                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                transactionScope.Complete();
                             }
                         }
                         catch (Exception exception)
