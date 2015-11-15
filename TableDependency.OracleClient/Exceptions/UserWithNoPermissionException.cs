@@ -13,5 +13,9 @@ namespace TableDependency.OracleClient.Exceptions
         protected internal UserWithNoPermissionException(string missingPermission)
             : base($"User with no {missingPermission} permission.")
         { }
+
+        protected internal UserWithNoPermissionException(Exception exception = null)
+            : base($"User with no permission.", exception)
+        { }
     }
 }

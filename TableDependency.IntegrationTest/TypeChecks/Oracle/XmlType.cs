@@ -63,11 +63,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<XmlAModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {

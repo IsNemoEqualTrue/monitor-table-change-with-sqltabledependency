@@ -384,37 +384,37 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = 'tr_{_dataBaseObjectsNamingConvention}'";
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = N'tr_{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"TRIGGERS with name 'tr_{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.OBJECTS WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.PROCEDURES WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
                     allObjectAlreadyPresent.Add($"PROCEDURE with name '{_dataBaseObjectsNamingConvention}_QueueActivation'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"SERVICE BROKER with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add($"QUEUE with name = N'{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"QUEUE with name N'{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"CONTRACT with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name = '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     foreach (var userInterestedColumn in _userInterestedColumns)
                     {
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                         sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
                     }
                 }
             }
@@ -458,22 +458,9 @@ namespace TableDependency.SqlClient
         protected override void PreliminaryChecks(string connectionString, string tableName)
         {
             CheckIfConnectionStringIsValid(connectionString);
-            CheckIfUserHasPermission();
-
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    sqlConnection.Open();
-                }
-                catch (SqlException exception)
-                {
-                    throw new InvalidConnectionStringException(exception);
-                }
-
-                CheckIfServiceBrokerIsEnabled(sqlConnection);
-                CheckIfTableExists(sqlConnection, tableName);
-            }
+            CheckIfUserHasPermissions(connectionString);
+            CheckIfServiceBrokerIsEnabled(connectionString);
+            CheckIfTableExists(connectionString, tableName);
         }
 
         #endregion
@@ -914,8 +901,41 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, colonne);
         }
 
-        private static void CheckUserPermission(string connectionString)
+        private static void CheckIfConnectionStringIsValid(string connectionString)
         {
+            try
+            {
+                new SqlConnectionStringBuilder(connectionString);
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidConnectionStringException(exception);
+            }
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (SqlException exception)
+                {
+                    throw new InvalidConnectionStringException(exception);
+                }
+            }
+        }
+
+        private static void CheckIfUserHasPermissions(string connectionString)
+        {
+            try
+            {
+                new SqlClientPermission(PermissionState.Unrestricted).Demand();
+            }
+            catch (Exception exception)
+            {
+                throw new UserWithNoPermissionException(exception);
+            }
+
             var privilegesTable = new DataTable();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
@@ -927,52 +947,56 @@ namespace TableDependency.SqlClient
                 }
             }
 
+            if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
             foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
             {
                 var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
                 if (privilegesTable.AsEnumerable().All(r => r.Field<string>("permission_name") != permissionToCkeck)) throw new UserWithNoPermissionException(permissionToCkeck);
             }
-        }
 
-        private static void CheckIfConnectionStringIsValid(string connectionString)
-        {
-            try
+            var selectGratnOnSystemView = new DataTable();
+            using (var sqlConnection = new SqlConnection(connectionString))
             {
-                new SqlConnectionStringBuilder(connectionString);
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandType = CommandType.StoredProcedure;
+                    sqlCommand.CommandText = "sp_helprotect";
+                    selectGratnOnSystemView.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
+                }
             }
-            catch (Exception exception)
-            {
-                throw new InvalidConnectionStringException(exception);
-            }
-        }
 
-        private static void CheckIfUserHasPermission()
-        {
-            try
+            if (selectGratnOnSystemView.Rows.Count == 0) throw new UserWithNoPermissionException();
+            foreach (var view in Enum.GetValues(typeof(SqlServerSelectGrantOnSysView)))
             {
-                new SqlClientPermission(PermissionState.Unrestricted).Demand();
-            }
-            catch (Exception exception)
-            {
-                throw new UserWithNoPermissionException(exception);
+                var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerSelectGrantOnSysView)view);
+                if (selectGratnOnSystemView.AsEnumerable().All(r => r.Field<string>("Object").ToLower() != permissionToCkeck.ToLower())) throw new UserWithNoPermissionException("SELECT on SYS." + permissionToCkeck + " view ");
             }
         }
 
-        private static void CheckIfServiceBrokerIsEnabled(SqlConnection sqlConnection)
+        private static void CheckIfServiceBrokerIsEnabled(string connectionString)
         {
-            using (var sqlCommand = sqlConnection.CreateCommand())
+            using (var sqlConnection = new SqlConnection(connectionString))
             {
-                sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WHERE database_id = db_id()";
-                if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WHERE database_id = db_id()";
+                    if ((bool) sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
+                }
             }
         }
 
-        private static void CheckIfTableExists(SqlConnection sqlConnection, string tableName)
+        private static void CheckIfTableExists(string connection, string tableName)
         {
-            using (var sqlCommand = sqlConnection.CreateCommand())
+            using (var sqlConnection = new SqlConnection(connection))
             {
-                sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'";
-                if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'";
+                    if ((int) sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
+                }
             }
         }
 

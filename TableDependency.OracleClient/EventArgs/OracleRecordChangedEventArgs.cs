@@ -21,7 +21,6 @@ namespace TableDependency.OracleClient.EventArgs
         #region Instance variables
 
         private const string QUOTES = "\"";
-        private const string DATE_FORMAT = "MM-dd-yyyy HH:mm:ss";
 
         #endregion
 
@@ -48,6 +47,7 @@ namespace TableDependency.OracleClient.EventArgs
         /// When CHAR values are stored, they are right-padded with spaces to the specified length. 
         /// When CHAR values are retrieved, trailing spaces are removed unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled. 
         /// </remarks>
+        /// <see cref="http://msdn.microsoft.com/en-us/library/8kb3ddd4%28v=vs.110%29.aspx"/>
         internal override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
             object value = null;
@@ -55,12 +55,13 @@ namespace TableDependency.OracleClient.EventArgs
             if (message != null)
             {
                 var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture);
-                int tempInt;
+                if(string.IsNullOrWhiteSpace(stringValue)) return entityPropertyInfo.GetType().IsValueType ? Activator.CreateInstance(entityPropertyInfo.GetType()) : null;
+                
 
                 // DATE
                 if (columnInfo.Type == "DATE")
                 {
-                    return DateTime.ParseExact(stringValue, DATE_FORMAT, CultureInfo.InvariantCulture);
+                    return DateTime.ParseExact(stringValue, "MM-dd-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                 }
 
                 // INTERVAL YEAR(n) TO MONTH
@@ -72,33 +73,26 @@ namespace TableDependency.OracleClient.EventArgs
                 // INTERVAL DAY(n) TO SECOND(n)
                 if (columnInfo.Type.StartsWith("INTERVAL DAY"))
                 {
+                    int tempInt;
                     var dts = (OracleIntervalDS)stringValue;
                     tempInt = int.TryParse(dts.Milliseconds.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
                     return new TimeSpan(dts.Days, dts.Hours, dts.Minutes, dts.Seconds, tempInt);
                 }
 
-                // TIMESTAMP(n) WITH LOCAL TIME ZONE
-                if (columnInfo.Type.EndsWith("WITH TIME ZONE"))
-                {
-                    var ots = (OracleTimeStampTZ)stringValue;
-                    tempInt = int.TryParse(ots.Millisecond.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
-                    return new DateTime(ots.Year, ots.Month, ots.Day, ots.Hour, ots.Minute, ots.Second, tempInt);
-                }
-
                 // TIMESTAMP(n) WITH TIME ZONE
                 if (columnInfo.Type.EndsWith("WITH LOCAL TIME ZONE"))                    
                 {
-                    var ots = (OracleTimeStampLTZ)stringValue;
-                    tempInt = int.TryParse(ots.Millisecond.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
-                    return new DateTime(ots.Year, ots.Month, ots.Day, ots.Hour, ots.Minute, ots.Second, tempInt);
+                    DateTime result;
+                    if (DateTime.TryParseExact(stringValue, "dd-MMM-yy hh.mm.ss.fffffff00 tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out result)) return result;
+                    return default(DateTime);
                 }
 
                 // TIMESTAMP(n)
                 if (columnInfo.Type.StartsWith("TIMESTAMP"))
                 {
-                    var ots = (OracleTimeStamp)stringValue;
-                    tempInt = int.TryParse(ots.Millisecond.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
-                    return new DateTime(ots.Year, ots.Month, ots.Day, ots.Hour, ots.Minute, ots.Second, tempInt);
+                    DateTime result;
+                    if (DateTime.TryParseExact(stringValue, "dd-MMM-yy hh.mm.ss.fffffff00 tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out result)) return result;
+                    return default(DateTime);
                 }
 
                 // XMLTYPE

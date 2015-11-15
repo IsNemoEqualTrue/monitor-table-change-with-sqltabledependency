@@ -16,7 +16,7 @@ namespace TableDependency.SqlClient.Exceptions
         { }
 
         protected internal UserWithNoPermissionException(Exception innerException = null)
-            : base("User with no permission. See inner exception for details.", innerException)
+            : base("User with no permission.", innerException)
         { }
     }
 }

@@ -77,11 +77,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {

@@ -37,10 +37,10 @@ namespace TableDependency.IntegrationTest.Helpers.Oracle
             using (var connection = new OracleConnection(connectionString))
             {
                 connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
-                    sqlCommand.ExecuteNonQuery();
+                    command.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
+                    command.ExecuteNonQuery();
                 }
             }
         }
@@ -50,10 +50,10 @@ namespace TableDependency.IntegrationTest.Helpers.Oracle
             using (var connection = new OracleConnection(connectionString))
             {
                 connection.Open();
-                using (var sqlCommand = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE {procedureName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;";
-                    sqlCommand.ExecuteNonQuery();
+                    command.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE {procedureName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;";
+                    command.ExecuteNonQuery();
                 }
             }
         }

@@ -60,11 +60,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<Varchar2Model>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {
@@ -88,11 +88,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<Varchar2Model>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent2);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {
@@ -116,11 +116,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<Varchar2Model>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent3);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {

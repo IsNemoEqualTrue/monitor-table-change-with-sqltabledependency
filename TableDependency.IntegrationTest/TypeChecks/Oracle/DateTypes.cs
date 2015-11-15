@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         public DateTime DateColum { get; set; }
         public DateTime TimeStampColumn { get; set; }
         public DateTime TimeStampWithLocalTimeZone { get; set; }
-        public DateTime TimeStampWithTimeZone { get; set; }
+
         public TimeSpan IntervalDayToSecondColumn { get; set; }
         public Int64 IntervalYearToMonthColumn { get; set; }
     }
@@ -35,14 +35,12 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
         private static OracleDate dateColum;
         private static OracleTimeStamp timeStampColumn;
         private static OracleTimeStampLTZ timeStampWithLocalTimeZone;
-        private static OracleTimeStampTZ timeStampWithTimeZone;
         private static OracleIntervalDS intervalDayToSecondColumn;
         private static OracleIntervalYM intervalYearToMonthColumn;
 
         private static OracleDate dateColumReturned;
         private static OracleTimeStamp timeStampColumnReturned;
         private static OracleTimeStampLTZ timeStampWithLocalTimeZoneReturned;
-        private static OracleTimeStampTZ timeStampWithTimeZoneReturned;
         private static OracleIntervalDS intervalDayToSecondColumnReturned;
         private static OracleIntervalYM intervalYearToMonthColumnReturned;
 
@@ -66,7 +64,6 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             dateColum = new OracleDate(DateTime.Now);
             timeStampColumn = DateTime.Now;
             timeStampWithLocalTimeZone = OracleTimeStampLTZ.GetSysDate();
-            timeStampWithTimeZone = OracleTimeStampTZ.GetSysDate();
             intervalDayToSecondColumn = new OracleIntervalDS(1);
             intervalYearToMonthColumn = new OracleIntervalYM(2);
         }
@@ -89,11 +86,11 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<DataTimeModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();             
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {
@@ -104,7 +101,6 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
             Assert.AreEqual(dateColum.Value.Date, dateColumReturned.Value.Date);
             Assert.AreEqual(Truncate(timeStampColumn.Value, TimeSpan.FromSeconds(2)), Truncate(timeStampColumnReturned.Value, TimeSpan.FromSeconds(2)));
             Assert.AreEqual(Truncate(timeStampWithLocalTimeZone.Value, TimeSpan.FromMilliseconds(1)), Truncate(timeStampWithLocalTimeZoneReturned.Value, TimeSpan.FromMilliseconds(1)));
-            Assert.AreEqual(Truncate(timeStampWithTimeZone.Value, TimeSpan.FromMilliseconds(1)), Truncate(timeStampWithTimeZoneReturned.Value, TimeSpan.FromMilliseconds(1)));
             Assert.AreEqual(intervalDayToSecondColumn.Value, intervalDayToSecondColumnReturned.Value);
             Assert.AreEqual(intervalYearToMonthColumn.Value, intervalYearToMonthColumnReturned.Value);
         }
@@ -123,7 +119,6 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                     dateColumReturned = new OracleDate(e.Entity.DateColum);
                     timeStampColumnReturned = new OracleTimeStamp(e.Entity.TimeStampColumn);
                     timeStampWithLocalTimeZoneReturned = new OracleTimeStampLTZ(e.Entity.TimeStampWithLocalTimeZone);
-                    timeStampWithTimeZoneReturned = new OracleTimeStampTZ(e.Entity.TimeStampWithTimeZone);
                     intervalDayToSecondColumnReturned = new OracleIntervalDS(e.Entity.IntervalDayToSecondColumn);
                     intervalYearToMonthColumnReturned = new OracleIntervalYM(e.Entity.IntervalYearToMonthColumn);
                     break;
@@ -145,7 +140,6 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                     command.Parameters.Add(new OracleParameter("dateColumn", OracleDbType.Date) { Value = dateColum.Value.Date });
                     command.Parameters.Add(new OracleParameter("timeStampColumn", OracleDbType.TimeStamp) { Value = timeStampColumn });
                     command.Parameters.Add(new OracleParameter("timeStampWithLocalTimeZone", OracleDbType.TimeStampLTZ) { Value = timeStampWithLocalTimeZone });
-                    command.Parameters.Add(new OracleParameter("timeStampWithTimeZone", OracleDbType.TimeStampTZ) { Value = timeStampWithTimeZone });
                     command.Parameters.Add(new OracleParameter("intervalDayToSecondColumn", OracleDbType.IntervalDS) { Value = intervalDayToSecondColumn });
                     command.Parameters.Add(new OracleParameter("intervalYearToMonthColumn", OracleDbType.IntervalYM) { Value = intervalYearToMonthColumn });
                     command.ExecuteNonQuery();

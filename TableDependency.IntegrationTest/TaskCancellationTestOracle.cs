@@ -68,7 +68,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 tableDependency.Stop();
 

@@ -96,11 +96,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(MergeOperation);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(2000);
             }
             finally
             {
