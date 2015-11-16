@@ -384,36 +384,36 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.TRIGGERS WHERE NAME = N'tr_{_dataBaseObjectsNamingConvention}'";
+                    sqlCommand.CommandText = $"select count(*) from sys.triggers where name = N'tr_{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"TRIGGERS with name 'tr_{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.PROCEDURES WHERE name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
+                    sqlCommand.CommandText = $"select count(*) from sys.procedures where name = N'{_dataBaseObjectsNamingConvention}_QueueActivation'";
                     allObjectAlreadyPresent.Add($"PROCEDURE with name '{_dataBaseObjectsNamingConvention}_QueueActivation'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    sqlCommand.CommandText = $"select count(*) from sys.services where name = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"SERVICE BROKER with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_QUEUES WHERE NAME = N'{_dataBaseObjectsNamingConvention}'";
+                    sqlCommand.CommandText = $"select count(*) from sys.service_queues where name = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"QUEUE with name N'{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM SYS.SERVICE_CONTRACTS WHERE name = N'{_dataBaseObjectsNamingConvention}'";
+                    sqlCommand.CommandText = $"select count(*) from sys.service_contracts where name = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"CONTRACT with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
                     allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
+                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
                     allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     foreach (var userInterestedColumn in _userInterestedColumns)
                     {
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
+                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
                         allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
+                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
                         allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                        sqlCommand.CommandText = "SELECT COUNT(*) FROM SYS.SERVICE_MESSAGE_TYPES WHERE name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
+                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
                         allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
                     }
                 }
@@ -611,7 +611,7 @@ namespace TableDependency.SqlClient
 
                                 using (var sqlCommand = sqlConnection.CreateCommand())
                                 {
-                                    sqlCommand.CommandText = $"WAITFOR(RECEIVE TOP ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), TIMEOUT {timeOut * 1000};";
+                                    sqlCommand.CommandText = $"waitfor(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), timeout {timeOut * 1000};";
                                     sqlCommand.CommandTimeout = 0;
 
                                     setStatus(TableDependencyStatus.WaitingForNotification);
@@ -680,7 +680,7 @@ namespace TableDependency.SqlClient
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"BEGIN CONVERSATION TIMER ('{dialogHandle}') TIMEOUT = {timeOutWatchDog};";
+                    sqlCommand.CommandText = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog};";
                     sqlCommand.CommandTimeout = 0;
                     sqlCommand.ExecuteNonQuery();
                 }
@@ -751,7 +751,7 @@ namespace TableDependency.SqlClient
                 {
                     var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
 
-                    sqlCommand.CommandText = string.Format("BEGIN DIALOG CONVERSATION @handle FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}] WITH ENCRYPTION = OFF;", databaseObjectsNaming);
+                    sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
                     sqlCommand.Parameters.Add(sqlParameter);
                     sqlCommand.ExecuteNonQuery();
                     var dialogHandle = (Guid)sqlParameter.Value;
@@ -765,7 +765,7 @@ namespace TableDependency.SqlClient
         {
             using (var sqlCommand = sqlConnection.CreateCommand())
             {
-                sqlCommand.CommandText = "END CONVERSATION @handle";
+                sqlCommand.CommandText = "end conversation @handle";
                 sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
                 sqlCommand.Parameters["@handle"].Value = handle;
                 sqlCommand.ExecuteNonQuery();
@@ -812,7 +812,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{tableName}' ORDER BY ORDINAL_POSITION";
+                    sqlCommand.CommandText = $"SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, datetime_precision FROM information_schema.columns WHERE table_name = '{tableName}' ORDER BY ordinal_position";
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
                     {
@@ -875,17 +875,17 @@ namespace TableDependency.SqlClient
                 return $"@{userInterestedColumn.Name.Replace(" ", string.Empty)}";
             }
 
-            return $"CONVERT(NVARCHAR(MAX), @{userInterestedColumn.Name.Replace(" ", string.Empty)}{ConvertFormat(userInterestedColumn)})";
+            return $"convert(nvarchar(max), @{userInterestedColumn.Name.Replace(" ", string.Empty)}{ConvertFormat(userInterestedColumn)})";
         }
 
         private static string PrepareSendConversation(string databaseObjectsNaming, string dmlType, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF @{insterestedColumn.Name.Replace(" ", string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .Select(insterestedColumn => $"IF @{insterestedColumn.Name.Replace(" ", string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
                 .ToList();
 
-            sendList.Insert(0, $";SEND ON CONVERSATION @h MESSAGE TYPE[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
-            sendList.Add($";SEND ON CONVERSATION @h MESSAGE TYPE[{string.Format(EndMessageTemplate, databaseObjectsNaming)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
+            sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
+            sendList.Add($";send on conversation @h message type[{string.Format(EndMessageTemplate, databaseObjectsNaming)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
 
             return string.Join(Environment.NewLine, sendList);
         }
@@ -994,7 +994,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'";
+                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{tableName}'";
                     if ((int) sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
                 }
             }

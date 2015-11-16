@@ -189,7 +189,7 @@ BEGIN
 
 				{7}
 
-				IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
 					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
 				END
@@ -207,7 +207,7 @@ BEGIN
 
 				{8}
 
-				IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
 					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
 				END
@@ -225,7 +225,7 @@ BEGIN
 
 				{9}
 
-				IF EXISTS(SELECT * FROM SYS.CONVERSATION_ENDPOINTS WHERE CONVERSATION_HANDLE = @h AND LOWER(STATE) = LOWER('ER'))
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
 					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
 				END
