@@ -66,6 +66,7 @@
     <Compile Include="DataAnnotationTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="NullMessageContentTestOracle.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestOracleServer.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />
     <Compile Include="GetMessageAfterRestartTestOracle.cs" />

@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     {
         private static string _dbObjectsNaming;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "AAAA_Table".ToUpper();
+        private static readonly string TableName = "AAAA_TIMEOUT".ToUpper();
         private static readonly Dictionary<string, Tuple<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel, NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>> CheckValues = new Dictionary<string, Tuple<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel, NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>>();
 
         [ClassInitialize()]
@@ -52,7 +52,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("Oracle")]
         [TestMethod()]
-        public void TestInitialize()
+        public void Test()
         {
             var domaininfo = new AppDomainSetup();
             domaininfo.ApplicationBase = Environment.CurrentDirectory;

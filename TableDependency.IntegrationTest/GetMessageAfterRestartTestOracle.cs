@@ -20,8 +20,8 @@ namespace TableDependency.IntegrationTest
     public class GetMessageAfterRestartTestOracleTest
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        public static readonly string TableName = "ATABLET".ToUpper();
-        public static string NamingToUse = "ARESTARTK";
+        public static readonly string TableName = "AAA_AFTERRESTART".ToUpper();
+        public static string NamingToUse = "AAA_AFTER_RESTART";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -49,7 +49,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start(60, 120);
             }
 
-            Thread.Sleep(2 * 60 * 1000);
+            Thread.Sleep(1 * 60 * 1000);
         }
 
         [TestInitialize()]

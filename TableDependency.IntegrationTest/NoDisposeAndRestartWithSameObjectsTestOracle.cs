@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class NoDisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static string TableName = "ADERR".ToUpper();
+        private static string TableName = "AAA_NODISPOSE_AND_REUSE".ToUpper();
         private static Dictionary<string, Tuple<TestOracleModel, TestOracleModel>> _checkValues = new Dictionary<string, Tuple<TestOracleModel, TestOracleModel>>();
 
         [ClassInitialize()]

@@ -884,24 +884,6 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private static void ThrowIfOracleClientCancellationRequested(CancellationToken cancellationToken, Exception exception)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                var oracleException = exception as OracleException;
-                if (null == oracleException)
-                {
-                    var aggregateException = exception as AggregateException;
-                    if (aggregateException != null) oracleException = aggregateException.InnerException as OracleException;
-                    if (oracleException == null) return;
-                }
-
-                if (oracleException.Number != 1013) return;
-
-                throw new OperationCanceledException();
-            }
-        }
-
         private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (delegates == null) return;
@@ -1059,7 +1041,7 @@ namespace TableDependency.OracleClient
             if (type.StartsWith("XMLTYPE")) return new ColumnInfo(Quotes + name + Quotes, type);
             if ((type.StartsWith("INTERVAL") || type.StartsWith("TIMESTAMP"))) return new ColumnInfo(Quotes + name + Quotes, type);
 
-            var charLength = reader.IsDBNull(2) ? null : reader.GetValue(2).ToString(); // changed to GetValue
+            var charLength = reader.IsDBNull(2) ? null : reader.GetValue(2).ToString();
             if (charLength != "0")
             {
                 var charUsed = reader.IsDBNull(3) ? null : reader.GetValue(3).ToString();
@@ -1075,7 +1057,7 @@ namespace TableDependency.OracleClient
                 return new ColumnInfo(Quotes + name + Quotes, type, size);
             }
 
-            var dataLength = reader.IsDBNull(6) ? null : reader.GetValue(6).ToString(); // changed to GetValue
+            var dataLength = reader.IsDBNull(6) ? null : reader.GetValue(6).ToString();
             if (dataLength != null)
             {
                 var size = "(" + dataLength + ")";

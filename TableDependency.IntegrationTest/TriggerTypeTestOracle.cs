@@ -26,7 +26,7 @@ namespace TableDependency.IntegrationTest
     public class TriggerTypeTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private const string TableName = "AAA_CheckTriggerType";
+        private const string TableName = "AAA_CHECKTRIGGERTYPE";
         private static int _counter;
         private static Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>> CheckValues = new Dictionary<string, Tuple<TriggerTypeTestOracleModel, TriggerTypeTestOracleModel>>();
 
@@ -173,11 +173,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -212,11 +212,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -251,11 +251,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -290,11 +290,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -332,11 +332,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -374,11 +374,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -419,11 +419,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
             }
             finally
             {
@@ -478,15 +478,15 @@ namespace TableDependency.IntegrationTest
                 {
                     command.CommandText = $"BEGIN INSERT INTO {TableName} (ID, NAME, SURNAME) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Id}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}'); END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(1000);
 
                     command.CommandText = $"BEGIN UPDATE {TableName} SET NAME = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}'; END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(1000);
 
                     command.CommandText = $"BEGIN DELETE FROM {TableName}; END;";
                     command.ExecuteNonQuery();
-                    Thread.Sleep(2000);
+                    Thread.Sleep(1000);
                 }
             }
         }

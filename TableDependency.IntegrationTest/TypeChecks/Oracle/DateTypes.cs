@@ -56,7 +56,7 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName}(DATECOLUM DATE,TIMESTAMPCOLUMN TIMESTAMP(6),TIMESTAMPWITHLOCALTIMEZONE TIMESTAMP WITH LOCAL TIME ZONE,TIMESTAMPWITHTIMEZONE TIMESTAMP WITH TIME ZONE,INTERVALDAYTOSECONDCOLUMN INTERVAL DAY(2) TO SECOND(6),INTERVALYEARTOMONTHCOLUMN INTERVAL YEAR(2) TO MONTH)";
+                    command.CommandText = $"CREATE TABLE {TableName}(DATECOLUM DATE,TIMESTAMPCOLUMN TIMESTAMP(6),TIMESTAMPWITHLOCALTIMEZONE TIMESTAMP WITH LOCAL TIME ZONE,INTERVALDAYTOSECONDCOLUMN INTERVAL DAY(2) TO SECOND(6),INTERVALYEARTOMONTHCOLUMN INTERVAL YEAR(2) TO MONTH)";
                     command.ExecuteNonQuery();
                 }
             }
@@ -86,17 +86,16 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 tableDependency = new OracleTableDependency<DataTimeModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();             
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(2000);
+                t.Wait(20000);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
-
 
             Assert.AreEqual(dateColum.Value.Date, dateColumReturned.Value.Date);
             Assert.AreEqual(Truncate(timeStampColumn.Value, TimeSpan.FromSeconds(2)), Truncate(timeStampColumnReturned.Value, TimeSpan.FromSeconds(2)));
@@ -134,14 +133,14 @@ namespace TableDependency.IntegrationTest.TypeChecks.Oracle
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = 
-                        $"BEGIN INSERT INTO {TableName}(DATECOLUM, TIMESTAMPCOLUMN, TIMESTAMPWITHLOCALTIMEZONE, TIMESTAMPWITHTIMEZONE, INTERVALDAYTOSECONDCOLUMN, INTERVALYEARTOMONTHCOLUMN) " + 
-                        $"VALUES (:dateColumn, :timeStampColumn, :timeStampWithLocalTimeZone, :timeStampWithTimeZone, :intervalDayToSecondColumn, :intervalYearToMonthColumn); END;";
+                        $"BEGIN INSERT INTO {TableName}(DATECOLUM, TIMESTAMPCOLUMN, TIMESTAMPWITHLOCALTIMEZONE, INTERVALDAYTOSECONDCOLUMN, INTERVALYEARTOMONTHCOLUMN) " + 
+                        $"VALUES (:dateColumn, :timeStampColumn, :timeStampWithLocalTimeZone, :intervalDayToSecondColumn, :intervalYearToMonthColumn); END;";
 
-                    command.Parameters.Add(new OracleParameter("dateColumn", OracleDbType.Date) { Value = dateColum.Value.Date });
-                    command.Parameters.Add(new OracleParameter("timeStampColumn", OracleDbType.TimeStamp) { Value = timeStampColumn });
-                    command.Parameters.Add(new OracleParameter("timeStampWithLocalTimeZone", OracleDbType.TimeStampLTZ) { Value = timeStampWithLocalTimeZone });
-                    command.Parameters.Add(new OracleParameter("intervalDayToSecondColumn", OracleDbType.IntervalDS) { Value = intervalDayToSecondColumn });
-                    command.Parameters.Add(new OracleParameter("intervalYearToMonthColumn", OracleDbType.IntervalYM) { Value = intervalYearToMonthColumn });
+                    command.Parameters.Add(new OracleParameter("dateColumn", dateColum.Value.Date));
+                    command.Parameters.Add(new OracleParameter("timeStampColumn", timeStampColumn));
+                    command.Parameters.Add(new OracleParameter("timeStampWithLocalTimeZone", timeStampWithLocalTimeZone));
+                    command.Parameters.Add(new OracleParameter("intervalDayToSecondColumn", intervalDayToSecondColumn));
+                    command.Parameters.Add(new OracleParameter("intervalYearToMonthColumn", intervalYearToMonthColumn));
                     command.ExecuteNonQuery();
                 }
 

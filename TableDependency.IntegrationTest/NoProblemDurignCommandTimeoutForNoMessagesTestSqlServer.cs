@@ -47,7 +47,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod()]
-        public void TestInitialize()
+        public void Test()
         {
             var domaininfo = new AppDomainSetup();
             domaininfo.ApplicationBase = Environment.CurrentDirectory;

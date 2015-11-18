@@ -71,11 +71,11 @@ namespace TableDependency.IntegrationTest
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
 
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(2000);
+                t.Wait(20000);
             }
             finally
             {

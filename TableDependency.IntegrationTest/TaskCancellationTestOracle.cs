@@ -23,7 +23,7 @@ namespace TableDependency.IntegrationTest
     public class TaskCancellationTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "AAAA_Table".ToUpper();
+        private static readonly string TableName = "AAAA_CANCELLATION".ToUpper();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -71,8 +71,6 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(1000);
 
                 tableDependency.Stop();
-
-                Thread.Sleep(5000);
             }
             catch
             {

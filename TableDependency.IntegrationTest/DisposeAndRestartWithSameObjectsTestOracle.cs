@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class DisposeAndRestartWithSameObjectsTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static string TableName = "AAAItem".ToUpper();
+        private static string TableName = "AAA_USE_SAME_OBJ".ToUpper();
         private static int _counter;
         private static Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>> _checkValues = new Dictionary<string, Tuple<DisposeAndRestartWithSameObjectsTestOracleModel, DisposeAndRestartWithSameObjectsTestOracleModel>>();
 
@@ -55,7 +55,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            var namingToUse = "AACustomNaming".ToUpper();
+            var namingToUse = "AAA_SAME_OBJ".ToUpper();
 
             var mapper = new ModelToTableMapper<DisposeAndRestartWithSameObjectsTestOracleModel>();
             mapper.AddMapping(c => c.Description, "Long Description");
@@ -80,7 +80,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(3 * 60 * 1000);
+                t.Wait(2 * 60 * 1000);
             }
 
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, namingToUse));

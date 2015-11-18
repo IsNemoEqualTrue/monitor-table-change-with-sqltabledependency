@@ -22,7 +22,7 @@ namespace TableDependency.IntegrationTest
     public class DatabaseObjectCleanUpTestOracle
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        private static readonly string TableName = "AAAA_Table".ToUpper();
+        private static readonly string TableName = "AAAA_CLEANUP".ToUpper();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -64,7 +64,7 @@ namespace TableDependency.IntegrationTest
             var dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);           
             otherDomainObject.StopTableDependency();
 
-            Thread.Sleep(3 * 60 * 1000);
+            Thread.Sleep(1 * 60 * 1000);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
         }
 
@@ -80,7 +80,7 @@ namespace TableDependency.IntegrationTest
                 this._tableDependency = new OracleTableDependency<DatabaseObjectCleanUpTestOracleModel>(connectionString, tableName, mapper);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
-                Thread.Sleep(2000);
+                Thread.Sleep(5000);
                 return this._tableDependency.DataBaseObjectsNamingConvention;
             }
 
