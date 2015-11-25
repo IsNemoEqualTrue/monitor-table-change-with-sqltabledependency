@@ -3,7 +3,6 @@ using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.ManagedDataAccess.Client;
-using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
@@ -50,9 +49,6 @@ namespace TableDependency.IntegrationTest
             OracleHelper.DropTable(ConnectionString, TableName);
         }
 
-        /// <summary>
-        /// THIS TEST MUST BE EXECUTED IN Debug RELEASE !!!
-        /// </summary>
         [TestCategory("Oracle")]
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
@@ -61,10 +57,11 @@ namespace TableDependency.IntegrationTest
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("AppDomainOracleCleannUpOracle", adevidence, domaininfo);
             var otherDomainObject = (AppDomainOracleCleannUpOracle)domain.CreateInstanceAndUnwrap(typeof(AppDomainOracleCleannUpOracle).Assembly.FullName, typeof(AppDomainOracleCleannUpOracle).FullName);
-            var dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);           
-            otherDomainObject.StopTableDependency();
+            var dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);
+            Thread.Sleep(1000);
+            AppDomain.Unload(domain);
 
-            Thread.Sleep(1 * 60 * 1000);
+            Thread.Sleep(3 * 60 * 1000);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
         }
 
@@ -78,21 +75,9 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Description, "Long Description");
 
                 this._tableDependency = new OracleTableDependency<DatabaseObjectCleanUpTestOracleModel>(connectionString, tableName, mapper);
-                this._tableDependency.OnChanged += TableDependency_Changed;
+                this._tableDependency.OnChanged += (sender, e) => { };
                 this._tableDependency.Start(60, 120);
-                Thread.Sleep(5000);
                 return this._tableDependency.DataBaseObjectsNamingConvention;
-            }
-
-            public void StopTableDependency()
-            {
-#if DEBUG
-                _tableDependency.StopMantainingDatabaseObjects();
-#endif
-            }
-
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpTestOracleModel> e)
-            {
             }
         }
     }

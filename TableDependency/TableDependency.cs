@@ -213,8 +213,6 @@ namespace TableDependency
 
         protected virtual ModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
         {
-            ModelToTableMapper<T> mapper = null;
-
             var propertyInfos = typeof(T)
                 .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
                 .Where(x => Attribute.IsDefined(x, typeof(ColumnAttribute), false))
@@ -222,7 +220,7 @@ namespace TableDependency
 
             if (!propertyInfos.Any()) return null;
 
-            mapper = new ModelToTableMapper<T>();
+            var mapper = new ModelToTableMapper<T>();
             foreach (var propertyInfo in propertyInfos)
             {
                 var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));

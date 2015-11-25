@@ -2,6 +2,7 @@
 //   TableDependency, SqlTableDependency, OracleTableDependency
 //   Copyright (c) Christian Del Bianco.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace TableDependency.Utilities
 {
     internal static class ModelUtil
     {
-        private static readonly IList<Type> ProcessableModelTypes = new List<Type>()
+        private static readonly IList<Type> ProcessableModelTypes = new List<Type>
         {
             typeof (string),
             typeof (char),            
@@ -36,7 +37,7 @@ namespace TableDependency.Utilities
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)
-                .Where(propertyInfo => ModelUtil.ProcessableModelTypes.Contains(propertyInfo.PropertyType) || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                .Where(propertyInfo => ProcessableModelTypes.Contains(propertyInfo.PropertyType) || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 .ToArray();
         }
     }

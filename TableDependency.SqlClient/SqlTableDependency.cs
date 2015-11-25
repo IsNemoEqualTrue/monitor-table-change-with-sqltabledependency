@@ -611,7 +611,7 @@ namespace TableDependency.SqlClient
 
                                 using (var sqlCommand = sqlConnection.CreateCommand())
                                 {
-                                    sqlCommand.CommandText = $"waitfor(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), timeout {timeOut * 1000};";
+                                    sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), timeout {timeOut * 1000};";
                                     sqlCommand.CommandTimeout = 0;
 
                                     setStatus(TableDependencyStatus.WaitingForNotification);

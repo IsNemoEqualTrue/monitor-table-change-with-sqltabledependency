@@ -76,7 +76,7 @@ namespace TableDependency.Mappers
 
         internal void AddMapping(PropertyInfo pi, string columnName)
         {
-            _mappings[(PropertyInfo)pi] = columnName;
+            _mappings[pi] = columnName;
         }
 
         internal IDictionary<PropertyInfo, string> GetMappings()

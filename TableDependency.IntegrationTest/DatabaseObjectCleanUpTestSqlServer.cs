@@ -102,13 +102,9 @@ namespace TableDependency.IntegrationTest
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
             var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(connectionString, tableName, mapper);
-            tableDependency.OnChanged += TableDependency_Changed;
+            tableDependency.OnChanged += (sender, e) => { };
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;
-        }
-
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpTestSqlServerModel> e)
-        {
         }
     }
 }

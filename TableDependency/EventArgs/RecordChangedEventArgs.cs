@@ -19,7 +19,7 @@ namespace TableDependency.EventArgs
     public class RecordChangedEventArgs<T> : System.EventArgs where T : class
     {
         protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
-        protected IEnumerable<ColumnInfo> _userInterestedColumns;
+        protected IEnumerable<ColumnInfo> UserInterestedColumns;
 
         #region Properties
 
@@ -36,7 +36,7 @@ namespace TableDependency.EventArgs
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
-            this._userInterestedColumns = userInterestedColumns;
+            this.UserInterestedColumns = userInterestedColumns;
 
             ChangeType = messagesBag.MessageType;
             Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
@@ -69,14 +69,14 @@ namespace TableDependency.EventArgs
 
         internal virtual ColumnInfo GetColumnInfo(string columnName)
         {
-            return this._userInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
+            return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
         }
 
         internal virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
             return TypeDescriptor
                 .GetConverter(entityPropertyInfo.PropertyType)
-                .ConvertFromString(null, CultureInfo.CurrentCulture, this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
+                .ConvertFromString(null, culture: CultureInfo.CurrentCulture, text: this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
         }
 
         #endregion

@@ -36,7 +36,7 @@ namespace TableDependency.OracleClient.EventArgs
 
         internal override ColumnInfo GetColumnInfo(string columnName)
         {
-            return base._userInterestedColumns.First(uic => string.Equals(uic.Name.Replace(QUOTES, ""), columnName, StringComparison.CurrentCultureIgnoreCase));
+            return UserInterestedColumns.First(uic => string.Equals(uic.Name.Replace(QUOTES, ""), columnName, StringComparison.CurrentCultureIgnoreCase));
         }
 
         /// <remarks>
