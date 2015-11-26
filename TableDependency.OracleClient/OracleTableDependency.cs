@@ -416,9 +416,9 @@ namespace TableDependency.OracleClient
                         var updateDml = ChangeType.Update.ToString();
                         var deleteDml = ChangeType.Delete.ToString();
 
-                        var enqueueStartMessage = this.PrepareStartEnqueueScript(dataBaseObjectsNamingConvention) + Environment.NewLine;
+                        var enqueueStartMessage = PrepareStartEnqueueScript(dataBaseObjectsNamingConvention) + Environment.NewLine;
                         var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
-                        var enqueueEndMessage = this.PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
+                        var enqueueEndMessage = PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
@@ -575,14 +575,14 @@ namespace TableDependency.OracleClient
 
         #region Private methods
 
-        private string PrepareStartEnqueueScript(string dataBaseObjectsNamingConvention)
+        private static string PrepareStartEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
                 "SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageStart, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
-        private string PrepareEndEnqueueScript(string dataBaseObjectsNamingConvention)
+        private static string PrepareEndEnqueueScript(string dataBaseObjectsNamingConvention)
         {
             return
                 "SELECT UTL_RAW.CAST_TO_RAW(dmlType) INTO message_buffer FROM DUAL;" + Environment.NewLine +
@@ -602,7 +602,7 @@ namespace TableDependency.OracleClient
             return PrepareEnqueueScriptForOther(column, messageType, dataBaseObjectsNamingConvention);
         }
 
-        private string PrepareEnqueueScriptForRawType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForRawType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty);
             return
@@ -614,7 +614,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForXmlType(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty);
             return
@@ -638,7 +638,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForOther(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForOther(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + ")";
             return
@@ -651,7 +651,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForVarchar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty);
             return
@@ -676,7 +676,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForChar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForChar(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + ")";
             return
@@ -689,7 +689,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForTimeStamp(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForTimeStamp(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{OracleDatespanFormat}')";
             return
@@ -702,7 +702,7 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScriptForDate(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScriptForDate(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
             var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{OracleDateFormat}')";
             return
@@ -759,7 +759,7 @@ namespace TableDependency.OracleClient
 
                                     setStatus(TableDependencyStatus.WaitingForNotification);
 
-                                    using (var reader = getQueueMessageCommand.ExecuteReader())
+                                    using (var reader = getQueueMessageCommand.ExecuteReader(CommandBehavior.CloseConnection))
                                     {
                                         while (reader.Read())
                                         {
