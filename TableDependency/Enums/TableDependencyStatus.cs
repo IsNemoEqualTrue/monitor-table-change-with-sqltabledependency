@@ -7,15 +7,10 @@ namespace TableDependency.Enums
     public enum TableDependencyStatus
     {
         None,
-
         WaitingForStart,
         Starting,
         Started,
-
         WaitingForNotification,
-        NotificationConsuming,
-        NotificationConsumed,
-
         StoppedDueToCancellation,
         StoppedDueToError
     }

@@ -101,7 +101,7 @@ namespace TableDependency.IntegrationTest
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestSqlServerModel> e)
         {
-            Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification || this._tableDependency.Status == TableDependencyStatus.NotificationConsuming || this._tableDependency.Status == TableDependencyStatus.NotificationConsumed);
+            Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification);
         }
 
         private static void ModifyTableContent()

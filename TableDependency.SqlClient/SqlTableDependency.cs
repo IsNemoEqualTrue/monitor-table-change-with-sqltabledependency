@@ -618,7 +618,6 @@ namespace TableDependency.SqlClient
 
                                     using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                     {
-                                        setStatus(TableDependencyStatus.NotificationConsuming);
                                         while (await sqlDataReader.ReadAsync(cancellationToken))
                                         {
                                             var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
