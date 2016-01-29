@@ -1,6 +1,6 @@
 ﻿////////////////////////////////////////////////////////////////////////////////
 //   TableDependency, SqlTableDependency, OracleTableDependency
-//   Copyright (c) Christian Del Bianco.  All rights reserved.
+//   © 2015-2106 Christian Del Bianco. All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////
 using System;
 using System.Collections.Generic;

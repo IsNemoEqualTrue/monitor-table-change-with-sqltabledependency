@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("Christian Del Bianco")]
 [assembly: AssemblyProduct("TableDependency.SqlClient")]
 [assembly: AssemblyTrademark("Christian Del Bianco")]
-[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015")]
+[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015-2016")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.5.1.4")]
-[assembly: AssemblyFileVersion("4.5.1.4")]
+[assembly: AssemblyVersion("4.5.2.0")]
+[assembly: AssemblyFileVersion("4.5.2.0")]

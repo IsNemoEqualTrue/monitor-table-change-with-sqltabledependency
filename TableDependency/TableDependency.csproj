@@ -73,6 +73,7 @@
     <Compile Include="TableDependency.cs" />
     <Compile Include="Utilities\EnumUtil.cs" />
     <Compile Include="Utilities\ModelUtil.cs" />
+    <Compile Include="Utilities\Separator.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

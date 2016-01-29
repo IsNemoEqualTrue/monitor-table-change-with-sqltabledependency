@@ -137,7 +137,6 @@ END</value>
   <data name="CreateTrigger" xml:space="preserve">
     <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
 BEGIN
-	-- Turn off rows affected messages
 	SET NOCOUNT ON;
 
 	DECLARE @rowsToProcess INT
@@ -263,13 +262,15 @@ IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP P
     <value>IF ({0}) BEGIN
     SET @dmlType = '{3}'
     INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+    {4}
 END
 ELSE BEGIN
     RETURN
 END</value>
   </data>
-  <data name="TriggerUpdateWithoutColuns" xml:space="preserve">
+  <data name="TriggerUpdateWithoutColumns" xml:space="preserve">
     <value>SET @dmlType = '{2}'
-INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]</value>
+INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
+{3}</value>
   </data>
 </root>

@@ -86,7 +86,6 @@ namespace TableDependency.SqlClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
         ///BEGIN
-        ///	-- Turn off rows affected messages
         ///	SET NOCOUNT ON;
         ///
         ///	DECLARE @rowsToProcess INT
@@ -101,7 +100,11 @@ namespace TableDependency.SqlClient.Resources {
         ///	IF NOT EXISTS(SELECT * FROM INSERTED)
         ///	BEGIN
         ///		SET @dmlType = &apos;{12}&apos;
-        ///		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED A [rest of string was truncated]&quot;;.
+        ///		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED AS [{1}]
+        ///	END
+        ///	ELSE
+        ///	BEGIN
+        ///		IF NO [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {
@@ -127,6 +130,7 @@ namespace TableDependency.SqlClient.Resources {
         ///   Looks up a localized string similar to IF ({0}) BEGIN
         ///    SET @dmlType = &apos;{3}&apos;
         ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+        ///    {4}
         ///END
         ///ELSE BEGIN
         ///    RETURN
@@ -140,11 +144,12 @@ namespace TableDependency.SqlClient.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to SET @dmlType = &apos;{2}&apos;
-        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}].
+        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
+        ///{3}.
         /// </summary>
-        internal static string TriggerUpdateWithoutColuns {
+        internal static string TriggerUpdateWithoutColumns {
             get {
-                return ResourceManager.GetString("TriggerUpdateWithoutColuns", resourceCulture);
+                return ResourceManager.GetString("TriggerUpdateWithoutColumns", resourceCulture);
             }
         }
     }
