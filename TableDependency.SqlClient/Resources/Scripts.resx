@@ -140,7 +140,7 @@ BEGIN
 	SET NOCOUNT ON;
 
 	DECLARE @rowsToProcess INT
-	DECLARE @currentRow INT = 0
+	DECLARE @currentRow INT
 	DECLARE @h AS UNIQUEIDENTIFIER
 	DECLARE @records XML
 	DECLARE @message NVARCHAR(MAX)
@@ -168,6 +168,7 @@ BEGIN
 
 	SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable
 	IF @rowsToProcess &lt; 1 RETURN
+	SET @currentRow = 0
 
 	BEGIN TRY
 		BEGIN TRANSACTION

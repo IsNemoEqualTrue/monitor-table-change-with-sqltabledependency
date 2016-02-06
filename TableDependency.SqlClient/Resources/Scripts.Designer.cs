@@ -89,7 +89,7 @@ namespace TableDependency.SqlClient.Resources {
         ///	SET NOCOUNT ON;
         ///
         ///	DECLARE @rowsToProcess INT
-        ///	DECLARE @currentRow INT = 0
+        ///	DECLARE @currentRow INT
         ///	DECLARE @h AS UNIQUEIDENTIFIER
         ///	DECLARE @records XML
         ///	DECLARE @message NVARCHAR(MAX)
@@ -104,7 +104,7 @@ namespace TableDependency.SqlClient.Resources {
         ///	END
         ///	ELSE
         ///	BEGIN
-        ///		IF NO [rest of string was truncated]&quot;;.
+        ///		IF NOT EX [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {

@@ -61,10 +61,11 @@ namespace TableDependency.SqlClient
     public class SqlTableDependency<T> : TableDependency<T> where T : class
     {
         #region Private variables
-
+       
         private const string Max = "MAX";
         private const string Comma = ",";
         private const string Space = " ";
+        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
 
         #endregion
 
@@ -355,6 +356,36 @@ namespace TableDependency.SqlClient
 
         #region Protected methods
 
+        internal SqlServerVersion GetSqlServerVersion(string connectionString)
+        {
+            var sqlConnection = new SqlConnection(connectionString);
+
+            try
+            {
+                sqlConnection.Open();
+
+                var serverVersion = sqlConnection.ServerVersion;
+                var serverVersionDetails = serverVersion.Split(new[] {"."}, StringSplitOptions.None);
+
+                var versionNumber = int.Parse(serverVersionDetails[0]);
+                if (versionNumber < 8) return SqlServerVersion.Unknown;
+                if (versionNumber == 8) return SqlServerVersion.SqlServer2000;
+                if (versionNumber == 9) return SqlServerVersion.SqlServer2005;
+                if (versionNumber == 10) return SqlServerVersion.SqlServer2008;
+                if (versionNumber == 11) return SqlServerVersion.SqlServer2012;
+            }
+            catch
+            {
+                throw new SqlServerVersionNotSupported();
+            }
+            finally
+            {
+                sqlConnection.Close();
+            }
+
+            return SqlServerVersion.SqlServerLatest;
+        }
+
         protected override IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming)
         {
             var processableMessages = new List<string>
@@ -486,6 +517,9 @@ namespace TableDependency.SqlClient
             CheckIfUserHasPermissions(connectionString);
             CheckIfServiceBrokerIsEnabled(connectionString);
             CheckIfTableExists(connectionString, tableName);
+
+            _sqlVersion = this.GetSqlServerVersion(connectionString);
+            if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupported(SqlServerVersion.SqlServer2000);
         }
 
         #endregion
@@ -539,7 +573,9 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
                         sqlCommand.ExecuteNonQuery();
 
-                        sqlCommand.CommandText = $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                        sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005 
+                            ? $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
+                            : $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
 
                         sqlCommand.CommandText = $"CREATE SERVICE[{databaseObjectsNaming}] ON QUEUE[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
