@@ -61,7 +61,7 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE PROCEDURE [{0}_QueueActivation] AS 
+        ///   Looks up a localized string similar to CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
         ///BEGIN 
         ///	SET NOCOUNT ON;
         ///	BEGIN TRANSACTION
@@ -84,7 +84,7 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
+        ///   Looks up a localized string similar to CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
         ///BEGIN
         ///	SET NOCOUNT ON;
         ///
@@ -100,11 +100,11 @@ namespace TableDependency.SqlClient.Resources {
         ///	IF NOT EXISTS(SELECT * FROM INSERTED)
         ///	BEGIN
         ///		SET @dmlType = &apos;{12}&apos;
-        ///		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED AS [{1}]
+        ///		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED
         ///	END
         ///	ELSE
         ///	BEGIN
-        ///		IF NOT EX [rest of string was truncated]&quot;;.
+        ///		IF NOT EXISTS(SELECT [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {
@@ -113,12 +113,15 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IF EXISTS (SELECT * FROM sys.objects WHERE name = N&apos;tr_{0}&apos;) DROP TRIGGER [tr_{0}];
+        ///   Looks up a localized string similar to declare @schema_id INT
+        ///select @schema_id = schema_id from sys.schemas where name = &apos;{2}&apos;
+        ///
+        ///IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N&apos;tr_{0}&apos;) DROP TRIGGER {2}.[tr_{0}];
         ///IF EXISTS (SELECT * FROM sys.services WHERE name = N&apos;{0}&apos;) DROP SERVICE [{0}];
-        ///IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N&apos;{0}&apos;) DROP QUEUE [{0}];
+        ///IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) DROP QUEUE {2}.[{0}];
         ///IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N&apos;{0}&apos;) DROP CONTRACT [{0}];
         ///{1}
-        ///IF EXISTS (SELECT * FROM sys.objects WHERE name = N&apos;{0}_QueueActivation&apos;) DROP PROCEDURE [{0}_QueueActivation];.
+        ///IF EXISTS (SE [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ScriptDropAll {
             get {
@@ -129,7 +132,7 @@ namespace TableDependency.SqlClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to IF ({0}) BEGIN
         ///    SET @dmlType = &apos;{3}&apos;
-        ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+        ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED
         ///    {4}
         ///END
         ///ELSE BEGIN
@@ -144,7 +147,7 @@ namespace TableDependency.SqlClient.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to SET @dmlType = &apos;{2}&apos;
-        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
+        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED
         ///{3}.
         /// </summary>
         internal static string TriggerUpdateWithoutColumns {

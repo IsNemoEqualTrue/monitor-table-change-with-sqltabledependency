@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CreateProcedureQueueActivation" xml:space="preserve">
-    <value>CREATE PROCEDURE [{0}_QueueActivation] AS 
+    <value>CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
 BEGIN 
 	SET NOCOUNT ON;
 	BEGIN TRANSACTION
@@ -135,7 +135,7 @@ BEGIN
 END</value>
   </data>
   <data name="CreateTrigger" xml:space="preserve">
-    <value>CREATE TRIGGER [tr_{0}] ON [{1}] AFTER {13} AS 
+    <value>CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
 BEGIN
 	SET NOCOUNT ON;
 
@@ -151,14 +151,14 @@ BEGIN
 	IF NOT EXISTS(SELECT * FROM INSERTED)
 	BEGIN
 		SET @dmlType = '{12}'
-		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED AS [{1}]
+		INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED
 	END
 	ELSE
 	BEGIN
 		IF NOT EXISTS(SELECT * FROM DELETED)
 		BEGIN
 			SET @dmlType = '{10}'
-			INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED AS [{1}]
+			INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED
 		END
 		ELSE
 		BEGIN
@@ -252,17 +252,20 @@ BEGIN
 END</value>
   </data>
   <data name="ScriptDropAll" xml:space="preserve">
-    <value>IF EXISTS (SELECT * FROM sys.objects WHERE name = N'tr_{0}') DROP TRIGGER [tr_{0}];
+    <value>declare @schema_id INT
+select @schema_id = schema_id from sys.schemas where name = '{2}'
+
+IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER {2}.[tr_{0}];
 IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
-IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}') DROP QUEUE [{0}];
+IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE {2}.[{0}];
 IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N'{0}') DROP CONTRACT [{0}];
 {1}
-IF EXISTS (SELECT * FROM sys.objects WHERE name = N'{0}_QueueActivation') DROP PROCEDURE [{0}_QueueActivation];</value>
+IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'{0}_QueueActivation') DROP PROCEDURE {2}.[{0}_QueueActivation];</value>
   </data>
   <data name="TriggerUpdateWithColumns" xml:space="preserve">
     <value>IF ({0}) BEGIN
     SET @dmlType = '{3}'
-    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED AS [{1}]
+    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED
     {4}
 END
 ELSE BEGIN
@@ -271,7 +274,7 @@ END</value>
   </data>
   <data name="TriggerUpdateWithoutColumns" xml:space="preserve">
     <value>SET @dmlType = '{2}'
-INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED AS [{0}]
+INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED
 {3}</value>
   </data>
 </root>

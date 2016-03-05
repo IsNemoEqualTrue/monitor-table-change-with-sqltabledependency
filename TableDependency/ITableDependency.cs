@@ -38,5 +38,8 @@ namespace TableDependency
 
         TableDependencyStatus Status { get; }
         string DataBaseObjectsNamingConvention { get; }
+
+        string TableName { get; }
+        string SchemaName { get; }
     }
 }

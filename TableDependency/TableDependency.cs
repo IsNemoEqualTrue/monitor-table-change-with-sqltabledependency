@@ -54,6 +54,7 @@ namespace TableDependency
         protected ModelToTableMapper<T> _mapper;
         protected string _connectionString;
         protected string _tableName;
+        protected string _schemaName;
         protected Task _task;
         protected IList<string> _processableMessages;
         protected IEnumerable<ColumnInfo> _userInterestedColumns;
@@ -112,6 +113,14 @@ namespace TableDependency
         /// </value>
         public string TableName => this._tableName;
 
+        /// <summary>
+        /// Gets or sets the name of the schema.
+        /// </summary>
+        /// <value>
+        /// The name of the schema.
+        /// </value>
+        public string SchemaName => this._schemaName;
+
         #endregion
 
         #region Public methods
@@ -168,6 +177,7 @@ namespace TableDependency
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             _tableName = this.GetCandidateTableName(tableName);
+            _schemaName = this.GetCandidateSchemaName(tableName);
             PreliminaryChecks(connectionString, _tableName);
             this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
@@ -176,6 +186,7 @@ namespace TableDependency
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             _tableName = this.GetCandidateTableName(tableName);
+            _schemaName = this.GetCandidateSchemaName(tableName);
             PreliminaryChecks(connectionString, _tableName);
             this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
@@ -226,10 +237,21 @@ namespace TableDependency
             return !string.IsNullOrWhiteSpace(tableName) ? tableName : (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
         }
 
+        protected virtual string GetCandidateSchemaName(string tableName)
+        {
+            return (!string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : string.Empty);
+        }
+
         protected virtual string GetTableNameFromTableDataAnnotation()
         {
             var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
-            return ((TableAttribute)attribute)?.Name.ToUpper();
+            return ((TableAttribute)attribute)?.Name;
+        }
+
+        protected virtual string GetSchemaNameFromTableDataAnnotation()
+        {
+            var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
+            return ((TableAttribute)attribute)?.Schema;
         }
 
         protected virtual ModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()

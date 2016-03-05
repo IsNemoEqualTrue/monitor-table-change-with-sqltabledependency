@@ -65,7 +65,7 @@ namespace TableDependency.SqlClient
         private const string Max = "MAX";
         private const string Comma = ",";
         private const string Space = " ";
-        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
+        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;        
 
         #endregion
 
@@ -337,6 +337,7 @@ namespace TableDependency.SqlClient
                     onErrorSubscribedList,
                     OnStatusChanged,
                     _connectionString,
+                    _schemaName,
                     _dataBaseObjectsNamingConvention,
                     GetConversationHandle(_connectionString, _dataBaseObjectsNamingConvention),
                     timeOut,
@@ -354,7 +355,47 @@ namespace TableDependency.SqlClient
 
         #endregion
 
-        #region Protected methods
+        #region Protected methods        
+
+        protected override string GetCandidateTableName(string tableName)
+        {
+            if (!string.IsNullOrWhiteSpace(tableName))
+            {
+                if (tableName.Contains("."))
+                {
+                    var splitted = tableName.Split('.');
+                    return splitted[1].Replace("[", string.Empty).Replace("]", string.Empty);
+                }
+                else
+                {
+                    return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
+                }
+            }
+            else
+            {
+                return (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
+            }
+        }
+
+        protected override string GetCandidateSchemaName(string tableName)
+        {
+            if(!string.IsNullOrWhiteSpace(tableName))
+            {
+                if (tableName.Contains("."))
+                {
+                    var splitted = tableName.Split('.');
+                    return splitted[0].Trim() != string.Empty ? splitted[0].Replace("[", string.Empty).Replace("]", string.Empty) : string.Empty;
+                }
+                else
+                {
+                    return "dbo";
+                }
+            }
+            else
+            {
+                return (!string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetSchemaNameFromTableDataAnnotation() : "dbo");
+            }
+        }
 
         internal SqlServerVersion GetSqlServerVersion(string connectionString)
         {
@@ -415,7 +456,7 @@ namespace TableDependency.SqlClient
 
         protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
         {
-            var tableColumns = GetTableColumnsList(_connectionString, _tableName);
+            var tableColumns = GetTableColumnsList(_connectionString);
             var tableColumnsList = tableColumns as ColumnInfo[] ?? tableColumns.ToArray();
             if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
 
@@ -429,7 +470,8 @@ namespace TableDependency.SqlClient
 
         protected override string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects)
         {
-            return string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects) ? $"{_tableName}_{Guid.NewGuid()}" : namingConventionForDatabaseObjects;
+            string name = $"{_schemaName}_{_tableName}";
+            return string.IsNullOrWhiteSpace(namingConventionForDatabaseObjects) ? $"{name}_{Guid.NewGuid()}" : namingConventionForDatabaseObjects;
         }
 
         protected override bool CheckIfNeedsToCreateDatabaseObjects()
@@ -491,9 +533,9 @@ namespace TableDependency.SqlClient
             };
 
             var dropContracts = _userInterestedColumns
-                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}') DROP MESSAGE TYPE[{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}];" + Environment.NewLine)
+                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}];" + Environment.NewLine +
+                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}];" + Environment.NewLine +
+                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}];" + Environment.NewLine)
                 .Concat(dropMessageStartEnd)
                 .ToList();
 
@@ -503,7 +545,7 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts));
+                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts), _schemaName);
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -543,7 +585,7 @@ namespace TableDependency.SqlClient
                         var startMessage = string.Format(StartMessageTemplate, databaseObjectsNaming);
                         var endMessage = string.Format(EndMessageTemplate, databaseObjectsNaming);
 
-                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE[{startMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE[{endMessage}] VALIDATION = NONE";
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{endMessage}] VALIDATION = NONE";
                         sqlCommand.ExecuteNonQuery();
 
                         processableMessages.Add(startMessage);
@@ -569,16 +611,16 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages);
-                        sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript);
+                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName);
+                        sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName);
                         sqlCommand.ExecuteNonQuery();
 
                         sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005 
-                            ? $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
-                            : $"CREATE QUEUE[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = [{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION(STATUS = ON, PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
+                            : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
 
-                        sqlCommand.CommandText = $"CREATE SERVICE[{databaseObjectsNaming}] ON QUEUE[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
+                        sqlCommand.CommandText = $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                         sqlCommand.ExecuteNonQuery();
 
                         var declareVariableStatement = PrepareDeclareVariableStatement(interestedColumns);
@@ -588,13 +630,13 @@ namespace TableDependency.SqlClient
                         var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete.ToString(), interestedColumns);
                         var whereStatement = PrepareWhereStatement(interestedColumns);
                         var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
-                            ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, tableName, selectColumns, ChangeType.Update, whereStatement)
-                            : string.Format(Scripts.TriggerUpdateWithoutColumns, tableName, selectColumns, ChangeType.Update, whereStatement);
+                            ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, whereStatement)
+                            : string.Format(Scripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, whereStatement);
 
                         sqlCommand.CommandText = string.Format(
                             Scripts.CreateTrigger,
                             databaseObjectsNaming,
-                            tableName,
+                            $"[{_schemaName}].[{_tableName}]",
                             tableColumns,
                             selectColumns,
                             bodyForUpdate,
@@ -662,6 +704,7 @@ namespace TableDependency.SqlClient
             Delegate[] onErrorSubscribedList,
             Action<TableDependencyStatus> setStatus,
             string connectionString,
+            string schemaName,
             string databaseObjectsNaming,
             Guid dialogHandle,
             int timeOut,
@@ -693,7 +736,7 @@ namespace TableDependency.SqlClient
 
                                 using (var sqlCommand = sqlConnection.CreateCommand())
                                 {
-                                    sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM [{databaseObjectsNaming}]), timeout {timeOut * 1000};";
+                                    sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
                                     sqlCommand.CommandTimeout = 0;
 
                                     setStatus(TableDependencyStatus.WaitingForNotification);
@@ -733,7 +776,7 @@ namespace TableDependency.SqlClient
                             }
                         }
                         catch (Exception exception)
-                        d{
+                        {
                             ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
                             throw;
                         }
@@ -888,7 +931,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString, string tableName)
+        private IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString)
         {
             var columnsList = new List<ColumnInfo>();
 
@@ -897,7 +940,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, datetime_precision FROM information_schema.columns WHERE table_name = '{tableName}' ORDER BY ordinal_position";
+                    sqlCommand.CommandText = $"SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, datetime_precision FROM information_schema.columns WHERE table_name = '{_tableName}' AND table_schema = '{_schemaName}' ORDER BY ordinal_position";
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
                     {
@@ -1063,14 +1106,14 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static void CheckIfTableExists(string connection, string tableName)
+        private void CheckIfTableExists(string connection, string tableName)
         {
             using (var sqlConnection = new SqlConnection(connection))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{tableName}'";
+                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{_tableName}' AND table_schema = '{_schemaName}'";
                     if ((int) sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
                 }
             }
