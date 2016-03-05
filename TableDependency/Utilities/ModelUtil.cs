@@ -50,14 +50,15 @@ namespace TableDependency.Utilities
             typeof (char[]),
             typeof (sbyte),
             typeof (byte),
-            typeof (Guid)
+            typeof (Guid),
+            typeof (Enum)
         };
 
         internal static IEnumerable<PropertyInfo> GetModelPropertiesInfo<T>()
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)
-                .Where(propertyInfo => ProcessableModelTypes.Contains(propertyInfo.PropertyType) || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                .Where(propertyInfo => ProcessableModelTypes.Contains(propertyInfo.PropertyType) || propertyInfo.PropertyType.IsEnum || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 .ToArray();
         }
     }

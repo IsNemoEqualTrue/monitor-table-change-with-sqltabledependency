@@ -733,7 +733,7 @@ namespace TableDependency.SqlClient
                             }
                         }
                         catch (Exception exception)
-                        {
+                        d{
                             ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
                             throw;
                         }
@@ -1080,22 +1080,30 @@ namespace TableDependency.SqlClient
         {
             var tableColumnsListFiltered = new List<ColumnInfo>();
 
-            foreach (var propertyName in from entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>() let propertyMappedTo = this._mapper?.GetMapping(entityPropertyInfo) select propertyMappedTo ?? entityPropertyInfo.Name)
+            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
-                foreach (var tableColumn in tableColumnsList.Where(tableColumn => string.Equals(tableColumn.Name.ToLower(), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase)))
-                {
-                    if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        throw new ModelToTableMapperException("Model with columns having same name.");
-                    }
+                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
 
-                    tableColumnsListFiltered.Add(tableColumn);
-                    break;
+                // If model property is mapped to table column keep it
+                foreach (var tableColumn in tableColumnsList)
+                {
+                    if (string.Equals(tableColumn.Name.ToLower(), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.CurrentCultureIgnoreCase)))
+                        {
+                            throw new ModelToTableMapperException("Model with columns having same name.");
+                        }
+
+                        tableColumnsListFiltered.Add(tableColumn);
+                        break;
+                    }
                 }
             }
 
             return tableColumnsListFiltered;
         }
+
 
         private static void CheckUpdateOfValidity(IEnumerable<ColumnInfo> tableColumnsList, IEnumerable<string> updateOf)
         {

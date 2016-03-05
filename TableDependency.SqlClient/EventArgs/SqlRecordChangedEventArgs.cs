@@ -23,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -43,6 +45,18 @@ namespace TableDependency.SqlClient.EventArgs
         internal override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
             if (message == null || message.Length == 0) return null;
+
+            if (entityPropertyInfo.PropertyType.IsEnum)
+            {
+                foreach (var fInfo in entityPropertyInfo.PropertyType.GetFields(BindingFlags.Public | BindingFlags.Static))
+                {
+                    var underlyingType = Enum.GetUnderlyingType(entityPropertyInfo.PropertyType);
+                    var stringValue = Encoding.Unicode.GetString(message);
+                    var value = Convert.ChangeType(stringValue, underlyingType);
+                    var enumVal = fInfo.GetRawConstantValue();
+                    if (value == enumVal) return enumVal;
+                }
+            }
 
             if (entityPropertyInfo.PropertyType == typeof(byte[])) return message;
 
