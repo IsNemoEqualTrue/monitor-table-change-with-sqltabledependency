@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using TableDependency.Classes;
@@ -38,7 +39,7 @@ namespace TableDependency.SqlClient.EventArgs
 {
     public sealed class SqlRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
     {
-        internal SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns) : base(messagesBag, mapper, userInterestedColumns)
+        internal SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns, CultureInfo dbCulture) : base(messagesBag, mapper, userInterestedColumns, dbCulture)
         {
         }
 

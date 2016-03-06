@@ -30,6 +30,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Security.Permissions;
 using System.Text;
@@ -698,6 +699,24 @@ namespace TableDependency.SqlClient
             return afters;
         }
 
+        private static CultureInfo GetDbCulture(string connectionString)
+        {
+            var cultureInfo = CultureInfo.CurrentCulture;
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = "SELECT lcid FROM sys.syslanguages WHERE name = @@LANGUAGE";
+                    var lcid = sqlCommand.ExecuteScalar() as int?;
+                    if (lcid.HasValue) cultureInfo = new CultureInfo(lcid.Value, false);
+                }
+            }
+
+            return cultureInfo;
+        }
+
         private async static Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
@@ -716,6 +735,8 @@ namespace TableDependency.SqlClient
             Encoding encoding)
         {
             setStatus(TableDependencyStatus.Started);
+
+            var cultureInfo = GetDbCulture(connectionString);
 
             var newMessageReadyToBeNotified = false;
             var messagesBag = new MessagesBag(encoding ?? Encoding.Unicode, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
@@ -771,7 +792,7 @@ namespace TableDependency.SqlClient
                             if (newMessageReadyToBeNotified)
                             {
                                 newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns, cultureInfo);
                                 transactionScope.Complete();
                             }
                         }
@@ -900,10 +921,10 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
+        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns, CultureInfo dbCulture)
         {
             if (delegates == null) return;
-            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
+            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns, dbCulture) });
         }
 
         private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)

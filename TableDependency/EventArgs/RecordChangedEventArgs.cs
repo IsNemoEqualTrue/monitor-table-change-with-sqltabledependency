@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -41,6 +42,7 @@ namespace TableDependency.EventArgs
     {
         protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
         protected IEnumerable<ColumnInfo> UserInterestedColumns;
+        protected CultureInfo DbCulture;
 
         #region Properties
 
@@ -53,11 +55,12 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal RecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns)
+        internal RecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns, CultureInfo dbCulture = null)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
             this.UserInterestedColumns = userInterestedColumns;
+            this.DbCulture = dbCulture ?? CultureInfo.CurrentCulture;
 
             ChangeType = messagesBag.MessageType;
             Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
@@ -95,9 +98,11 @@ namespace TableDependency.EventArgs
 
         internal virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
+            var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture);
+
             return TypeDescriptor
                 .GetConverter(entityPropertyInfo.PropertyType)
-                .ConvertFromString(null, culture: CultureInfo.CurrentCulture, text: this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
+                .ConvertFromString(null, culture: this.DbCulture, text: stringValue);
         }
 
         #endregion
