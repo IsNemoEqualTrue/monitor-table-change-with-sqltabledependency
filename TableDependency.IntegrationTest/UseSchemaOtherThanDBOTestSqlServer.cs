@@ -14,7 +14,6 @@ namespace TableDependency.IntegrationTest
 {
     public class SchemaNotDboTestSqlServerModel
     {
-        public int Id { get; set; }
         public string Name { get; set; }
     }
 
@@ -22,7 +21,8 @@ namespace TableDependency.IntegrationTest
     public class UseSchemaOtherThanDboTestSqlServer
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private const string TableName = "[test].[Tabella]";
+        private const string TableName = "[TestConSchema]";
+        private const string SchemaName = "[test]";
         private static int _counter;
         private static Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>>();
 
@@ -34,13 +34,15 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE {TableName};";
-                    sqlCommand.ExecuteNonQuery();
+                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{TableName}' AND table_schema = '{SchemaName}'";
+                    var exists = (int)sqlCommand.ExecuteScalar();
+                    if (exists > 0)
+                    {
+                        sqlCommand.CommandText = $"DROP TABLE {SchemaName}.{TableName}";
+                        sqlCommand.ExecuteNonQuery();
+                    }
 
-                    sqlCommand.CommandText =
-                        $"CREATE TABLE {TableName}( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
-                        "[Name] [nvarchar](50) NOT NULL";
+                    sqlCommand.CommandText = $"CREATE TABLE {SchemaName}.{TableName} ([Name] [nvarchar](50) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -54,22 +56,27 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE {TableName};";
-                    sqlCommand.ExecuteNonQuery();
+                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{TableName}' AND table_schema = '{SchemaName}'";
+                    var exists = (int)sqlCommand.ExecuteScalar();
+                    if (exists > 0)
+                    {
+                        sqlCommand.CommandText = $"DROP TABLE {SchemaName}.{TableName}";
+                        sqlCommand.ExecuteNonQuery();
+                    }
                 }
             }
         }
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void EventForAllColumnsTest()
+        public void TableWithTest()
         {
             SqlTableDependency<SchemaNotDboTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<SchemaNotDboTestSqlServerModel>(_connectionString, TableName);
+                tableDependency = new SqlTableDependency<SchemaNotDboTestSqlServerModel>(_connectionString, SchemaName + "." + TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -121,15 +128,15 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO {TableName} ([Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}')";
+                    sqlCommand.CommandText = $"INSERT INTO {SchemaName}.{TableName} ([Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE {TableName} SET [Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
+                    sqlCommand.CommandText = $"UPDATE {SchemaName}.{TableName} SET [Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM {TableName}";
+                    sqlCommand.CommandText = $"DELETE FROM {SchemaName}.{TableName}";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
