@@ -617,8 +617,8 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
 
                         sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005 
-                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION(STATUS = ON, PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
-                            : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION(STATUS = ON, PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
+                            : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
 
                         sqlCommand.CommandText = $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
@@ -667,7 +667,7 @@ namespace TableDependency.SqlClient
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
             if (interestedColumns.Any(tableColumn => tableColumn.Type == "timestamp" || tableColumn.Type == "rowversion")) return string.Empty;
 
-            var separatorNewColumns = new Separator(2, Comma);            
+            var separatorNewColumns = new Separator(2, Comma);
             var sBuilderNewColumns = new StringBuilder();
             var separatorOldColumns = new Separator(2, Comma);
             var sBuilderOldColumns = new StringBuilder();
@@ -678,7 +678,10 @@ namespace TableDependency.SqlClient
                 sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
             }
 
-            return string.Format(Environment.NewLine + "WHERE NOT EXISTS(SELECT 1 FROM INSERTED AS [m_New] INNER JOIN DELETED AS [m_Old] ON BINARY_CHECKSUM({0}) = BINARY_CHECKSUM({1}))", sBuilderNewColumns, sBuilderOldColumns);
+            return string.Format(
+                Environment.NewLine + "WHERE NOT EXISTS(SELECT 1 FROM INSERTED AS [m_New] INNER JOIN DELETED AS [m_Old] ON BINARY_CHECKSUM({0}) = BINARY_CHECKSUM({1}))", 
+                sBuilderNewColumns, 
+                sBuilderOldColumns);
         }
 
         private static IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
@@ -1011,7 +1014,7 @@ namespace TableDependency.SqlClient
 
         private static string ConvertValueByType(ColumnInfo userInterestedColumn)
         {
-            if (userInterestedColumn.Type == "binary" || userInterestedColumn.Type == "varbinary")
+            if (userInterestedColumn.Type == "binary" || userInterestedColumn.Type == "varbinary" || userInterestedColumn.Type == "timestamp")
             {
                 return $"@{userInterestedColumn.Name.Replace(Space, string.Empty)}";
             }
@@ -1167,7 +1170,6 @@ namespace TableDependency.SqlClient
 
             return tableColumnsListFiltered;
         }
-
 
         private static void CheckUpdateOfValidity(IEnumerable<ColumnInfo> tableColumnsList, IEnumerable<string> updateOf)
         {
