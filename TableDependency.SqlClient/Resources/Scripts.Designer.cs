@@ -116,12 +116,11 @@ namespace TableDependency.SqlClient.Resources {
         ///   Looks up a localized string similar to declare @schema_id INT
         ///select @schema_id = schema_id from sys.schemas where name = &apos;{2}&apos;
         ///
+        ///IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) EXEC (&apos;ALTER QUEUE {2}.[{0}] WITH ACTIVATION (STATUS = OFF)&apos;);
+        ///
         ///IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N&apos;tr_{0}&apos;) DROP TRIGGER {2}.[tr_{0}];
         ///IF EXISTS (SELECT * FROM sys.services WHERE name = N&apos;{0}&apos;) DROP SERVICE [{0}];
-        ///IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) DROP QUEUE {2}.[{0}];
-        ///IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N&apos;{0}&apos;) DROP CONTRACT [{0}];
-        ///{1}
-        ///IF EXISTS (SE [rest of string was truncated]&quot;;.
+        ///IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @sc [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ScriptDropAll {
             get {

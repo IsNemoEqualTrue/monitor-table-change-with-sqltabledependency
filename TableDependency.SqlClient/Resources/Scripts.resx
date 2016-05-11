@@ -195,7 +195,7 @@ BEGIN
 				END
 				ELSE
 				BEGIN
-					END CONVERSATION @h WITH CLEANUP
+					END CONVERSATION @h;
 				END
 			END
 		
@@ -213,7 +213,7 @@ BEGIN
 				END
 				ELSE
 				BEGIN
-					END CONVERSATION @h WITH CLEANUP
+					END CONVERSATION @h;
 				END
 			END
 
@@ -231,7 +231,7 @@ BEGIN
 				END
 				ELSE
 				BEGIN
-					END CONVERSATION @h WITH CLEANUP
+					END CONVERSATION @h;
 				END
 			END
 		END
@@ -254,6 +254,8 @@ END</value>
   <data name="ScriptDropAll" xml:space="preserve">
     <value>declare @schema_id INT
 select @schema_id = schema_id from sys.schemas where name = '{2}'
+
+IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N'{0}') EXEC ('ALTER QUEUE {2}.[{0}] WITH ACTIVATION (STATUS = OFF)');
 
 IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER {2}.[tr_{0}];
 IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
