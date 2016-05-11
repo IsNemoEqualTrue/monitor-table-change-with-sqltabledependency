@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest
     public class UseSchemaOtherThanDboTestSqlServer
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private const string TableName = "[TestConSchema]";
+        private const string TableName = "[Customers]";
         private const string SchemaName = "[test]";
         private static int _counter;
         private static Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>>();
