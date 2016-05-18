@@ -964,7 +964,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, datetime_precision FROM information_schema.columns WHERE table_name = '{_tableName}' AND table_schema = '{_schemaName}' ORDER BY ordinal_position";
+                    sqlCommand.CommandText = $"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{_tableName}' AND TABLE_SCHEMA = '{_schemaName}' ORDER BY ORDINAL_POSITION";
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
                     {
@@ -1137,7 +1137,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{_tableName}' AND table_schema = '{_schemaName}'";
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{_tableName}' AND TABLE_SCHEMA = '{_schemaName}'";
                     if ((int) sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
                 }
             }

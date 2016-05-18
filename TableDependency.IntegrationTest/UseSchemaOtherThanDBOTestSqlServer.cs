@@ -34,7 +34,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{TableName}' AND table_schema = '{SchemaName}'";
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{TableName}' AND TABLE_SCHEMA = '{SchemaName}'";
                     var exists = (int)sqlCommand.ExecuteScalar();
                     if (exists > 0)
                     {
@@ -56,7 +56,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT count(*) from information_schema.tables WHERE table_name = '{TableName}' AND table_schema = '{SchemaName}'";
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{TableName}' AND TABLE_SCHEMA = '{SchemaName}'";
                     var exists = (int)sqlCommand.ExecuteScalar();
                     if (exists > 0)
                     {
