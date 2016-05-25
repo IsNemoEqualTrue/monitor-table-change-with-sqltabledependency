@@ -39,7 +39,7 @@ namespace TableDependency.SqlClient.EventArgs
 {
     public sealed class SqlRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
     {
-        internal SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns, CultureInfo dbCulture) : base(messagesBag, mapper, userInterestedColumns, dbCulture)
+        internal SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns) : base(messagesBag, mapper, userInterestedColumns)
         {
         }
 

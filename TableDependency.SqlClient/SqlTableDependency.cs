@@ -795,7 +795,7 @@ namespace TableDependency.SqlClient
                             if (newMessageReadyToBeNotified)
                             {
                                 newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns, cultureInfo);
+                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
                                 transactionScope.Complete();
                             }
                         }
@@ -924,10 +924,10 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns, CultureInfo dbCulture)
+        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (delegates == null) return;
-            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns, dbCulture) });
+            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
         }
 
         private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
