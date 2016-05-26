@@ -650,6 +650,7 @@ namespace TableDependency.SqlClient
                             ChangeType.Update,
                             ChangeType.Delete,
                             string.Join(Comma, GetDmlTriggerType(_dmlTriggerType)));
+
                         sqlCommand.ExecuteNonQuery();
                     }
                 }

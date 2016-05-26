@@ -143,7 +143,7 @@ BEGIN
 	DECLARE @currentRow INT
 	DECLARE @h AS UNIQUEIDENTIFIER
 	DECLARE @records XML
-	DECLARE @message NVARCHAR(MAX)
+	DECLARE @theMessageContainer NVARCHAR(MAX)
 	DECLARE @dmlType NVARCHAR(10)
 	DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
 	{5}

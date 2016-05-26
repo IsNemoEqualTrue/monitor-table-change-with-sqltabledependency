@@ -67,6 +67,7 @@
     <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
     <Compile Include="EnumTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="Issues\Issue27.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
     <Compile Include="NullMessageContentTestOracle.cs" />

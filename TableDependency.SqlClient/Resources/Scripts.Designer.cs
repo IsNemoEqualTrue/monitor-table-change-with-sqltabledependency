@@ -92,7 +92,7 @@ namespace TableDependency.SqlClient.Resources {
         ///	DECLARE @currentRow INT
         ///	DECLARE @h AS UNIQUEIDENTIFIER
         ///	DECLARE @records XML
-        ///	DECLARE @message NVARCHAR(MAX)
+        ///	DECLARE @theMessageContainer NVARCHAR(MAX)
         ///	DECLARE @dmlType NVARCHAR(10)
         ///	DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
         ///	{5}
@@ -104,7 +104,7 @@ namespace TableDependency.SqlClient.Resources {
         ///	END
         ///	ELSE
         ///	BEGIN
-        ///		IF NOT EXISTS(SELECT [rest of string was truncated]&quot;;.
+        ///		IF NOT E [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTrigger {
             get {

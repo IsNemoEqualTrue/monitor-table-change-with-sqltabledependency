@@ -68,7 +68,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EnumTest()
         {
-           SqlTableDependency<EnumTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<EnumTestSqlServerModel> tableDependency = null;
 
             try
             {
