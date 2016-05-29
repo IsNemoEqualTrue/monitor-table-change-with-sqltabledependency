@@ -441,7 +441,7 @@ namespace TableDependency.OracleClient
                         var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
                         var enqueueEndMessage = PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
-                        var triggerOnlyValueChangeCondition = "IF " + string.Join("AND", userInterestedColumns.Select(c => ":OLD." + c.Name + " = :NEW." + c.Name)) + " THEN" + Environment.NewLine + "RETURN;" + Environment.NewLine + "END IF;";
+                        var triggerOnlyValueChangeCondition = "IF " + string.Join(" AND ", userInterestedColumns.Select(c => ":OLD." + c.Name + " = :NEW." + c.Name)) + " THEN" + Environment.NewLine + "RETURN;" + Environment.NewLine + "END IF;";
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,

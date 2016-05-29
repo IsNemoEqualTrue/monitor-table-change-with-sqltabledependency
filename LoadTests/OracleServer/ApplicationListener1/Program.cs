@@ -76,11 +76,11 @@ namespace ApplicationListener1
                 if (e.ChangeType == ChangeType.Delete) deletedCnt++;
 
                 var changedEntity = e.Entity;
-                Console.WriteLine("DML operation: " + e.ChangeType);
-                Console.WriteLine("ID: " + changedEntity.Id);
-                Console.WriteLine("Name: " + changedEntity.Name);
-                Console.WriteLine("Long Description: " + changedEntity.Description);
-                Console.WriteLine("insert: " + insertedCnt + " / update: " + updatedCnt + " / delete: " + deletedCnt);
+                Console.WriteLine(@"DML operation: " + e.ChangeType);
+                Console.WriteLine(@"ID: " + changedEntity.Id);
+                Console.WriteLine(@"Name: " + changedEntity.Name);
+                Console.WriteLine(@"Long Description: " + changedEntity.Description);
+                Console.WriteLine(@"insert: " + insertedCnt + @" / update: " + updatedCnt + @" / delete: " + deletedCnt);
             }
         }
     }
