@@ -187,6 +187,8 @@ BEGIN
       dmlType := '{6}';
       {7}
     ELSIF UPDATING THEN
+      {13} 	
+
       dmlType := '{8}';
       {9}
     ELSIF DELETING THEN 

@@ -441,6 +441,8 @@ namespace TableDependency.OracleClient
                         var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
                         var enqueueEndMessage = PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
+                        var triggerOnlyValueChangeCondition = "IF " + string.Join("AND", userInterestedColumns.Select(c => ":OLD." + c.Name + " = :NEW." + c.Name)) + " THEN" + Environment.NewLine + "RETURN;" + Environment.NewLine + "END IF;";
+
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
                             dataBaseObjectsNamingConvention,
@@ -456,7 +458,8 @@ namespace TableDependency.OracleClient
                             deleteDml,
                             setOldValueStatement,
                             enqueueStartMessage + enqueueFieldsStatement + enqueueEndMessage,
-                            string.Join(" OR ", GetDmlTriggerType(_dmlTriggerType)));
+                            string.Join(" OR ", GetDmlTriggerType(_dmlTriggerType)),
+                            triggerOnlyValueChangeCondition);
                         command.ExecuteNonQuery();
 
                         command.CommandText = string.Format(Scripts.CreateProcedureDequeueMessage, dataBaseObjectsNamingConvention, timeOut, userInterestedColumns.Count() + 2);
