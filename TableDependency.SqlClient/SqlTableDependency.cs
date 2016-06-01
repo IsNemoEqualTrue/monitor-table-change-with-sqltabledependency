@@ -740,7 +740,7 @@ namespace TableDependency.SqlClient
         {
             setStatus(TableDependencyStatus.Started);
 
-            var cultureInfo = GetDbCulture(connectionString);
+            //var cultureInfo = GetDbCulture(connectionString);
 
             var newMessageReadyToBeNotified = false;
             var messagesBag = new MessagesBag(encoding ?? Encoding.Unicode, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
@@ -933,7 +933,7 @@ namespace TableDependency.SqlClient
 
         private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
-            switch (dataType.ToUpper())
+            switch (dataType.ToUpperInvariant())
             {
                 case "BINARY":
                 case "VARBINARY":
@@ -999,7 +999,7 @@ namespace TableDependency.SqlClient
             var checkIfUserInterestedColumnsCanBeManaged = tableColumnsToUse as ColumnInfo[] ?? tableColumnsToUse.ToArray();
             foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
             {
-                if (tableColumn.Type.ToUpper() == "IMAGE" || tableColumn.Type.ToUpper() == "TEXT" || tableColumn.Type.ToUpper() == "NTEXT" || tableColumn.Type.ToUpper() == "STRUCTURED" || tableColumn.Type.ToUpper() == "GEOGRAPHY" || tableColumn.Type.ToUpper() == "GEOMETRY" || tableColumn.Type.ToUpper() == "HIERARCHYID" || tableColumn.Type.ToUpper() == "SQL_VARIANT")
+                if (tableColumn.Type.ToUpperInvariant() == "IMAGE" || tableColumn.Type.ToUpperInvariant() == "TEXT" || tableColumn.Type.ToUpperInvariant() == "NTEXT" || tableColumn.Type.ToUpperInvariant() == "STRUCTURED" || tableColumn.Type.ToUpperInvariant() == "GEOGRAPHY" || tableColumn.Type.ToUpperInvariant() == "GEOMETRY" || tableColumn.Type.ToUpperInvariant() == "HIERARCHYID" || tableColumn.Type.ToUpperInvariant() == "SQL_VARIANT")
                 {
                     throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for SqlTableDependency.");
                 }
@@ -1096,7 +1096,7 @@ namespace TableDependency.SqlClient
             foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
             {
                 var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
-                if (privilegesTable.AsEnumerable().All(r => r.Field<string>("permission_name") != permissionToCkeck)) throw new UserWithNoPermissionException(permissionToCkeck);
+                if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("permission_name"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))) throw new UserWithNoPermissionException(permissionToCkeck);
             }
 
             var selectGratnOnSystemView = new DataTable();
@@ -1112,7 +1112,10 @@ namespace TableDependency.SqlClient
             }
 
             if (selectGratnOnSystemView.Rows.Count == 0) throw new UserWithNoPermissionException();
-            foreach (var permissionToCkeck in Enum.GetValues(typeof(SqlServerSelectGrantOnSysView)).Cast<object>().Select(view => EnumUtil.GetDescriptionFromEnumValue((SqlServerSelectGrantOnSysView)view)).Where(permissionToCkeck => selectGratnOnSystemView.AsEnumerable().All(r => r.Field<string>("Object").ToLower() != permissionToCkeck.ToLower())))
+            foreach (var permissionToCkeck in Enum.GetValues(typeof(SqlServerSelectGrantOnSysView))
+                .Cast<object>()
+                .Select(view => EnumUtil.GetDescriptionFromEnumValue((SqlServerSelectGrantOnSysView)view))
+                .Where(permissionToCkeck => selectGratnOnSystemView.AsEnumerable().All(r => !string.Equals(r.Field<string>("Object"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))))
             {
                 throw new UserWithNoPermissionException("SELECT on SYS." + permissionToCkeck + " view ");
             }
@@ -1156,9 +1159,9 @@ namespace TableDependency.SqlClient
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (string.Equals(tableColumn.Name.ToLower(), propertyName.ToLower(), StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(tableColumn.Name.ToLower(), propertyName.ToLower(), StringComparison.OrdinalIgnoreCase))
                     {
-                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.CurrentCultureIgnoreCase)))
+                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {
                             throw new ModelToTableMapperException("Model with columns having same name.");
                         }

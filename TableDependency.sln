@@ -41,6 +41,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlServer", "SqlServer", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationOracle", "ConsoleApplicationOracle\ConsoleApplicationOracle.csproj", "{652204A4-CC00-4E97-A91F-F67D51021939}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "ConsoleApplicationSqlServer\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{652204A4-CC00-4E97-A91F-F67D51021939}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{652204A4-CC00-4E97-A91F-F67D51021939}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{652204A4-CC00-4E97-A91F-F67D51021939}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,5 +117,6 @@ Global
 		{0CA5A730-AE6F-47B6-A82E-A974CB26F907} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
 		{F6D679FB-9C2C-4EE2-879E-609C1381B121} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
 		{652204A4-CC00-4E97-A91F-F67D51021939} = {0CA5A730-AE6F-47B6-A82E-A974CB26F907}
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {F6D679FB-9C2C-4EE2-879E-609C1381B121}
 	EndGlobalSection
 EndGlobal

@@ -187,10 +187,12 @@ BEGIN
       dmlType := '{6}';
       {7}
     ELSIF UPDATING THEN
-      {14} 	
-
+      IF {14} THEN 
+        RETURN;
+      END IF;
+      
       dmlType := '{8}';
-      {9}
+      {9}    
     ELSIF DELETING THEN 
       dmlType := '{10}';
       {11}

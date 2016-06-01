@@ -34,7 +34,7 @@ namespace ConsoleApplicationOracle
                 {
                     command.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
                     command.ExecuteNonQuery();
-                    command.CommandText = $"CREATE TABLE {tableName} (ID INTEGER, NAME VARCHAR2(50), DESCRIPTION VARCHAR2(4000))";
+                    command.CommandText = $"CREATE TABLE {tableName} (ID INTEGER)"; // , NAME VARCHAR2(50), DESCRIPTION VARCHAR2(4000)
                     command.ExecuteNonQuery();
                 }
             }
@@ -71,8 +71,12 @@ namespace ConsoleApplicationOracle
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"At " + DateTime.Now.ToString("HH:mm:ss") + @" DML operation: " + e.ChangeType);
                 Console.WriteLine(@"ID: " + changedEntity.Id);
-                Console.WriteLine(@"Name: " + changedEntity.Name);
-                Console.WriteLine(@"Description: " + changedEntity.Description);
+                //Console.WriteLine(@"Name: " + changedEntity.Name);
+                //Console.WriteLine(@"Description: " + changedEntity.Description);
+            }
+            else
+            {
+                Console.WriteLine("NO CHANGE");
             }
         }
     }
