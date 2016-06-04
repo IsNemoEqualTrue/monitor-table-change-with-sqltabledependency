@@ -2,6 +2,7 @@
 using Oracle.ManagedDataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.Mappers;
 using TableDependency.OracleClient;
 
 namespace ConsoleApplicationOracle
@@ -21,7 +22,7 @@ namespace ConsoleApplicationOracle
                                                 " )" +
                                                 ");" +
                                                 "User Id=SYSTEM;" +
-                                                "password=tiger;";
+                                                "password=Casadolcecasa1;";
 
         private const string TableName = "AAAITEM";
 
@@ -34,7 +35,7 @@ namespace ConsoleApplicationOracle
                 {
                     command.CommandText = $"BEGIN EXECUTE IMMEDIATE 'DROP TABLE {tableName.ToUpper()}'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;";
                     command.ExecuteNonQuery();
-                    command.CommandText = $"CREATE TABLE {tableName} (ID INTEGER)"; // , NAME VARCHAR2(50), DESCRIPTION VARCHAR2(4000)
+                    command.CommandText = $"CREATE TABLE {tableName} (ID INTEGER, RAWCOLUMN RAW(2000), XMLCOLUMN XMLTYPE, NAME VARCHAR2(50), DESCRIPTION VARCHAR2(4000))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -44,7 +45,10 @@ namespace ConsoleApplicationOracle
         {
             DropAndCreateTable(ConnectionString, TableName);
 
-            using (var tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName))
+            var mapper = new ModelToTableMapper<Item>();
+            mapper.AddMapping(c => c.XmlColumn, "XMLCOLUMN");
+
+            using (var tableDependency = new OracleTableDependency<Item>(ConnectionString, TableName, mapper))
             {
                 tableDependency.OnChanged += Changed;
                 tableDependency.OnError += tableDependency_OnError;
@@ -71,13 +75,22 @@ namespace ConsoleApplicationOracle
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"At " + DateTime.Now.ToString("HH:mm:ss") + @" DML operation: " + e.ChangeType);
                 Console.WriteLine(@"ID: " + changedEntity.Id);
-                //Console.WriteLine(@"Name: " + changedEntity.Name);
-                //Console.WriteLine(@"Description: " + changedEntity.Description);
+                Console.WriteLine(@"Name: " + changedEntity.Name);
+                Console.WriteLine(@"XmlColumn: " + changedEntity.XmlColumn);
+                Console.WriteLine(@"RAW Column: " + GetString(changedEntity.RAWCOLUMN));
             }
             else
             {
                 Console.WriteLine("NO CHANGE");
             }
+        }
+
+        static string GetString(byte[] bytes)
+        {
+            if (bytes == null) return null;
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
         }
     }
 }

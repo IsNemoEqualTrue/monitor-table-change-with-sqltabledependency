@@ -666,7 +666,9 @@ namespace TableDependency.SqlClient
         private static string PrepareWhereStatement(IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
-            if (interestedColumns.Any(tableColumn => tableColumn.Type == "timestamp" || tableColumn.Type == "rowversion")) return string.Empty;
+            if (interestedColumns.Any(tableColumn => 
+                string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return string.Empty;
 
             var separatorNewColumns = new Separator(2, Comma);
             var sBuilderNewColumns = new StringBuilder();
@@ -690,15 +692,15 @@ namespace TableDependency.SqlClient
             var afters = new List<string>();
             if (dmlTriggerType.HasFlag(DmlTriggerType.All))
             {
-                afters.Add(DmlTriggerType.Insert.ToString().ToUpper());
-                afters.Add(DmlTriggerType.Update.ToString().ToUpper());
-                afters.Add(DmlTriggerType.Delete.ToString().ToUpper());
+                afters.Add(DmlTriggerType.Insert.ToString().ToLowerInvariant());
+                afters.Add(DmlTriggerType.Update.ToString().ToLowerInvariant());
+                afters.Add(DmlTriggerType.Delete.ToString().ToLowerInvariant());
             }
             else
             {
-                if (dmlTriggerType.HasFlag(DmlTriggerType.Insert)) afters.Add(DmlTriggerType.Insert.ToString().ToUpper());
-                if (dmlTriggerType.HasFlag(DmlTriggerType.Delete)) afters.Add(DmlTriggerType.Delete.ToString().ToUpper());
-                if (dmlTriggerType.HasFlag(DmlTriggerType.Update)) afters.Add(DmlTriggerType.Update.ToString().ToUpper());
+                if (dmlTriggerType.HasFlag(DmlTriggerType.Insert)) afters.Add(DmlTriggerType.Insert.ToString().ToLowerInvariant());
+                if (dmlTriggerType.HasFlag(DmlTriggerType.Delete)) afters.Add(DmlTriggerType.Delete.ToString().ToLowerInvariant());
+                if (dmlTriggerType.HasFlag(DmlTriggerType.Update)) afters.Add(DmlTriggerType.Update.ToString().ToLowerInvariant());
             }
             return afters;
         }
@@ -855,12 +857,12 @@ namespace TableDependency.SqlClient
         {
             var columns = tableColumns.Select(tableColumn =>
             {
-                if (tableColumn.Type == "timestamp")
+                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
                 {
                     return $"[{tableColumn.Name}] binary(8)";
                 }
 
-                if (tableColumn.Type == "rowversion")
+                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
                 {
                     return $"[{tableColumn.Name}] varbinary(8)";
                 }
@@ -933,27 +935,31 @@ namespace TableDependency.SqlClient
 
         private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
-            switch (dataType.ToUpperInvariant())
+            if (
+                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(dataType.ToUpperInvariant(), "VARBINARY", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "CHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "NCHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "VARCHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "NVARCHAR", StringComparison.OrdinalIgnoreCase))
             {
-                case "BINARY":
-                case "VARBINARY":
-                case "CHAR":
-                case "NCHAR":
-                case "VARCHAR":
-                case "NVARCHAR":
-                    return characterMaximumLength == "-1" ? Max : characterMaximumLength;
-
-                case "DECIMAL":
-                    return $"{numericPrecision},{numericScale}";
-
-                case "DATETIME2":
-                case "DATETIMEOFFSET":
-                case "TIME":
-                    return $"{dateTimePrecisione}";
-
-                default:
-                    return null;
+                return characterMaximumLength == "-1" ? Max : characterMaximumLength;
             }
+
+            if (string.Equals(dataType.ToUpperInvariant(), "DECIMAL", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{numericPrecision},{numericScale}";
+            }
+
+            if (
+                string.Equals(dataType.ToUpperInvariant(), "DATETIME2", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "TIME", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{dateTimePrecisione}";
+            }
+
+            return null;
         }
 
         private IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString)
@@ -986,9 +992,9 @@ namespace TableDependency.SqlClient
 
             if (this._mapper.Count() < 1) throw new ModelToTableMapperException();
 
-            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLower()).ToList();
+            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
 
-            if (this._mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLower())))
+            if (this._mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
             {
                 throw new ModelToTableMapperException();
             }
@@ -999,7 +1005,15 @@ namespace TableDependency.SqlClient
             var checkIfUserInterestedColumnsCanBeManaged = tableColumnsToUse as ColumnInfo[] ?? tableColumnsToUse.ToArray();
             foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
             {
-                if (tableColumn.Type.ToUpperInvariant() == "IMAGE" || tableColumn.Type.ToUpperInvariant() == "TEXT" || tableColumn.Type.ToUpperInvariant() == "NTEXT" || tableColumn.Type.ToUpperInvariant() == "STRUCTURED" || tableColumn.Type.ToUpperInvariant() == "GEOGRAPHY" || tableColumn.Type.ToUpperInvariant() == "GEOMETRY" || tableColumn.Type.ToUpperInvariant() == "HIERARCHYID" || tableColumn.Type.ToUpperInvariant() == "SQL_VARIANT")
+                if (
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "IMAGE", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "TEXT", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "NTEXT", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "STRUCTURED", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOGRAPHY", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOMETRY", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "HIERARCHYID", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "SQL_VARIANT", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for SqlTableDependency.");
                 }
@@ -1010,12 +1024,12 @@ namespace TableDependency.SqlClient
 
         private static string ConvertFormat(ColumnInfo userInterestedColumn)
         {
-            return (userInterestedColumn.Type == "datetime" || userInterestedColumn.Type == "date") ? ", 121" : string.Empty;
+            return (string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase)) ? ", 121" : string.Empty;
         }
 
         private static string ConvertValueByType(ColumnInfo userInterestedColumn)
         {
-            if (userInterestedColumn.Type == "binary" || userInterestedColumn.Type == "varbinary" || userInterestedColumn.Type == "timestamp")
+            if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
             {
                 return $"@{userInterestedColumn.Name.Replace(Space, string.Empty)}";
             }
@@ -1042,7 +1056,7 @@ namespace TableDependency.SqlClient
 
         private static string PrepareDeclareVariableStatement(IEnumerable<ColumnInfo> userInterestedColumns)
         {
-            var colonne = (from insterestedColumn in userInterestedColumns let variableName = insterestedColumn.Name.Replace(Space, string.Empty) let variableType = $"{insterestedColumn.Type.ToUpper()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size) ? string.Empty : $"({insterestedColumn.Size})") select $"DECLARE @{variableName} {variableType.ToUpper()}").ToList();
+            var colonne = (from insterestedColumn in userInterestedColumns let variableName = insterestedColumn.Name.Replace(Space, string.Empty) let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size) ? string.Empty : $"({insterestedColumn.Size})") select $"DECLARE @{variableName} {variableType.ToLowerInvariant()}").ToList();
             return string.Join(Environment.NewLine, colonne);
         }
 
@@ -1159,7 +1173,7 @@ namespace TableDependency.SqlClient
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (string.Equals(tableColumn.Name.ToLower(), propertyName.ToLower(), StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
                     {
                         if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {
@@ -1187,8 +1201,8 @@ namespace TableDependency.SqlClient
                 throw new UpdateOfException("updateOf parameter contains a null or empty value.");
             }
 
-            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLower()).ToList();
-            foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLower())))
+            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
+            foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLowerInvariant())))
             {
                 throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' specified in updateOf list does not exists.");
             }

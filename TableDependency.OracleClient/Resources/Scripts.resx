@@ -188,11 +188,11 @@ BEGIN
       {7}
     ELSIF UPDATING THEN
       IF {14} THEN 
-        RETURN;
+            RETURN;      
+      ELSE
+            dmlType := '{8}';
+            {9}    
       END IF;
-      
-      dmlType := '{8}';
-      {9}    
     ELSIF DELETING THEN 
       dmlType := '{10}';
       {11}

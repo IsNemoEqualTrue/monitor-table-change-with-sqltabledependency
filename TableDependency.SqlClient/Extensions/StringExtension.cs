@@ -31,7 +31,7 @@ namespace TableDependency.SqlClient.Extensions
     {
         public static string ConvertNumericType(this string type)
         {
-            return type.ToLower() == "numeric" ? "decimal" : type;
+            return string.Equals(type.ToLowerInvariant(), "numeric", StringComparison.OrdinalIgnoreCase) ? "decimal" : type.ToLowerInvariant();
         }
 
         public static bool? ToBoolean(this string str)

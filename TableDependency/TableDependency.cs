@@ -103,7 +103,7 @@ namespace TableDependency
         /// <value>
         /// The TableDependencyStatus enumeration status.
         /// </value>
-        public TableDependencyStatus Status => this._status;
+        public TableDependencyStatus Status => _status;
 
         /// <summary>
         /// Gets name of the table.
@@ -111,7 +111,7 @@ namespace TableDependency
         /// <value>
         /// The name of the table.
         /// </value>
-        public string TableName => this._tableName;
+        public string TableName => _tableName;
 
         /// <summary>
         /// Gets or sets the name of the schema.
@@ -119,7 +119,7 @@ namespace TableDependency
         /// <value>
         /// The name of the schema.
         /// </value>
-        public string SchemaName => this._schemaName;
+        public string SchemaName => _schemaName;
 
         #endregion
 
@@ -144,9 +144,9 @@ namespace TableDependency
                 return;
             }
 
-            this._processableMessages = this._needsToCreateDatabaseObjects
-                ? this.CreateDatabaseObjects(this._connectionString, this._tableName, this._dataBaseObjectsNamingConvention, this._userInterestedColumns, this._updateOf, timeOut, watchDogTimeOut)
-                : this.RetrieveProcessableMessages(this._userInterestedColumns, this._dataBaseObjectsNamingConvention);
+            _processableMessages = _needsToCreateDatabaseObjects
+                ? this.CreateDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut)
+                : this.RetrieveProcessableMessages(_userInterestedColumns, _dataBaseObjectsNamingConvention);
         }
 
         /// <summary>

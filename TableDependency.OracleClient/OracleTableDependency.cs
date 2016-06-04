@@ -441,7 +441,7 @@ namespace TableDependency.OracleClient
                         var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
                         var enqueueEndMessage = PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
-                        var triggerOnlyValueChangeCondition = string.Join(" AND ", userInterestedColumns.Select(c => ":OLD." + c.Name + " = :NEW." + c.Name));
+                        var triggerOnlyValueChangeCondition = this.PrepareEventOnlyWhenAnyValueChangedCondition(userInterestedColumns);
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
@@ -479,6 +479,25 @@ namespace TableDependency.OracleClient
             Debug.WriteLine($"OracleTableDependency: Database objects created with naming {dataBaseObjectsNamingConvention}.");
 
             return RetrieveProcessableMessages(userInterestedColumns, dataBaseObjectsNamingConvention);
+        }
+
+        private string PrepareEventOnlyWhenAnyValueChangedCondition(IEnumerable<ColumnInfo> userInterestedColumns)
+        {
+            var conditions = new List<string>();
+
+            foreach (var userInterestedColumn in userInterestedColumns)
+            {
+                if (userInterestedColumn.Type.ToUpper() == "XMLTYPE")
+                {
+                    conditions.Add("DBMS_LOB.COMPARE(:OLD." + userInterestedColumn.Name + ".GETCLOBVAL(), :NEW." + userInterestedColumn.Name + ".GETCLOBVAL()) = 0");
+                }
+                else
+                {
+                    conditions.Add(":OLD." + userInterestedColumn.Name + " = :NEW." + userInterestedColumn.Name);
+                }
+            }
+
+            return string.Join(" AND ", conditions);
         }
 
         protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
@@ -1006,9 +1025,9 @@ namespace TableDependency.OracleClient
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (string.Equals(tableColumn.Name.ToLower(), Quotes + propertyName.ToLower() + Quotes, StringComparison.CurrentCultureIgnoreCase))
+                    if (string.Equals(tableColumn.Name.ToLower(), Quotes + propertyName.ToLower() + Quotes, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (tableColumnsListFiltered.Any(ci => ci.Name.ToLower() == tableColumn.Name.ToLower()))
+                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {
                             throw new ModelToTableMapperException("Model with columns having same name.");
                         }
@@ -1089,16 +1108,6 @@ namespace TableDependency.OracleClient
             }
 
             return new ColumnInfo(Quotes + name + Quotes, type);
-        }
-
-        private static string ComposeSize(string type, string charLenght, string dataPrecision, string dataScale)
-        {
-            if (dataPrecision != "0")
-            {
-                return dataPrecision + "," + dataScale;
-            }
-
-            return charLenght;
         }
 
         private void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)

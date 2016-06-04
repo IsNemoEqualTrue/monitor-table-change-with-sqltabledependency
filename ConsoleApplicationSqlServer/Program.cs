@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace ConsoleApplicationSqlServer
@@ -27,9 +28,12 @@ namespace ConsoleApplicationSqlServer
         private static void Main()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-            DropAndCreateTable(connectionString);
+            //DropAndCreateTable(connectionString);
 
-            using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "[Customers]"))
+            var mapper = new ModelToTableMapper<_Guild>();
+            mapper.AddMapping(c => c.id, "ID");
+
+            using (var tableDependency = new SqlTableDependency<_Guild>(connectionString, "[_Guild]", mapper))
             {
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
@@ -47,7 +51,7 @@ namespace ConsoleApplicationSqlServer
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<_Guild> e)
         {
             Console.WriteLine(Environment.NewLine);
 
@@ -55,11 +59,9 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"ID: " + changedEntity.Id);
+                Console.WriteLine(@"id: " + changedEntity.id);
                 Console.WriteLine(@"Name: " + changedEntity.Name);
-                Console.WriteLine(@"Surname: " + changedEntity.Surname);
-                Console.WriteLine(@"BirthDay: " + changedEntity.BirthDay);
-                Console.WriteLine(@"Salary: " + changedEntity.Salary);
+                Console.WriteLine(@"GatheredSP: " + changedEntity.GatheredSP);
             }
         }
     }
