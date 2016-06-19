@@ -7,7 +7,7 @@ using Oracle.ManagedDataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
-using TableDependency.SqlClient;
+using TableDependency.OracleClient;
 
 namespace TableDependency.IntegrationTest
 {
@@ -62,8 +62,8 @@ namespace TableDependency.IntegrationTest
             _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);
             Thread.Sleep(4 * 60 * 1000);
             var status = otherDomainObject.GetTableDependencyStatus();
-            AppDomain.Unload(domain);
             Thread.Sleep(3 * 60 * 1000);
+            AppDomain.Unload(domain);
 
             Assert.IsTrue(status != TableDependencyStatus.StoppedDueToError && status != TableDependencyStatus.StoppedDueToCancellation);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
@@ -71,16 +71,19 @@ namespace TableDependency.IntegrationTest
 
         public class RunsInAnotherAppDomainNoMessageOrc : MarshalByRefObject
         {
-            SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel> _tableDependency = null;
+            OracleTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel> _tableDependency = null;
 
             public TableDependencyStatus GetTableDependencyStatus()
             {
-                return this._tableDependency.Status;
+                var status = this._tableDependency.Status;
+                this._tableDependency.Stop();
+                this._tableDependency.Dispose();
+                return status;
             }
 
             public string RunTableDependency(string connectionString, string tableName)
             {
-                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>(connectionString, tableName);
+                this._tableDependency = new OracleTableDependency<NoProblemDurignCommandTimeoutForNoMessagesTestOracleModel>(connectionString, tableName);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
                 return this._tableDependency.DataBaseObjectsNamingConvention;

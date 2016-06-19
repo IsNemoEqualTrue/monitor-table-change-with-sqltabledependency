@@ -20,19 +20,46 @@ namespace TableDependency.IntegrationTest
     public class GetMessageAfterRestartTestOracleTest
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
-        public static readonly string TableName = "AAA_AFTERRESTART".ToUpper();
-        public static string NamingToUse = "AAA_AFTER_RESTART";
+        public static readonly string TableName = "AAA_AFTERRESTART";
+        public static string NamingToUse = "AAFTER";
+
+        public static string ReverseString(string s)
+        {
+            char[] arr = s.ToCharArray();
+            Array.Reverse(arr);
+            return new string(arr);
+        }
+
+        static string GetColumnName(int index)
+        {
+            const string letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            var value = "";
+
+            if (index >= letters.Length)
+                value += letters[index / letters.Length - 1];
+
+            value += letters[index % letters.Length];
+
+            return value;
+        }
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
+            var random = ReverseString(DateTime.Now.Ticks.ToString());
+            NamingToUse += GetColumnName(Convert.ToUInt16(random.Substring(1, 1)));
+            NamingToUse += GetColumnName(Convert.ToUInt16(random.Substring(2, 1)));
+            NamingToUse += GetColumnName(Convert.ToUInt16(random.Substring(3, 1)));
+            NamingToUse += GetColumnName(Convert.ToUInt16(random.Substring(4, 1)));
+
             OracleHelper.DropTable(ConnectionString, TableName);
             using (var connection = new OracleConnection(ConnectionString))
             {
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = $"CREATE TABLE {TableName} (NAME VARCHAR2(50))";
+                    command.CommandText = $"CREATE TABLE {TableName} (NAME varchar2(50))";
                     command.ExecuteNonQuery();
                 }
             }
@@ -60,7 +87,7 @@ namespace TableDependency.IntegrationTest
                 connection.Open();
                 using (var sqlCommand = connection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO {TableName} (NAME) VALUES ('Valentina')";
+                    sqlCommand.CommandText = $"BEGIN INSERT INTO {TableName} (NAME) VALUES ('Valentina'); END;";
                     sqlCommand.ExecuteNonQuery();                    
                 }
             }
@@ -91,6 +118,7 @@ namespace TableDependency.IntegrationTest
             Thread.Sleep(1 * 60 * 1000);
             var checkValues = otherDomainObject.GetResult();
             otherDomainObject.DisposeTableDependency();
+            Thread.Sleep(1 * 60 * 1000);
             AppDomain.Unload(domain);
 
             var results = checkValues.Split(',');
@@ -127,6 +155,7 @@ namespace TableDependency.IntegrationTest
         public void DisposeTableDependency()
         {
             this.TableDependency.Stop();
+            this.TableDependency.Dispose();
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<GetMessageAfterRestartTestOracleModel> e)

@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.ManagedDataAccess.Client;
+using TableDependency.Enums;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
@@ -58,16 +59,26 @@ namespace TableDependency.IntegrationTest
             var domain = AppDomain.CreateDomain("AppDomainOracleCleannUpOracle", adevidence, domaininfo);
             var otherDomainObject = (AppDomainOracleCleannUpOracle)domain.CreateInstanceAndUnwrap(typeof(AppDomainOracleCleannUpOracle).Assembly.FullName, typeof(AppDomainOracleCleannUpOracle).FullName);
             var dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);
-            Thread.Sleep(1000);
+            Thread.Sleep(4 * 60 * 1000);
+            var status = otherDomainObject.GetTableDependencyStatus();
+            Thread.Sleep(3 * 60 * 1000);
             AppDomain.Unload(domain);
 
-            Thread.Sleep(3 * 60 * 1000);
+            Assert.IsTrue(status != TableDependencyStatus.StoppedDueToError && status != TableDependencyStatus.StoppedDueToCancellation);
             Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
         }
 
         public class AppDomainOracleCleannUpOracle : MarshalByRefObject
         {
             OracleTableDependency<DatabaseObjectCleanUpTestOracleModel> _tableDependency = null;
+
+            public TableDependencyStatus GetTableDependencyStatus()
+            {
+                var status = this._tableDependency.Status;
+                this._tableDependency.Stop();
+                this._tableDependency.Dispose();
+                return status;
+            }
 
             public string RunTableDependency(string connectionString, string tableName)
             {

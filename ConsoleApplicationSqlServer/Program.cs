@@ -10,31 +10,13 @@ namespace ConsoleApplicationSqlServer
 {
     class Program
     {
-        private static void DropAndCreateTable(string connectionString)
-        {
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = "IF OBJECT_ID('[Customers]', 'U') IS NOT NULL DROP TABLE [dbo].[Customers]";
-                    sqlCommand.ExecuteNonQuery();
-                    sqlCommand.CommandText = "CREATE TABLE [Customers]([Id] [VARCHAR](10) NOT NULL, [BirthDay] datetime NULL, [Salary] [float] NULL)";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
-        }
-
         private static void Main()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-            //DropAndCreateTable(connectionString);
 
-            var mapper = new ModelToTableMapper<_Guild>();
-            mapper.AddMapping(c => c.id, "ID");
-
-            using (var tableDependency = new SqlTableDependency<_Guild>(connectionString, "[_Guild]", mapper))
+            using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "Customer"))
             {
+                tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
 
@@ -46,12 +28,17 @@ namespace ConsoleApplicationSqlServer
             }
         }
 
+        private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            Console.WriteLine("----------> " + e.Status);
+        }
+
         private static void TableDependency_OnError(object sender, ErrorEventArgs e)
         {
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<_Guild> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
         {
             Console.WriteLine(Environment.NewLine);
 
@@ -59,9 +46,9 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"id: " + changedEntity.id);
+                Console.WriteLine(@"id: " + changedEntity.Id);
                 Console.WriteLine(@"Name: " + changedEntity.Name);
-                Console.WriteLine(@"GatheredSP: " + changedEntity.GatheredSP);
+                Console.WriteLine(@"Surname: " + changedEntity.Surname);
             }
         }
     }

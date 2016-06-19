@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -38,12 +39,12 @@ using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
 using TableDependency.Extensions;
-using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.Messages;
 using TableDependency.OracleClient.Enumerations;
 using TableDependency.OracleClient.EventArgs;
 using TableDependency.OracleClient.Exceptions;
+using TableDependency.OracleClient.Helpers;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
 
@@ -57,8 +58,6 @@ namespace TableDependency.OracleClient
         #region Private variables
 
         private const string Quotes = "\"";
-        private const string OracleDateFormat = "MM-DD-YYYY HH24:MI:SS";
-        private const string OracleDatespanFormat = "MM-DD-YYYY HH24:MI:SS.FF";
 
         #endregion
 
@@ -79,6 +78,11 @@ namespace TableDependency.OracleClient
         /// Occurs when the table content has been changed with an update, insert or delete operation.
         /// </summary>
         public override event ChangedEventHandler<T> OnChanged;
+
+        /// <summary>
+        /// Occurs when an status changes happen.
+        /// </summary>
+        public override event StatusEventHandler OnStatusChanged;
 
         #endregion
 
@@ -353,6 +357,8 @@ namespace TableDependency.OracleClient
 
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
+            var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
@@ -360,7 +366,7 @@ namespace TableDependency.OracleClient
                     _cancellationTokenSource.Token,
                     onChangedSubscribedList,
                     onErrorSubscribedList,
-                    OnStatusChanged,
+                    onStatusChangedSubscribedList,
                     _connectionString,
                     _dataBaseObjectsNamingConvention,
                     watchDogTimeOut,
@@ -371,7 +377,6 @@ namespace TableDependency.OracleClient
                     this.Encoding),
                 _cancellationTokenSource.Token);
 
-            _status = TableDependencyStatus.Starting;
             Debug.WriteLine("OracleTableDependency: Started waiting for notification.");
         }
 
@@ -636,12 +641,46 @@ namespace TableDependency.OracleClient
         {
             var messageType = $"'{dataBaseObjectsNamingConvention}/' || dmlType || '/{column.Name.Replace(Quotes, string.Empty)}'";
 
-            if (column.Type == "DATE") return PrepareEnqueueScriptForDate(column, messageType, dataBaseObjectsNamingConvention);
-            if (column.Type == "TIMESTAMP") return PrepareEnqueueScriptForTimeStamp(column, messageType, dataBaseObjectsNamingConvention);
-            if (column.Type == "XMLTYPE") return PrepareEnqueueScriptForXmlType(column, messageType, dataBaseObjectsNamingConvention);
-            if (column.Type == "RAW") return PrepareEnqueueScriptForRawType(column, messageType, dataBaseObjectsNamingConvention);
-            if (column.Type == "NVARCHAR" || column.Type == "NVARCHAR2" || column.Type == "VARCHAR" || column.Type == "VARCHAR2") return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
-            if (column.Type == "NCHAR" || column.Type == "CHAR") return PrepareEnqueueScriptForChar(column, messageType, dataBaseObjectsNamingConvention);
+            if (column.Type.Contains("TIMESTAMP") && column.Type.EndsWith("WITH TIME ZONE"))
+            {
+                return PrepareEnqueueScriptForTimeStampWithTimeZone(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type.Contains("TIMESTAMP") && column.Type.EndsWith("WITH LOCAL TIME ZONE"))
+            {
+                return PrepareEnqueueScriptForTimeStampWithLocalTimeZone(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type == "DATE")
+            {
+                return PrepareEnqueueScriptForDate(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type.Contains("TIMESTAMP"))
+            {
+                return PrepareEnqueueScriptForTimeStamp(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type == "XMLTYPE")
+            {
+                return PrepareEnqueueScriptForXmlType(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type == "RAW")
+            {
+                return PrepareEnqueueScriptForRawType(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type == "NVARCHAR" || column.Type == "NVARCHAR2" || column.Type == "VARCHAR" || column.Type == "VARCHAR2")
+            {
+                return PrepareEnqueueScriptForVarchar(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
+            if (column.Type == "NCHAR" || column.Type == "CHAR")
+            {
+                return PrepareEnqueueScriptForChar(column, messageType, dataBaseObjectsNamingConvention);
+            }
+
             return PrepareEnqueueScriptForOther(column, messageType, dataBaseObjectsNamingConvention);
         }
 
@@ -732,9 +771,35 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
+        private static string PrepareEnqueueScriptForTimeStampWithTimeZone(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{new DateTimeStampWithTimeZoneFormat().OracleFormat}')";
+            return
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"IF {variable} IS NOT NULL THEN" + Environment.NewLine +
+                $"  SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"  SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"  DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine +
+                $"END IF;" + Environment.NewLine;
+        }
+
+        private static string PrepareEnqueueScriptForTimeStampWithLocalTimeZone(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
+        {
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{new DateTimeStampWithLocalTimeZoneFormat().OracleFormat}')";
+            return
+                $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
+                $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
+                $"IF {variable} IS NOT NULL THEN" + Environment.NewLine +
+                $"  SELECT UTL_RAW.CAST_TO_RAW({variable}) INTO message_buffer FROM DUAL;" + Environment.NewLine +
+                $"  SELECT t.user_data.message INTO lob_loc FROM QT_{dataBaseObjectsNamingConvention} t WHERE t.msgid = message_handle;" + Environment.NewLine +
+                $"  DBMS_LOB.WRITE(lob_loc, UTL_RAW.LENGTH(message_buffer), 1, message_buffer);" + Environment.NewLine +
+                $"END IF;" + Environment.NewLine;
+        }
+
         private static string PrepareEnqueueScriptForTimeStamp(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
-            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{OracleDatespanFormat}')";
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{new DateStampFormat().OracleFormat}')";
             return
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
@@ -747,7 +812,8 @@ namespace TableDependency.OracleClient
 
         private static string PrepareEnqueueScriptForDate(ColumnInfo column, string messageType, string dataBaseObjectsNamingConvention)
         {
-            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{OracleDateFormat}')";
+            var variable = "TO_CHAR(v_" + column.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + $", '{new DateFormat().OracleFormat}')";
+
             return
                 $"message_content:= TYPE_{dataBaseObjectsNamingConvention}({messageType}, EMPTY_BLOB());" + Environment.NewLine +
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => message_content, msgid => message_handle);" + Environment.NewLine +
@@ -758,11 +824,11 @@ namespace TableDependency.OracleClient
                 $"END IF;" + Environment.NewLine;
         }
 
-        private async static Task WaitForNotifications(
+        private async Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
-            Action<TableDependencyStatus> setStatus,
+            Delegate[] onStatusChangedSubscribedList,
             string connectionString,
             string databaseObjectsNaming,
             int timeOutWatchDog,
@@ -772,7 +838,7 @@ namespace TableDependency.OracleClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding = null)
         {
-            setStatus(TableDependencyStatus.Started);
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
 
             var task = default(Task);
             var getQueueMessageCommand = default(OracleCommand);
@@ -800,7 +866,7 @@ namespace TableDependency.OracleClient
                                     getQueueMessageCommand.CommandTimeout = 0;
                                     getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
 
-                                    setStatus(TableDependencyStatus.WaitingForNotification);
+                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
 
                                     using (var reader = getQueueMessageCommand.ExecuteReader(CommandBehavior.CloseConnection))
                                     {
@@ -815,6 +881,7 @@ namespace TableDependency.OracleClient
                                                 if (messageStatus == MessagesBagStatus.Closed)
                                                 {
                                                     newMessageReadyToBeNotified = true;
+                                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
                                                     break;
                                                 }
                                             }
@@ -826,8 +893,9 @@ namespace TableDependency.OracleClient
                             if (newMessageReadyToBeNotified)
                             {
                                 newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);                                
                                 transactionScope.Complete();
+                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
                             }
                         }
                     }, cancellationToken);
@@ -837,12 +905,12 @@ namespace TableDependency.OracleClient
             }
             catch (OperationCanceledException)
             {
-                setStatus(TableDependencyStatus.StoppedDueToCancellation);
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToCancellation);
                 Debug.WriteLine("OracleTableDependency: Operation canceled.");
             }
             catch (Exception exception)
             {
-                setStatus(TableDependencyStatus.StoppedDueToError);
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToError);
                 Debug.WriteLine("OracleTableDependency: Exception " + exception.Message + ".");
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
             }
@@ -911,22 +979,6 @@ namespace TableDependency.OracleClient
             }
         }
 
-        private void OnStatusChanged(TableDependencyStatus status)
-        {
-            _status = status;
-        }
-
-        private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
-        {
-            if (onErrorSubscribedList != null)
-            {
-                foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
-                {
-                    dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
-                }
-            }
-        }
-
         private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (delegates == null) return;
@@ -950,7 +1002,7 @@ namespace TableDependency.OracleClient
             var privilegesTable = new DataTable();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = $"SELECT * FROM SESSION_PRIVS WHERE PRIVILEGE LIKE ('CREATE%') OR PRIVILEGE LIKE('DROP%')";
+                command.CommandText = "SELECT * FROM SESSION_PRIVS WHERE PRIVILEGE LIKE ('CREATE%') OR PRIVILEGE LIKE('DROP%')";
                 privilegesTable.Load(command.ExecuteReader());
             }
 
@@ -964,7 +1016,7 @@ namespace TableDependency.OracleClient
             var grantTable = new DataTable();
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = $"SELECT DISTINCT ALL_TAB_PRIVS.TABLE_NAME FROM ALL_TAB_PRIVS WHERE (TABLE_NAME = 'DBMS_AQADM' OR TABLE_NAME = 'DBMS_AQ' OR TABLE_NAME = 'DBMS_SCHEDULER') AND PRIVILEGE = 'EXECUTE' AND GRANTEE IN (SELECT USER FROM DUAL)";
+                command.CommandText = "SELECT DISTINCT ALL_TAB_PRIVS.TABLE_NAME FROM ALL_TAB_PRIVS WHERE (TABLE_NAME = 'DBMS_AQADM' OR TABLE_NAME = 'DBMS_AQ' OR TABLE_NAME = 'DBMS_SCHEDULER') AND PRIVILEGE = 'EXECUTE' AND GRANTEE IN (SELECT USER FROM DUAL)";
                 grantTable.Load(command.ExecuteReader());
             }
 
@@ -1006,8 +1058,7 @@ namespace TableDependency.OracleClient
                     tableColumn.Type.ToUpper() == "NLOB" ||
                     // {"ORA-04093: references to columns of type LONG are not allowed in triggers"}
                     tableColumn.Type.ToUpper() == "LONG ROW" ||
-                    tableColumn.Type.ToUpper() == "LONG" ||
-                    tableColumn.Type.ToUpper().EndsWith("WITH TIME ZONE")) throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for OracleTableDependency.");
+                    tableColumn.Type.ToUpper() == "LONG") throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for OracleTableDependency.");
             }
 
             return tableColumnsToUse;

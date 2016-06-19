@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,21 +68,21 @@ namespace TableDependency.Messages
 
         internal MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
-            if (rawMessageType == this._startMessageSignature)
+            if (rawMessageType == _startMessageSignature)
             {
                 this.MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue));
                 this.MessageSheets.Clear();
                 return (this.Status = MessagesBagStatus.Open);
             }
 
-            if (rawMessageType == this._endMessageSignature)
+            if (rawMessageType == _endMessageSignature)
             {
                 if ((ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue)) != this.MessageType) throw new DataMisalignedException();
                 return (this.Status = MessagesBagStatus.Closed);
             }
 
-            if (this.Status == MessagesBagStatus.Closed) throw new MessageMisalignedException("Envelop already closed!");
-            if (this.MessageType != GetMessageType(rawMessageType)) throw new MessageMisalignedException();
+            if (this.Status == MessagesBagStatus.Closed) throw new MessageMisalignedException("Envelop already closed.");
+            if (this.MessageType != GetMessageType(rawMessageType)) throw new InvalidMessageTypeException(rawMessageType, this.MessageType);
 
             this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
 
@@ -96,11 +97,11 @@ namespace TableDependency.Messages
         {
             var messageChunk = rawMessageType.Split('/');
 
-            if (messageChunk[1] == ChangeType.Delete.ToString())
+            if (string.Compare(messageChunk[1], ChangeType.Delete.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Delete;
-            if (messageChunk[1] == ChangeType.Insert.ToString())
+            if (string.Compare(messageChunk[1], ChangeType.Insert.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Insert;
-            if (messageChunk[1] == ChangeType.Update.ToString())
+            if (string.Compare(messageChunk[1], ChangeType.Update.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Update;
 
             return ChangeType.None;

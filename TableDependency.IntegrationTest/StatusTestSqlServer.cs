@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
@@ -26,6 +28,7 @@ namespace TableDependency.IntegrationTest
         private SqlTableDependency<StatusTestSqlServerModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "StatusCheckTest";
+        private static IDictionary<TableDependencyStatus, bool> statuses = new Dictionary<TableDependencyStatus, bool>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -52,6 +55,12 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
+            statuses.Add(TableDependencyStatus.Starting, false);
+            statuses.Add(TableDependencyStatus.Started, false);
+            statuses.Add(TableDependencyStatus.WaitingForNotification, false);
+            statuses.Add(TableDependencyStatus.MessageReadyToBeNotified, false);
+            statuses.Add(TableDependencyStatus.MessageSent, false);
+            statuses.Add(TableDependencyStatus.StoppedDueToCancellation, false);
         }
 
         [ClassCleanup()]
@@ -79,8 +88,7 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Surname, "Second Name");
                 this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionString, TableName, mapper);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
-
-                Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForStart);
+                this._tableDependency.OnStatusChanged += this.TableDependency_OnStatusChanged;
 
                 this._tableDependency.Start();
 
@@ -91,7 +99,11 @@ namespace TableDependency.IntegrationTest
                 t.Wait(20000);
 
                 this._tableDependency.Stop();
-                Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.StoppedDueToCancellation);
+
+                foreach (var status in statuses)
+                {
+                    Assert.IsTrue(statuses[status.Key] == true);
+                }                
             }
             finally
             {
@@ -99,9 +111,15 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        private void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            statuses[e.Status] = true;
+            Assert.IsTrue(e.Status == this._tableDependency.Status);
+        }
+
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestSqlServerModel> e)
         {
-            Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification);
+            
         }
 
         private static void ModifyTableContent()

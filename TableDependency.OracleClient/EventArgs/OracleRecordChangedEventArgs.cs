@@ -23,17 +23,18 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using Oracle.ManagedDataAccess.Types;
+
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Oracle.ManagedDataAccess.Types;
 using TableDependency.Classes;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.Messages;
+using TableDependency.OracleClient.Helpers;
 
 namespace TableDependency.OracleClient.EventArgs
 {
@@ -41,6 +42,10 @@ namespace TableDependency.OracleClient.EventArgs
     {
         #region Instance variables
 
+        private DateTimeStampWithLocalTimeZoneFormat _dateTimeStampWithLocalTimeZoneFormat = new DateTimeStampWithLocalTimeZoneFormat();
+        private DateTimeStampWithTimeZoneFormat _dateTimeStampWithTimeZoneFormat = new DateTimeStampWithTimeZoneFormat();
+        private DateStampFormat _dateStampFormat = new DateStampFormat();
+        private DateFormat _dateFormat = new DateFormat();
         private const string QUOTES = "\"";
 
         #endregion
@@ -67,78 +72,130 @@ namespace TableDependency.OracleClient.EventArgs
         /// The length of a CHAR column is fixed to the length that you declare when you create the table.
         /// When CHAR values are stored, they are right-padded with spaces to the specified length. 
         /// When CHAR values are retrieved, trailing spaces are removed unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled. 
+        /// 
+        /// Datetime Datatypes:
+        /// - DATE
+        /// - TIMESTAMP
+        /// - TIMESTAMP WITH TIME ZONE
+        /// - TIMESTAMP WITH LOCAL TIME ZONE
         /// </remarks>
+        /// <see cref="http://msdn.microsoft.com/en-us/library/yk72thhd%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396"/>
+        /// <see cref="http://docs.oracle.com/cd/B19306_01/server.102/b14225/ch4datetime.htm#i1006169"/>
         /// <see cref="http://msdn.microsoft.com/en-us/library/8kb3ddd4%28v=vs.110%29.aspx"/>
         internal override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
-            object value = null;
+            if (message == null || message.Length == 0) return null;
 
-            if (message != null)
+            var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture);
+            if (string.IsNullOrWhiteSpace(stringValue)) return entityPropertyInfo.GetType().IsValueType ? Activator.CreateInstance(entityPropertyInfo.GetType()) : null;
+
+            if (columnInfo.Type == "DATE")
             {
-                var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture);
-                if(string.IsNullOrWhiteSpace(stringValue)) return entityPropertyInfo.GetType().IsValueType ? Activator.CreateInstance(entityPropertyInfo.GetType()) : null;
-                
-
-                // DATE
-                if (columnInfo.Type == "DATE")
-                {
-                    return DateTime.ParseExact(stringValue, "MM-dd-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-                }
-
-                // INTERVAL YEAR(n) TO MONTH
-                if (columnInfo.Type.StartsWith("INTERVAL YEAR"))
-                {
-                    return new OracleIntervalYM(stringValue).Value;
-                }
-
-                // INTERVAL DAY(n) TO SECOND(n)
-                if (columnInfo.Type.StartsWith("INTERVAL DAY"))
-                {
-                    int tempInt;
-                    var dts = (OracleIntervalDS)stringValue;
-                    tempInt = int.TryParse(dts.Milliseconds.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
-                    return new TimeSpan(dts.Days, dts.Hours, dts.Minutes, dts.Seconds, tempInt);
-                }
-
-                // TIMESTAMP(n) WITH TIME ZONE
-                if (columnInfo.Type.EndsWith("WITH LOCAL TIME ZONE"))                    
-                {
-                    DateTime result;
-                    if (DateTime.TryParseExact(stringValue, "dd-MMM-yy hh.mm.ss.fffffff00 tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out result)) return result;
-                    return default(DateTime);
-                }
-
-                // TIMESTAMP(n)
-                if (columnInfo.Type.StartsWith("TIMESTAMP"))
-                {
-                    DateTime result;
-                    if (DateTime.TryParseExact(stringValue, "dd-MMM-yy hh.mm.ss.fffffff00 tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out result)) return result;
-                    return default(DateTime);
-                }
-
-                // XMLTYPE
-                if (columnInfo.Type.StartsWith("XMLTYPE"))
-                {
-                    return stringValue;
-                }
-                // RAW
-                if(columnInfo.Type.StartsWith("RAW"))
-                {
-                    return message;
-                }
-
-                // NCHAR & CHAR
-                if (columnInfo.Type == "NCHAR" || columnInfo.Type == "CHAR")
-                {
-                    return stringValue.ToCharArray();
-                }
-
-                value = TypeDescriptor
-                    .GetConverter(entityPropertyInfo.PropertyType)
-                    .ConvertFromString(null, culture: CultureInfo.CurrentCulture, text: this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
+                DateTime result;
+                return DateTime.TryParseExact(stringValue, _dateFormat.NetFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? result : default(DateTime);
             }
 
-            return value;
+            if (columnInfo.Type.EndsWith("WITH TIME ZONE"))
+            {
+                DateTimeOffset result;
+                stringValue = this.NormalizeNumberOfMilliseconds(stringValue, _dateTimeStampWithTimeZoneFormat.NetTimeZoneFormat);
+                return DateTimeOffset.TryParseExact(stringValue, _dateTimeStampWithTimeZoneFormat.NetFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? result : default(DateTimeOffset);
+            }
+
+            if (columnInfo.Type.EndsWith("WITH LOCAL TIME ZONE"))
+            {
+                DateTime result;
+                stringValue = this.NormalizeNumberOfMilliseconds(stringValue);
+                return DateTime.TryParseExact(stringValue, _dateTimeStampWithLocalTimeZoneFormat.NetFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? result : default(DateTime);
+            }
+
+            if (columnInfo.Type.StartsWith("INTERVAL YEAR"))
+            {
+                return new OracleIntervalYM(stringValue).Value;
+            }
+
+            if (columnInfo.Type.StartsWith("INTERVAL DAY"))
+            {
+                int tempInt;
+                var dts = (OracleIntervalDS)stringValue;
+                tempInt = int.TryParse(dts.Milliseconds.ToString("000").Substring(0, 3), out tempInt) ? tempInt : 0;
+                return new TimeSpan(dts.Days, dts.Hours, dts.Minutes, dts.Seconds, tempInt);
+            }
+
+            if (columnInfo.Type.StartsWith("TIMESTAMP"))
+            {
+                DateTime result;
+                stringValue = this.NormalizeNumberOfMilliseconds(stringValue);
+                return DateTime.TryParseExact(stringValue, _dateStampFormat.NetFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result) ? result : default(DateTime);
+            }
+
+            if (columnInfo.Type.StartsWith("XMLTYPE"))
+            {
+                return stringValue;
+            }
+
+            if (columnInfo.Type.StartsWith("RAW"))
+            {
+                return message;
+            }
+
+            if (columnInfo.Type == "NCHAR" || columnInfo.Type == "CHAR")
+            {
+                return stringValue.ToCharArray();
+            }
+
+            //value = TypeDescriptor
+            //    .GetConverter(entityPropertyInfo.PropertyType)
+            //    .ConvertFromString(null, culture: CultureInfo.CurrentCulture, text: this.MessagesBag.Encoding.GetString(message).ToString(CultureInfo.CurrentCulture));
+
+            return base.GetValue(entityPropertyInfo, columnInfo, message);
+        }
+
+        private string NormalizeNumberOfMilliseconds(string value, string timeZone = null)
+        {
+            var dateTimeStamp = value.Trim();
+            var timeZoneValue = "+00:00";
+
+            if (!string.IsNullOrWhiteSpace(timeZone))
+            {
+                var signIndex = value.IndexOf('+');
+                if (signIndex != -1)
+                {
+                    timeZoneValue = value.Substring(signIndex).Trim();
+                    dateTimeStamp = value.Replace(timeZoneValue, string.Empty).Trim();
+                }
+
+                signIndex = value.IndexOf('-');
+                if (signIndex != -1)
+                {
+                    timeZoneValue = value.Substring(signIndex).Trim();
+                    dateTimeStamp = value.Replace(timeZoneValue, string.Empty).Trim();
+                }
+            }
+
+            var numberOfAdmittedMilliseconds = _dateStampFormat.NetFormat.Count(c => c == 'f');
+            var index = dateTimeStamp.LastIndexOf('.');
+            if (index != -1)
+            {
+                var numberOfMilliseconds = dateTimeStamp.Substring(index).Trim().Length;
+                if (numberOfMilliseconds != numberOfAdmittedMilliseconds)
+                {
+                    if (numberOfAdmittedMilliseconds < numberOfMilliseconds)
+                    {
+                        dateTimeStamp = dateTimeStamp.Substring(0, index + 1 + numberOfAdmittedMilliseconds);
+                    }
+                    else if (numberOfAdmittedMilliseconds > numberOfMilliseconds)
+                    {
+                        dateTimeStamp += new string('0', (numberOfAdmittedMilliseconds - numberOfMilliseconds) + 1);
+                    }
+                }
+            }
+            else
+            {
+                dateTimeStamp += "." + new string('0', numberOfAdmittedMilliseconds);
+            }
+
+            return (string.IsNullOrWhiteSpace(timeZone)) ? dateTimeStamp : dateTimeStamp + " " + timeZoneValue;
         }
 
         #endregion

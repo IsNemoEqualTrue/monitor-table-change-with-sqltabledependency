@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using TableDependency.Delegates;
 using TableDependency.Enums;
 
@@ -32,6 +33,7 @@ namespace TableDependency
     {
         event ChangedEventHandler<T> OnChanged;
         event ErrorEventHandler OnError;
+        event StatusEventHandler OnStatusChanged;
 
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
         void Stop();

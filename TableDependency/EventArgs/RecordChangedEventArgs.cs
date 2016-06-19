@@ -96,10 +96,10 @@ namespace TableDependency.EventArgs
 
         internal virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
-            var sqlServerStoringDataFormatCulture = new CultureInfo("en-US", false);
-            var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(sqlServerStoringDataFormatCulture);
+            var formatCulture = new CultureInfo("en-US", false);
+            var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(formatCulture);
             var typeDescriptor = TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType);
-            var result = typeDescriptor.ConvertFromString(context: null, culture: sqlServerStoringDataFormatCulture, text: stringValue);
+            var result = typeDescriptor.ConvertFromString(null, formatCulture, stringValue);
             return result;
         }
 

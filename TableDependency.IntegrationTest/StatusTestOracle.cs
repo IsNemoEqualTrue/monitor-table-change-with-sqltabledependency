@@ -8,6 +8,7 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.Oracle;
 using TableDependency.OracleClient;
+using System.Collections.Generic;
 
 namespace TableDependency.IntegrationTest
 {
@@ -26,11 +27,11 @@ namespace TableDependency.IntegrationTest
         private OracleTableDependency<StatusTestOracleModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString;
         private const string TableName = "AAA_StatusCheckTest";
+        private static IDictionary<TableDependencyStatus, bool> statuses = new Dictionary<TableDependencyStatus, bool>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
-        {
-           
+        {           
             OracleHelper.DropTable(ConnectionString, TableName);
 
             using (var connection = new OracleConnection(ConnectionString))
@@ -42,6 +43,17 @@ namespace TableDependency.IntegrationTest
                     command.ExecuteNonQuery();
                 }
             }
+        }
+
+        [TestInitialize()]
+        public void TestInitialize()
+        {
+            statuses.Add(TableDependencyStatus.Starting, false);
+            statuses.Add(TableDependencyStatus.Started, false);
+            statuses.Add(TableDependencyStatus.WaitingForNotification, false);
+            statuses.Add(TableDependencyStatus.MessageReadyToBeNotified, false);
+            statuses.Add(TableDependencyStatus.MessageSent, false);
+            statuses.Add(TableDependencyStatus.StoppedDueToCancellation, false);
         }
 
         [ClassCleanup()]
@@ -56,11 +68,9 @@ namespace TableDependency.IntegrationTest
         {
             try
             {
-
                 this._tableDependency = new OracleTableDependency<StatusTestOracleModel>(ConnectionString, TableName);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
-
-                Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForStart);
+                this._tableDependency.OnStatusChanged += _tableDependency_OnStatusChanged;
 
                 this._tableDependency.Start();
 
@@ -71,7 +81,11 @@ namespace TableDependency.IntegrationTest
                 t.Wait(20000);
 
                 this._tableDependency.Stop();
-                Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.StoppedDueToCancellation);
+
+                foreach (var status in statuses)
+                {
+                    Assert.IsTrue(statuses[status.Key] == true);
+                }
             }
             finally
             {
@@ -79,9 +93,15 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        private void _tableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            statuses[e.Status] = true;
+            Assert.IsTrue(e.Status == this._tableDependency.Status);
+        }
+
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestOracleModel> e)
         {
-            Assert.IsTrue(this._tableDependency.Status == TableDependencyStatus.WaitingForNotification);
+
         }
 
         private static void ModifyTableContent()

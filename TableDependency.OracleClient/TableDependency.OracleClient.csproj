@@ -45,10 +45,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\DateFormat.cs" />
     <Compile Include="Enumerations\OracleRequiredPermission.cs" />
     <Compile Include="EventArgs\OracleRecordChangedEventArgs.cs" />
     <Compile Include="Exceptions\UserWithNoGrantException.cs" />
     <Compile Include="Exceptions\UserWithNoPermissionException.cs" />
+    <Compile Include="Helpers\DateStampFormat.cs" />
+    <Compile Include="Helpers\DateTimeStampWithLocalTimeZoneFormat.cs" />
+    <Compile Include="Helpers\DateTimeStampWithTimeZoneFormat.cs" />
     <Compile Include="OracleTableDependency.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Scripts.Designer.cs">

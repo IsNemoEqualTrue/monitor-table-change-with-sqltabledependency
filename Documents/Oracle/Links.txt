@@ -1,0 +1,42 @@
+**********************************************************************************************
+ANYTYPE
+**********************************************************************************************
+http://www.oracle-developer.net/display.php?id=218
+https://oracle-base.com/articles/misc/anydata
+
+**********************************************************************************************
+BLOB
+**********************************************************************************************
+-- Copy current CLOB column to new BLOB column in Oracle
+http://stackoverflow.com/questions/11612181/copy-current-clob-column-to-new-blob-column-in-oracle
+
+https://community.oracle.com/thread/2368257?tstart=0
+https://www.toadworld.com/platforms/oracle/w/wiki/2691.dbms-lob-write
+https://community.oracle.com/thread/336220
+
+https://community.oracle.com/thread/1104894?tstart=0
+
+https://docs.oracle.com/cd/B10501_01/appdev.920/a96587/apexampl.htm
+http://www.acehints.com/2012/07/convert-oracle-varchar2-column-to-blob.html
+https://community.oracle.com/thread/15723
+https://www.toadworld.com/platforms/oracle/w/wiki/2660.dbms-lob-converttoblob
+
+**********************************************************************************************
+ERROR CODES
+**********************************************************************************************
+https://docs.oracle.com/cd/B19306_01/server.102/b14219/toc.htm
+
+**********************************************************************************************
+Returning a 'table' from a PL/SQL function
+**********************************************************************************************
+http://www.adp-gmbh.ch/ora/plsql/coll/return_table.html
+
+**********************************************************************************************
+Working with Message Groups
+**********************************************************************************************
+https://www.toadworld.com/platforms/oracle/w/wiki/726.oracle-aq-example-working-with-message-groups-oaq77
+
+**********************************************************************************************
+Datatype Limits
+**********************************************************************************************
+https://docs.oracle.com/cd/B28359_01/server.111/b28320/limits001.htm

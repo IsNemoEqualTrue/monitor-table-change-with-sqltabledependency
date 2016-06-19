@@ -23,15 +23,17 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 namespace TableDependency.Enums
 {
     public enum TableDependencyStatus
     {
-        None,
-        WaitingForStart,
+        None,        
         Starting,
         Started,
         WaitingForNotification,
+        MessageReadyToBeNotified,
+        MessageSent,
         StoppedDueToCancellation,
         StoppedDueToError
     }

@@ -23,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -35,6 +36,7 @@ using System.Threading.Tasks;
 using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
+using TableDependency.EventArgs;
 using TableDependency.Exceptions;
 using TableDependency.Mappers;
 
@@ -76,6 +78,11 @@ namespace TableDependency
         /// Occurs when the table content has been changed with an update, insert or delete operation.
         /// </summary>
         public abstract event ChangedEventHandler<T> OnChanged;
+
+        /// <summary>
+        /// Occurs when SqlTableDependency changes.
+        /// </summary>
+        public abstract event StatusEventHandler OnStatusChanged;
 
         #endregion
 
@@ -195,6 +202,29 @@ namespace TableDependency
 
         #region Protected methods
 
+        protected void NotifyListenersAboutStatus(Delegate[] onStatusChangedSubscribedList, TableDependencyStatus status)
+        {
+            _status = status;
+
+            if (onStatusChangedSubscribedList == null) return;
+
+            foreach (var dlg in onStatusChangedSubscribedList.Where(d => d != null))
+            {
+                dlg.Method.Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status) });
+            }
+        }
+
+        protected void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
+        {
+            if (onErrorSubscribedList != null)
+            {
+                foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
+                {
+                    dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
+                }
+            }
+        }
+
         protected abstract IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming);
 
         protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
@@ -219,7 +249,6 @@ namespace TableDependency
             _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention(namingConventionForDatabaseObjects);
             _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
             _dmlTriggerType = dmlTriggerType;
-            _status = TableDependencyStatus.WaitingForStart;
         }
 
         protected abstract IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf);
@@ -296,11 +325,6 @@ namespace TableDependency
             }
 
             return updateOfList;
-        }
-
-        protected virtual void CheckIfModelHasPropertiesWithSameName(ModelToTableMapper<T> mapper)
-        {
-            
         }
 
         #endregion

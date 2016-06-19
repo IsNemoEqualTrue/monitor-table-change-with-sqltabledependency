@@ -51,8 +51,6 @@ using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.Utilities;
-using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
-using ErrorEventHandler = TableDependency.Delegates.ErrorEventHandler;
 
 namespace TableDependency.SqlClient
 {
@@ -87,6 +85,11 @@ namespace TableDependency.SqlClient
         /// Occurs when the table content has been changed with an update, insert or delete operation.
         /// </summary>
         public override event ChangedEventHandler<T> OnChanged;
+
+        /// <summary>
+        /// Occurs when an status changes happen.
+        /// </summary>
+        public override event StatusEventHandler OnStatusChanged;
 
         #endregion
 
@@ -329,6 +332,8 @@ namespace TableDependency.SqlClient
 
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
+            var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
@@ -336,7 +341,7 @@ namespace TableDependency.SqlClient
                     _cancellationTokenSource.Token,
                     onChangedSubscribedList,
                     onErrorSubscribedList,
-                    OnStatusChanged,
+                    onStatusChangedSubscribedList,
                     _connectionString,
                     _schemaName,
                     _dataBaseObjectsNamingConvention,
@@ -347,10 +352,9 @@ namespace TableDependency.SqlClient
                     _mapper,
                     _automaticDatabaseObjectsTeardown,
                     _userInterestedColumns,
-                    this.Encoding),
+                    Encoding),
                 _cancellationTokenSource.Token);
-
-            this._status = TableDependencyStatus.Starting;
+            
             Debug.WriteLine("SqlTableDependency: Started waiting for notification.");
         }
 
@@ -723,11 +727,11 @@ namespace TableDependency.SqlClient
             return cultureInfo;
         }
 
-        private async static Task WaitForNotifications(
+        private async Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
-            Action<TableDependencyStatus> setStatus,
+            Delegate[] onStatusChangedSubscribedList,
             string connectionString,
             string schemaName,
             string databaseObjectsNaming,
@@ -740,7 +744,7 @@ namespace TableDependency.SqlClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding)
         {
-            setStatus(TableDependencyStatus.Started);
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
 
             //var cultureInfo = GetDbCulture(connectionString);
 
@@ -766,7 +770,7 @@ namespace TableDependency.SqlClient
                                     sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
                                     sqlCommand.CommandTimeout = 0;
 
-                                    setStatus(TableDependencyStatus.WaitingForNotification);
+                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
 
                                     using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                     {
@@ -787,6 +791,7 @@ namespace TableDependency.SqlClient
                                                 if (messageStatus == MessagesBagStatus.Closed)
                                                 {
                                                     newMessageReadyToBeNotified = true;
+                                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
                                                     break;
                                                 }
                                             }
@@ -798,8 +803,9 @@ namespace TableDependency.SqlClient
                             if (newMessageReadyToBeNotified)
                             {
                                 newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);                                
                                 transactionScope.Complete();
+                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
                             }
                         }
                         catch (Exception exception)
@@ -813,12 +819,12 @@ namespace TableDependency.SqlClient
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("SqlTableDependency: Operation canceled.");
-                setStatus(TableDependencyStatus.StoppedDueToCancellation);
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToCancellation);
             }
             catch (Exception exception)
             {
                 Debug.WriteLine("SqlTableDependency: Exception " + exception.Message + ".");
-                setStatus(TableDependencyStatus.StoppedDueToError);
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToError);
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
             }
         }
@@ -835,21 +841,6 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandTimeout = 0;
                     sqlCommand.ExecuteNonQuery();
                 }
-            }
-        }
-
-        private void OnStatusChanged(TableDependencyStatus status)
-        {
-            _status = status;
-        }
-
-        private static void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
-        {
-            if (onErrorSubscribedList == null) return;
-            
-            foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
-            {
-                dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
             }
         }
 
