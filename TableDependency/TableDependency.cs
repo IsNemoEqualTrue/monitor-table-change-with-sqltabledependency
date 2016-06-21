@@ -131,6 +131,36 @@ namespace TableDependency
 
         #endregion
 
+        #region Constructors
+
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            this.Check451FromRegistry();
+
+            _tableName = this.GetCandidateTableName(tableName);
+            _schemaName = this.GetCandidateSchemaName(tableName);
+
+            PreliminaryChecks(connectionString, _tableName);
+
+            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+        }
+
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            this.Check451FromRegistry();
+
+            _tableName = this.GetCandidateTableName(tableName);
+            _schemaName = this.GetCandidateSchemaName(tableName);
+
+            PreliminaryChecks(connectionString, _tableName);
+
+            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+        }
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -175,36 +205,6 @@ namespace TableDependency
             _disposed = true;
 
             Debug.WriteLine("OracleTableDependency: Stopped waiting for notification.");
-        }
-
-        #endregion
-
-        #region Constructors
-
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-        {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            this.Check451FromRegistry();
-
-            _tableName = this.GetCandidateTableName(tableName);
-            _schemaName = this.GetCandidateSchemaName(tableName);
-
-            PreliminaryChecks(connectionString, _tableName);
-
-            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
-        }
-
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-        {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            this.Check451FromRegistry();
-
-            _tableName = this.GetCandidateTableName(tableName);
-            _schemaName = this.GetCandidateSchemaName(tableName);
-
-            PreliminaryChecks(connectionString, _tableName);
-
-            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
         #endregion
