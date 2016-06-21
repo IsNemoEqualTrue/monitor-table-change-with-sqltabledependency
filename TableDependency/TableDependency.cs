@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
@@ -183,18 +184,26 @@ namespace TableDependency
         protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            this.Check451FromRegistry();
+
             _tableName = this.GetCandidateTableName(tableName);
             _schemaName = this.GetCandidateSchemaName(tableName);
+
             PreliminaryChecks(connectionString, _tableName);
+
             this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
         protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            this.Check451FromRegistry();
+
             _tableName = this.GetCandidateTableName(tableName);
             _schemaName = this.GetCandidateSchemaName(tableName);
+
             PreliminaryChecks(connectionString, _tableName);
+
             this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
@@ -325,6 +334,30 @@ namespace TableDependency
             }
 
             return updateOfList;
+        }
+
+        /// <summary>
+        /// Check .NET Framework versions by querying the registry in code (.NET Framework 4.5 and later)
+        /// </summary>
+        /// <remarks>
+        /// The existence of the Release DWORD indicates that the.NET Framework 4.5 or later has been installed on a computer.
+        /// The value of the keyword indicates the installed version. 
+        /// To check this keyword, use the OpenBaseKey and OpenSubKey methods of the Microsoft.Win32.RegistryKey class to access 
+        /// the Software\Microsoft\NET Framework Setup\NDP\v4\Full subkey under HKEY_LOCAL_MACHINE in the Windows registry.
+        /// </remarks>
+        /// <seealso cref="http://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx"/>
+        protected virtual void Check451FromRegistry()
+        {
+            using (var ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
+            {
+                if (ndpKey?.GetValue("Release") != null)
+                {
+                    var releaseKey = (int)ndpKey.GetValue("Release");
+                    if ((releaseKey >= 378675)) return;
+                }
+            }
+
+            throw new Net451Exception();
         }
 
         #endregion

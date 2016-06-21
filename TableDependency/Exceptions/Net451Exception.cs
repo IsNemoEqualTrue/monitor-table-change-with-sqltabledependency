@@ -29,10 +29,8 @@ using System;
 namespace TableDependency.Exceptions
 {
     [Serializable]
-    public class InvalidColumnNameException : TableDependencyException
+    public class Net451Exception : TableDependencyException
     {
-        protected internal InvalidColumnNameException(string tableName, string columName)
-            : base($"Does not exists any '{columName}' column name in table {tableName}.")
-        { }
+        protected internal Net451Exception() : base (".NET Framework 4.5.1 or later is mandatory.") { }
     }
 }
