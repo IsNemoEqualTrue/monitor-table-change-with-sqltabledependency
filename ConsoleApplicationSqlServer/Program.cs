@@ -22,9 +22,9 @@ namespace ConsoleApplicationSqlServer
                 //tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
-                tableDependency.TraceLevel = TraceLevel.Info;
-                //tableDependency.TraceListener = new TextWriterTraceListener(Console.Out);
-                tableDependency.TraceListener = new TextWriterTraceListener(File.Create("c:\\temp\\output.txt"));
+                tableDependency.TraceLevel = TraceLevel.Verbose;
+                tableDependency.TraceListener = new TextWriterTraceListener(Console.Out);
+                //tableDependency.TraceListener = new TextWriterTraceListener(File.Create("c:\\temp\\output.txt"));
 
                 tableDependency.Start();
                 Console.WriteLine(@"Waiting for receiving notifications...");
