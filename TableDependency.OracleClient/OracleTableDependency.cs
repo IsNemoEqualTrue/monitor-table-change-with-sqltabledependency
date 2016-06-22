@@ -907,10 +907,10 @@ namespace TableDependency.OracleClient
                     task.Wait(cancellationToken);
                 }
             }
-            catch (OperationCanceledException operationCanceledException)
+            catch (OperationCanceledException)
             {
                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToCancellation);
-                this.WriteTraceMessage(TraceLevel.Info, "Operation canceled.", operationCanceledException);
+                this.WriteTraceMessage(TraceLevel.Info, "Operation canceled.");
             }
             catch (Exception exception)
             {

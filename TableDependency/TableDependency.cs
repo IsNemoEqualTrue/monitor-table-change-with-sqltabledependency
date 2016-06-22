@@ -364,7 +364,7 @@ namespace TableDependency
             {
                 var messageToWrite = new StringBuilder(message);
                 if (exception != null) messageToWrite.Append(this.DumpException(exception));
-                this.TraceListener.WriteLine(_whoIAm + ": " + messageToWrite);
+                this.TraceListener.WriteLine("At " + DateTime.Now.ToString("o") + " " + _whoIAm + " says: " + messageToWrite);
                 this.TraceListener.Flush();
             }
         }
