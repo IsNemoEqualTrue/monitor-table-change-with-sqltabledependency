@@ -65,6 +65,7 @@ namespace TableDependency
         protected TableDependencyStatus _status;
         protected DmlTriggerType _dmlTriggerType;
         protected bool _disposed;
+        protected string _whoIAm;
 
         #endregion
 
@@ -88,6 +89,22 @@ namespace TableDependency
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// Gets or sets the trace switch.
+        /// </summary>
+        /// <value>
+        /// The trace switch.
+        /// </value>
+        public TraceLevel TraceLevel { get; set; }
+
+        /// <summary>
+        /// Gets or Sets the TraceListener.
+        /// </summary>
+        /// <value>
+        /// The logger.
+        /// </value>
+        public TraceListener TraceListener { get; set; }
 
         /// <summary>
         /// Gets or sets the encoding use to convert database strings.
@@ -133,29 +150,15 @@ namespace TableDependency
 
         #region Constructors
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string howIAm, string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            this.Check451FromRegistry();
-
-            _tableName = this.GetCandidateTableName(tableName);
-            _schemaName = this.GetCandidateSchemaName(tableName);
-
-            PreliminaryChecks(connectionString, _tableName);
-
+            this.TableDependencyCommonSettings(howIAm, connectionString, tableName);
             this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string howIAm, string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            this.Check451FromRegistry();
-
-            _tableName = this.GetCandidateTableName(tableName);
-            _schemaName = this.GetCandidateSchemaName(tableName);
-
-            PreliminaryChecks(connectionString, _tableName);
-
+            this.TableDependencyCommonSettings(howIAm, connectionString, tableName);
             this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
@@ -178,7 +181,7 @@ namespace TableDependency
 
             if (_task != null)
             {
-                Debug.WriteLine("SqlTableDependency: Already called Start() method.");
+                Trace.TraceInformation("Already called Start() method.");
                 return;
             }
 
@@ -204,7 +207,7 @@ namespace TableDependency
 
             _disposed = true;
 
-            Debug.WriteLine("OracleTableDependency: Stopped waiting for notification.");
+            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
         }
 
         #endregion
@@ -249,6 +252,8 @@ namespace TableDependency
                     throw new DmlTriggerTypeException("updateOf parameter can be specified only if DmlTriggerType parameter contains DmlTriggerType.Update too, not for DmlTriggerType.Delete or DmlTriggerType.Insert only.");
                 }
             }
+
+            this.TraceLevel = TraceLevel.Off;
 
             _connectionString = connectionString;
             _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
@@ -336,18 +341,9 @@ namespace TableDependency
             return updateOfList;
         }
 
-        /// <summary>
-        /// Check .NET Framework versions by querying the registry in code (.NET Framework 4.5 and later)
-        /// </summary>
-        /// <remarks>
-        /// The existence of the Release DWORD indicates that the.NET Framework 4.5 or later has been installed on a computer.
-        /// The value of the keyword indicates the installed version. 
-        /// To check this keyword, use the OpenBaseKey and OpenSubKey methods of the Microsoft.Win32.RegistryKey class to access 
-        /// the Software\Microsoft\NET Framework Setup\NDP\v4\Full subkey under HKEY_LOCAL_MACHINE in the Windows registry.
-        /// </remarks>
-        /// <seealso cref="http://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx"/>
         protected virtual void Check451FromRegistry()
         {
+            // http://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
             using (var ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
             {
                 if (ndpKey?.GetValue("Release") != null)
@@ -358,6 +354,71 @@ namespace TableDependency
             }
 
             throw new Net451Exception();
+        }
+
+        protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
+        {
+            if (this.TraceLevel <= TraceLevel.Off || this.TraceLevel >= TraceLevel.Verbose) return;
+
+            if (this.TraceLevel >= traceLevel)
+            {
+                var messageToWrite = new StringBuilder(message);
+                if (exception != null) messageToWrite.Append(this.DumpException(exception));
+                this.TraceListener.WriteLine(_whoIAm + ": " + messageToWrite);
+                this.TraceListener.Flush();
+            }
+        }
+
+        protected string DumpException(Exception exception)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine(Environment.NewLine);
+            sb.AppendLine("EXCEPTION:");
+            sb.AppendLine(exception.GetType().Name);
+            sb.AppendLine(exception.Message);
+            sb.AppendLine(exception.StackTrace);
+
+            var innerException = exception.InnerException;
+            if (innerException != null) AddInnerException(sb, innerException);
+
+            return sb.ToString();
+        }
+
+        private static void AddInnerException(StringBuilder sb, Exception exception)
+        {
+            while (true)
+            {
+                sb.AppendLine(Environment.NewLine);
+                sb.AppendLine("INNER EXCEPTION:");
+                sb.AppendLine(exception.GetType().Name);
+                sb.AppendLine(exception.Message);
+                sb.AppendLine(exception.StackTrace);
+
+                var innerException = exception.InnerException;
+                if (innerException != null)
+                {
+                    exception = innerException;
+                    continue;
+                }
+                break;
+            }
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private void TableDependencyCommonSettings(string howIAm, string connectionString, string tableName)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));            
+            this.Check451FromRegistry();
+
+            _tableName = this.GetCandidateTableName(tableName);
+            _schemaName = this.GetCandidateSchemaName(tableName);
+            _whoIAm = howIAm;
+
+            this.PreliminaryChecks(connectionString, _tableName);
         }
 
         #endregion
@@ -372,11 +433,20 @@ namespace TableDependency
 
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             if (disposing)
             {
                 Stop();
+
+                if (this.TraceListener != null)
+                {
+                    this.TraceListener.Close();
+                    this.TraceListener.Dispose();
+                }
             }
 
             _disposed = true;

@@ -24,6 +24,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System.Diagnostics;
+using System.Text;
 using TableDependency.Delegates;
 using TableDependency.Enums;
 
@@ -31,17 +33,31 @@ namespace TableDependency
 {
     public interface ITableDependency<T> where T : class
     {
+        #region Events
+
         event ChangedEventHandler<T> OnChanged;
         event ErrorEventHandler OnError;
         event StatusEventHandler OnStatusChanged;
 
+        #endregion
+
+        #region Methods
+
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
         void Stop();
 
-        TableDependencyStatus Status { get; }
-        string DataBaseObjectsNamingConvention { get; }
+        #endregion
 
+        #region Properties
+
+        TraceLevel TraceLevel { get; set; }
+        TraceListener TraceListener { get; set; }
+        TableDependencyStatus Status { get; }
+        Encoding Encoding { get; set; }
+        string DataBaseObjectsNamingConvention { get; }        
         string TableName { get; }
         string SchemaName { get; }
+
+        #endregion
     }
 }

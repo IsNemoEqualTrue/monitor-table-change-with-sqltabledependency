@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Diagnostics;
+using System.IO;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
+using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationSqlServer
 {
@@ -16,9 +19,12 @@ namespace ConsoleApplicationSqlServer
 
             using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "Customer"))
             {
-                tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
+                //tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
+                tableDependency.TraceLevel = TraceLevel.Info;
+                //tableDependency.TraceListener = new TextWriterTraceListener(Console.Out);
+                tableDependency.TraceListener = new TextWriterTraceListener(File.Create("c:\\temp\\output.txt"));
 
                 tableDependency.Start();
                 Console.WriteLine(@"Waiting for receiving notifications...");
@@ -30,7 +36,7 @@ namespace ConsoleApplicationSqlServer
 
         private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
         {
-            Console.WriteLine("----------> " + e.Status);
+            Console.WriteLine(@"Status: " + e.Status);
         }
 
         private static void TableDependency_OnError(object sender, ErrorEventArgs e)

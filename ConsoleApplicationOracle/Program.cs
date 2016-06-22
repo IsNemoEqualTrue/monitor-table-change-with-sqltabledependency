@@ -60,6 +60,7 @@ namespace ConsoleApplicationOracle
             using (var tableDependency = new OracleTableDependency<CurrentAlarmMonitor>(ConnectionString, TableName))
             {
                 tableDependency.OnChanged += Changed;
+                tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnError += tableDependency_OnError;
 
                 tableDependency.Start();
@@ -69,8 +70,14 @@ namespace ConsoleApplicationOracle
             }
         }
 
+        private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            Console.WriteLine(@"Status: " + e.Status);
+        }
+
         static void tableDependency_OnError(object sender, ErrorEventArgs e)
         {
+            Console.WriteLine("ERROR:");
             Console.WriteLine(e.Error.Message);
             Console.WriteLine(e.Error.StackTrace);
         }
