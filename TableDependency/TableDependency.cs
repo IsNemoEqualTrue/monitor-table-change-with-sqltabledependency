@@ -358,7 +358,8 @@ namespace TableDependency
 
         protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
         {
-            if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;
+            if (this.TraceListener == null) return;
+            if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;            
 
             if (this.TraceLevel >= traceLevel)
             {
