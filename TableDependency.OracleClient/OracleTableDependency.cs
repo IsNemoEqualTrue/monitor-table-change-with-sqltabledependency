@@ -356,6 +356,8 @@ namespace TableDependency.OracleClient
 
             base.Start(timeOut, watchDogTimeOut);
 
+            if (_automaticDatabaseObjectsTeardown) StartWatchDog(_connectionString, _dataBaseObjectsNamingConvention, watchDogTimeOut);
+
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
             var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
@@ -407,15 +409,23 @@ namespace TableDependency.OracleClient
                     {
                         command.CommandText = $"CREATE TYPE TYPE_{dataBaseObjectsNamingConvention} AS OBJECT(message_type VARCHAR2(100), message BLOB);";
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "TYPE created.");
+
                         command.CommandText = $"CREATE TYPE TBL_{dataBaseObjectsNamingConvention} IS TABLE OF TYPE_{dataBaseObjectsNamingConvention};";
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Table TYPE created.");
 
                         command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE_TABLE(queue_table=> 'QT_{dataBaseObjectsNamingConvention}', queue_payload_type=> 'TYPE_{dataBaseObjectsNamingConvention}', multiple_consumers => FALSE); END;";
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "QUEUE TABLE created.");
+
                         command.CommandText = $"BEGIN DBMS_AQADM.CREATE_QUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', queue_table => 'QT_{dataBaseObjectsNamingConvention}'); END;";
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "QUEUE created.");
+
                         command.CommandText = $"BEGIN DBMS_AQADM.START_QUEUE(queue_name=> 'QUE_{dataBaseObjectsNamingConvention}'); END;";
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "QUEUE started.");
 
                         var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + " " + c.Type + c.Size + ";"));
                         var startMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention);
@@ -450,12 +460,15 @@ namespace TableDependency.OracleClient
                             string.Join(" OR ", GetDmlTriggerType(_dmlTriggerType)),
                             triggerOnlyValueChangeCondition);
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
 
                         command.CommandText = string.Format(Scripts.CreateProcedureDequeueMessage, dataBaseObjectsNamingConvention, timeOut, userInterestedColumns.Count() + 2);
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Procedure for Dequeue Message created.");
 
                         command.CommandText = string.Format(Scripts.ScriptJobCreate, dataBaseObjectsNamingConvention, (timeOutWatchDog / 60), string.Format(Scripts.ScriptDropAll, dataBaseObjectsNamingConvention).Replace("'", "''"));
                         command.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Job created.");
                     }
                 }
             }

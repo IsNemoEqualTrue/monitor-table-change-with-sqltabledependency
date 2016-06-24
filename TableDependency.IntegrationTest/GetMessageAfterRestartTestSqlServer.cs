@@ -40,11 +40,6 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        [TestInitialize()]
-        public void TestInitialize()
-        {
-        }
-
         [ClassCleanup()]
         public static void ClassCleanup()
         {

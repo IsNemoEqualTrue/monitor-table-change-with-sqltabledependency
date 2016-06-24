@@ -65,7 +65,8 @@ namespace TableDependency.SqlClient
         private const string Comma = ",";
         private const string Space = " ";
         private const string MyName = "SqlTableDependency";
-        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;        
+        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
+        private Guid _dialogHandle;
 
         #endregion
 
@@ -328,8 +329,10 @@ namespace TableDependency.SqlClient
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (OnChanged == null) throw new NoSubscriberException();
-
+            
             base.Start(timeOut, watchDogTimeOut);
+            
+            if (_automaticDatabaseObjectsTeardown) RunBeginConversationTimer(_connectionString, _dialogHandle, watchDogTimeOut);
 
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
@@ -346,14 +349,14 @@ namespace TableDependency.SqlClient
                     _connectionString,
                     _schemaName,
                     _dataBaseObjectsNamingConvention,
-                    GetConversationHandle(_connectionString, _dataBaseObjectsNamingConvention),
+                    _dialogHandle,
                     timeOut,
                     watchDogTimeOut,
                     _processableMessages,
                     _mapper,
                     _automaticDatabaseObjectsTeardown,
                     _userInterestedColumns,
-                    Encoding),
+                    this.Encoding),
                 _cancellationTokenSource.Token);
 
             this.WriteTraceMessage(TraceLevel.Info, "Started waiting for notification.");
@@ -448,6 +451,8 @@ namespace TableDependency.SqlClient
                 processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Name}");
             }
 
+            _dialogHandle = GetConversationHandle(_connectionString, databaseObjectsNaming);
+
             return processableMessages;
         }
 
@@ -457,7 +462,11 @@ namespace TableDependency.SqlClient
             var columnsForTableVariable = PrepareColumnListForTableVariable(interestedColumns);
             var columnsForSelect = string.Join(Comma, interestedColumns.Select(c => $"[{c.Name}]").ToList());
             var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
-            return CreateDatabaseObjects(connectionString, tableName, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
+
+            var result = CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
+            _dialogHandle = GetConversationHandle(_connectionString, _dataBaseObjectsNamingConvention);
+
+            return result;
         }
 
         protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
@@ -574,7 +583,7 @@ namespace TableDependency.SqlClient
 
         #region Private methods
 
-        private IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns)
+        private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns)
         {
             var processableMessages = new List<string>();
 
@@ -593,6 +602,7 @@ namespace TableDependency.SqlClient
 
                         sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{endMessage}] VALIDATION = NONE";
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Message type created.");
 
                         processableMessages.Add(startMessage);
                         processableMessages.Add(endMessage);
@@ -611,23 +621,28 @@ namespace TableDependency.SqlClient
                             processableMessages.Add(insertMessage);
                             processableMessages.Add(updateMessage);
                         }
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Messages created.");
 
                         var contractBody = string.Join(Comma + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                         sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
                         var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName);
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName);
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
                         sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005 
                             ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
                             : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
 
                         sqlCommand.CommandText = $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Service created.");
 
                         var declareVariableStatement = PrepareDeclareVariableStatement(interestedColumns);
                         var selectForSetVariablesStatement = PrepareSelectForSetVarialbes(interestedColumns);
@@ -657,6 +672,7 @@ namespace TableDependency.SqlClient
                             string.Join(Comma, GetDmlTriggerType(_dmlTriggerType)));
 
                         sqlCommand.ExecuteNonQuery();
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
                     }
                 }
 
