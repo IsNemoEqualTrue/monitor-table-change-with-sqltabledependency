@@ -17,14 +17,14 @@ namespace ConsoleApplicationSqlServer
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
-            using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "Customer"))
+            var mapper = new ModelToTableMapper<SeatsAvailability>();
+            mapper.AddMapping(c => c.Seats, "SeatsAvailability");
+
+            using (var tableDependency = new SqlTableDependency<SeatsAvailability>(connectionString, "FlightBookings"))
             {
                 tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
-                tableDependency.TraceLevel = TraceLevel.Verbose;
-                tableDependency.TraceListener = new TextWriterTraceListener(Console.Out);
-                tableDependency.TraceListener = new TextWriterTraceListener(File.Create("c:\\temp\\output.txt"));
                 tableDependency.Start();
 
                 Console.WriteLine(@"Waiting for receiving notifications...");
@@ -44,7 +44,7 @@ namespace ConsoleApplicationSqlServer
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<SeatsAvailability> e)
         {
             Console.WriteLine(Environment.NewLine);
 
@@ -52,9 +52,9 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"id: " + changedEntity.Id);
-                Console.WriteLine(@"Name: " + changedEntity.Name);
-                Console.WriteLine(@"Surname: " + changedEntity.Surname);
+                Console.WriteLine(@"From: " + changedEntity.From);
+                Console.WriteLine(@"To: " + changedEntity.To);
+                Console.WriteLine(@"Seats free: " + changedEntity.Seats);
             }
         }
     }
