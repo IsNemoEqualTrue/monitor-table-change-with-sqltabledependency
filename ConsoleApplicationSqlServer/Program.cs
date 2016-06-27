@@ -30,6 +30,7 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"Waiting for receiving notifications...");
                 Console.WriteLine(@"Press a key to stop");
                 Console.ReadKey();
+
                 tableDependency.Stop();
             }
         }
