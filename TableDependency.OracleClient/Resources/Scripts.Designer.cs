@@ -103,11 +103,14 @@ namespace TableDependency.OracleClient.Resources {
         ///    message_buffer BLOB;
         ///    message_content TYPE_{0};
         ///    lob_loc BLOB;
-        ///    l_clob CLOB;
-        ///    messageStartInsert VARCHAR2(50) := &apos;{3}&apos;;
-        ///    messageStartUpdate VARCHAR2(50) := &apos;{4}&apos;;
-        ///    messageStartDelete VARCHAR2(50) := &apos;{5}&apos;;
-        ///    messageEnd VARCHAR [rest of string was truncated]&quot;;.
+        ///    l_clob CLOB;    
+        ///    messageEnd VARCHAR2(50) := &apos;{6}&apos;;
+        ///    messageStart VARCHAR2(50);
+        ///    dmlType VARCHAR2(50);
+        ///
+        ///    l_dest_offset integer;
+        ///    l_src_offset  integer;
+        ///    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {

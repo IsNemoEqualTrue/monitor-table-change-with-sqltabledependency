@@ -167,11 +167,9 @@ BEGIN
     message_buffer BLOB;
     message_content TYPE_{0};
     lob_loc BLOB;
-    l_clob CLOB;
-    messageStartInsert VARCHAR2(50) := '{3}';
-    messageStartUpdate VARCHAR2(50) := '{4}';
-    messageStartDelete VARCHAR2(50) := '{5}';
+    l_clob CLOB;    
     messageEnd VARCHAR2(50) := '{6}';
+    messageStart VARCHAR2(50);
     dmlType VARCHAR2(50);
 
     l_dest_offset integer;
@@ -180,23 +178,26 @@ BEGIN
     l_ctx integer;
     l_warn integer;
 
-    {5}
+    {7}
     
   BEGIN
     enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
      
     IF INSERTING THEN
       dmlType := '{8}';
+      messageStart := '{3}';
       {9}
     ELSIF UPDATING THEN
       IF {16} THEN 
             RETURN;      
       ELSE
             dmlType := '{10}';
+            messageStart := '{4}';
             {11}    
       END IF;
     ELSIF DELETING THEN 
       dmlType := '{12}';
+      messageStart := '{5}';
       {13}
     END IF;
        

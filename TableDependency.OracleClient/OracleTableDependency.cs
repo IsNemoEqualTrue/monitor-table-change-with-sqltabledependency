@@ -646,7 +646,7 @@ namespace TableDependency.OracleClient
 
         private string PrepareEnqueueScript(ColumnInfo column, string dataBaseObjectsNamingConvention)
         {
-            var messageType = $"'{dataBaseObjectsNamingConvention}/' || dmlType || '/{column.Name.Replace(Quotes, string.Empty)}'";
+            var messageType = $"'{dataBaseObjectsNamingConvention}/{column.Name.Replace(Quotes, string.Empty)}'";
 
             if (column.Type.Contains("TIMESTAMP") && column.Type.EndsWith("WITH TIME ZONE"))
             {
@@ -858,7 +858,6 @@ namespace TableDependency.OracleClient
                 {
                     if (automaticDatabaseObjectsTeardown)
                     {
-                        this.WriteTraceMessage(TraceLevel.Verbose, "WatchDog Starting.");
                         StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
                         this.WriteTraceMessage(TraceLevel.Verbose, "WatchDog Started.");
                     }
