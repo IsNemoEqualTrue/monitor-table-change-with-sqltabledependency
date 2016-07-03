@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+#region Usings
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -51,6 +52,9 @@ using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.Utilities;
+using IsolationLevel = System.Transactions.IsolationLevel;
+
+#endregion
 
 namespace TableDependency.SqlClient
 {
@@ -60,13 +64,12 @@ namespace TableDependency.SqlClient
     public class SqlTableDependency<T> : TableDependency<T> where T : class
     {
         #region Private variables
-       
+
         private const string Max = "MAX";
         private const string Comma = ",";
         private const string Space = " ";
         private const string MyName = "SqlTableDependency";
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
-        private Guid _dialogHandle;
 
         #endregion
 
@@ -329,15 +332,12 @@ namespace TableDependency.SqlClient
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (OnChanged == null) throw new NoSubscriberException();
-            
+
             base.Start(timeOut, watchDogTimeOut);
-            
-            if (_automaticDatabaseObjectsTeardown) RunBeginConversationTimer(_connectionString, _dialogHandle, watchDogTimeOut);
 
             var onChangedSubscribedList = OnChanged.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
             var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
-            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
@@ -349,9 +349,8 @@ namespace TableDependency.SqlClient
                     _connectionString,
                     _schemaName,
                     _dataBaseObjectsNamingConvention,
-                    _dialogHandle,
                     timeOut,
-                    watchDogTimeOut,
+                    watchDogTimeOut,                    
                     _processableMessages,
                     _mapper,
                     _automaticDatabaseObjectsTeardown,
@@ -364,7 +363,7 @@ namespace TableDependency.SqlClient
 
         #endregion
 
-        #region Protected methods        
+        #region Protected methods
 
         protected override string GetCandidateTableName(string tableName)
         {
@@ -388,7 +387,7 @@ namespace TableDependency.SqlClient
 
         protected override string GetCandidateSchemaName(string tableName)
         {
-            if(!string.IsNullOrWhiteSpace(tableName))
+            if (!string.IsNullOrWhiteSpace(tableName))
             {
                 if (tableName.Contains("."))
                 {
@@ -415,7 +414,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
 
                 var serverVersion = sqlConnection.ServerVersion;
-                var serverVersionDetails = serverVersion.Split(new[] {"."}, StringSplitOptions.None);
+                var serverVersionDetails = serverVersion.Split(new[] { "." }, StringSplitOptions.None);
 
                 var versionNumber = int.Parse(serverVersionDetails[0]);
                 if (versionNumber < 8) return SqlServerVersion.Unknown;
@@ -440,18 +439,13 @@ namespace TableDependency.SqlClient
         {
             var processableMessages = new List<string>
             {
-                string.Format(StartMessageTemplate, databaseObjectsNaming),
-                string.Format(EndMessageTemplate, databaseObjectsNaming)
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete),
+                SqlMessageTypes.EndDialogType
             };
 
-            foreach (var userInterestedColumn in userInterestedColumns)
-            {
-                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Name}");
-                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Name}");
-                processableMessages.Add($"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Name}");
-            }
-
-            _dialogHandle = GetConversationHandle(_connectionString, databaseObjectsNaming);
+            processableMessages.AddRange(userInterestedColumns.Select(userInterestedColumn => $"{databaseObjectsNaming}/{userInterestedColumn.Name}"));
 
             return processableMessages;
         }
@@ -463,10 +457,7 @@ namespace TableDependency.SqlClient
             var columnsForSelect = string.Join(Comma, interestedColumns.Select(c => $"[{c.Name}]").ToList());
             var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
 
-            var result = CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
-            _dialogHandle = GetConversationHandle(_connectionString, _dataBaseObjectsNamingConvention);
-
-            return result;
+            return CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf);
         }
 
         protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
@@ -508,27 +499,24 @@ namespace TableDependency.SqlClient
                     allObjectAlreadyPresent.Add($"SERVICE BROKER with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"select count(*) from sys.service_queues where name = N'{_dataBaseObjectsNamingConvention}'";
-                    allObjectAlreadyPresent.Add($"QUEUE with name N'{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
+                    allObjectAlreadyPresent.Add($"QUEUE with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     sqlCommand.CommandText = $"select count(*) from sys.service_contracts where name = N'{_dataBaseObjectsNamingConvention}'";
                     allObjectAlreadyPresent.Add($"CONTRACT with name '{_dataBaseObjectsNamingConvention}'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Insert) + "'";
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Insert) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
-                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'";
-                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Update) + "'";
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Update) + "'", (int)sqlCommand.ExecuteScalar() > 0);
+
+                    sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Delete) + "'";
+                    allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Delete) + "'", (int)sqlCommand.ExecuteScalar() > 0);
 
                     foreach (var userInterestedColumn in _userInterestedColumns)
                     {
-                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Delete}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
-
-                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Insert}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
-
-                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'";
-                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{ChangeType.Update}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
+                        sqlCommand.CommandText = "select count(*) from sys.service_message_types where name = N'" + $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}" + "'";
+                        allObjectAlreadyPresent.Add("MESSAGE TYPE with name '" + $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}" + "'", (int)sqlCommand.ExecuteScalar() > 0);
                     }
                 }
             }
@@ -543,14 +531,13 @@ namespace TableDependency.SqlClient
         {
             var dropMessageStartEnd = new List<string>()
             {
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming)}];",
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(EndMessageTemplate, databaseObjectsNaming)}') DROP MESSAGE TYPE [{string.Format(EndMessageTemplate, databaseObjectsNaming)}];"
+                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}];",
+                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}];",
+                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)}];"
             };
 
             var dropContracts = _userInterestedColumns
-                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name}];" + Environment.NewLine +
-                             $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{ChangeType.Update}/{c.Name}];" + Environment.NewLine)
+                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{c.Name}];" + Environment.NewLine)
                 .Concat(dropMessageStartEnd)
                 .ToList();
 
@@ -597,31 +584,30 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{databaseObjectsNaming}'";
                         if (((int)sqlCommand.ExecuteScalar()) > 0) throw new QueueAlreadyUsedException(databaseObjectsNaming);
 
-                        var startMessage = string.Format(StartMessageTemplate, databaseObjectsNaming);
-                        var endMessage = string.Format(EndMessageTemplate, databaseObjectsNaming);
-
-                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{endMessage}] VALIDATION = NONE";
+                        var startMessageInsert = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert);
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageInsert}] VALIDATION = NONE;";
                         sqlCommand.ExecuteNonQuery();
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Message type created.");
+                        processableMessages.Add(startMessageInsert);
 
-                        processableMessages.Add(startMessage);
-                        processableMessages.Add(endMessage);
+                        var startMessageUpdate = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update);
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageUpdate}] VALIDATION = NONE;";
+                        sqlCommand.ExecuteNonQuery();
+                        processableMessages.Add(startMessageUpdate);
+
+                        var startMessageDelete = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete);
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageDelete}] VALIDATION = NONE;";
+                        sqlCommand.ExecuteNonQuery();
+                        processableMessages.Add(startMessageDelete);
 
                         var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
                         foreach (var userInterestedColumn in interestedColumns)
                         {
-                            var deleteMessage = $"{databaseObjectsNaming}/{ChangeType.Delete}/{userInterestedColumn.Name}";
-                            var insertMessage = $"{databaseObjectsNaming}/{ChangeType.Insert}/{userInterestedColumn.Name}";
-                            var updateMessage = $"{databaseObjectsNaming}/{ChangeType.Update}/{userInterestedColumn.Name}";
-
-                            sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{deleteMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{insertMessage}] VALIDATION = NONE; " + Environment.NewLine + $"CREATE MESSAGE TYPE [{updateMessage}] VALIDATION = NONE;";
+                            var message = $"{databaseObjectsNaming}/{userInterestedColumn.Name}";
+                            sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
                             sqlCommand.ExecuteNonQuery();
-
-                            processableMessages.Add(deleteMessage);
-                            processableMessages.Add(insertMessage);
-                            processableMessages.Add(updateMessage);
+                            processableMessages.Add(message);
                         }
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Messages created.");
+                        this.WriteTraceMessage(TraceLevel.Verbose, "Messages type created.");
 
                         var contractBody = string.Join(Comma + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                         sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
@@ -634,8 +620,8 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
-                        sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005 
-                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)" 
+                        sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005
+                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)"
                             : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
@@ -646,9 +632,9 @@ namespace TableDependency.SqlClient
 
                         var declareVariableStatement = PrepareDeclareVariableStatement(interestedColumns);
                         var selectForSetVariablesStatement = PrepareSelectForSetVarialbes(interestedColumns);
-                        var sendInsertConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert.ToString(), interestedColumns);
-                        var sendUpdatedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Update.ToString(), interestedColumns);
-                        var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete.ToString(), interestedColumns);
+                        var sendInsertConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
+                        var sendUpdatedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
+                        var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
                         var whereStatement = PrepareWhereStatement(interestedColumns);
                         var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
                             ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, whereStatement)
@@ -681,30 +667,32 @@ namespace TableDependency.SqlClient
 
             this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");
 
+            processableMessages.Add(SqlMessageTypes.EndDialogType);
+
             return processableMessages;
         }
 
         private static string PrepareWhereStatement(IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
-            if (interestedColumns.Any(tableColumn => 
-                string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) || 
+            if (interestedColumns.Any(tableColumn =>
+                string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return string.Empty;
 
             var separatorNewColumns = new Separator(2, Comma);
             var sBuilderNewColumns = new StringBuilder();
             var separatorOldColumns = new Separator(2, Comma);
             var sBuilderOldColumns = new StringBuilder();
-            
-            foreach(var column in interestedColumns)
+
+            foreach (var column in interestedColumns)
             {
                 sBuilderNewColumns.Append($"{separatorNewColumns.GetSeparator()}[m_New].[{column.Name}]");
                 sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
             }
 
             return string.Format(
-                Environment.NewLine + "WHERE NOT EXISTS(SELECT 1 FROM INSERTED AS [m_New] INNER JOIN DELETED AS [m_Old] ON BINARY_CHECKSUM({0}) = BINARY_CHECKSUM({1}))", 
-                sBuilderNewColumns, 
+                Environment.NewLine + "WHERE NOT EXISTS(SELECT 1 FROM INSERTED AS [m_New] INNER JOIN DELETED AS [m_Old] ON BINARY_CHECKSUM({0}) = BINARY_CHECKSUM({1}))",
+                sBuilderNewColumns,
                 sBuilderOldColumns);
         }
 
@@ -752,7 +740,6 @@ namespace TableDependency.SqlClient
             string connectionString,
             string schemaName,
             string databaseObjectsNaming,
-            Guid dialogHandle,
             int timeOut,
             int timeOutWatchDog,
             ICollection<string> processableMessages,
@@ -761,102 +748,99 @@ namespace TableDependency.SqlClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding)
         {
-            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
-            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
-
-            //var cultureInfo = GetDbCulture(connectionString);
-
             var newMessageReadyToBeNotified = false;
-            var messagesBag = new MessagesBag(encoding ?? Encoding.Unicode, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
+            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
+
+            var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
+            
             try
             {
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
+
                 while (true)
                 {
                     if (automaticDatabaseObjectsTeardown)
                     {
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Executing begin conversation timer.");
-                        RunBeginConversationTimer(connectionString, dialogHandle, timeOutWatchDog);
+                        BeginConversationTimer(connectionString, dialogHandle, timeOutWatchDog);
                         this.WriteTraceMessage(TraceLevel.Verbose, "Executed begin conversation timer.");
                     }
 
-                    using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
+                    var messagesBag = CreateMessagesBag(databaseObjectsNaming, encoding);
+
+                    try
                     {
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Transaction started.");
-
-                        try
+                        using (var sqlConnection = new SqlConnection(connectionString))
                         {
-                            using (var sqlConnection = new SqlConnection(connectionString))
+                            await sqlConnection.OpenAsync(cancellationToken);
+                            this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
+
+                            using (var sqlCommand = sqlConnection.CreateCommand())
                             {
-                                await sqlConnection.OpenAsync(cancellationToken);
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
+                                sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
+                                sqlCommand.CommandTimeout = 0;
 
-                                using (var sqlCommand = sqlConnection.CreateCommand())
+                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
+                                this.WriteTraceMessage(TraceLevel.Verbose, "Running waitfor command.");
+
+                                using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                 {
-                                    sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
-                                    sqlCommand.CommandTimeout = 0;
-
-                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
-                                    this.WriteTraceMessage(TraceLevel.Verbose, "Running WAITFOR command.");
-
-                                    using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
+                                    while (sqlDataReader.Read())
                                     {
-                                        while (await sqlDataReader.ReadAsync(cancellationToken))
+                                        this.WriteTraceMessage(TraceLevel.Verbose, "Message received.");
+
+                                        var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
+                                        if (messageType.Value == SqlMessageTypes.ErrorType)
                                         {
-                                            this.WriteTraceMessage(TraceLevel.Verbose, "DB message received.");
+                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}].");
+                                            EndConversation(sqlConnection, sqlDataReader.GetSqlGuid(0));
 
-                                            var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
-                                            if (messageType.Value == SqlMessageTypes.EndDialogType || messageType.Value == SqlMessageTypes.ErrorType)
-                                            {
-                                                this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}].");
-                                                SendEndConversationMessage(sqlConnection, sqlDataReader.GetSqlGuid(0));
-                                                if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
-                                                throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
-                                            }
+                                            if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
+                                            throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
+                                        }
 
-                                            if (processableMessages.Contains(messageType.Value))
+                                        if (processableMessages.Contains(messageType.Value))
+                                        {
+                                            var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
+                                            var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
+                                            if (messageStatus == MessagesBagStatus.Closed)
                                             {
-                                                var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
-                                                var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
-                                                if (messageStatus == MessagesBagStatus.Closed)
-                                                {                                                    
-                                                    newMessageReadyToBeNotified = true;
-                                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
-                                                    this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
-                                                    break;
-                                                }
+                                                newMessageReadyToBeNotified = true;
+                                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
+                                                this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
+                                                break;
                                             }
                                         }
                                     }
                                 }
                             }
-
-                            if (newMessageReadyToBeNotified)
-                            {
-                                newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
-
-                                transactionScope.Complete();                                
-                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Transaction completed.");
-                            }
                         }
-                        catch (Exception exception)
+
+                        if (newMessageReadyToBeNotified)
                         {
-                            ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
-                            throw;
+                            newMessageReadyToBeNotified = false;
+
+                            NotifyListenersAboutChange(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                            this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
+
+                            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
                         }
+                    }
+                    catch (Exception exception)
+                    {
+                        ThrowIfSqlClientCancellationRequested(cancellationToken, exception);
+                        throw;
                     }
                 }
             }
             catch (OperationCanceledException)
-            {                
+            {
                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToCancellation);
                 this.WriteTraceMessage(TraceLevel.Info, "Operation canceled.");
             }
             catch (Exception exception)
-            {                
+            {
                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToError);
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
@@ -865,7 +849,39 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Verbose, "Exiting from WaitForNotifications.");
         }
 
-        private static void RunBeginConversationTimer(string connectionString, Guid dialogHandle, int timeOutWatchDog)
+        private static MessagesBag CreateMessagesBag(string databaseObjectsNaming, Encoding encoding)
+        {
+            return new MessagesBag(
+                encoding ?? Encoding.Unicode,
+                new List<string>
+                {
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)
+                },
+                SqlMessageTypes.EndDialogType);
+        }
+
+        private static Guid BeginDialogConversation(string connectionString, string databaseObjectsNaming)
+        {
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
+
+                    sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
+                    sqlCommand.Parameters.Add(sqlParameter);
+                    sqlCommand.ExecuteNonQuery();
+                    var dialogHandle = (Guid)sqlParameter.Value;
+
+                    return dialogHandle;
+                }
+            }
+        }
+
+        private static void BeginConversationTimer(string connectionString, SqlGuid dialogHandle, int timeOutWatchDog)
         {
             using (var sqlConnection = new SqlConnection(connectionString))
             {
@@ -877,7 +893,18 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandTimeout = 0;
                     sqlCommand.ExecuteNonQuery();
                 }
-            }            
+            }
+        }
+
+        private static void EndConversation(SqlConnection sqlConnection, SqlGuid handle)
+        {
+            using (var sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = "end conversation @handle";
+                sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
+                sqlCommand.Parameters["@handle"].Value = handle;
+                sqlCommand.ExecuteNonQuery();
+            }
         }
 
         private static string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
@@ -924,46 +951,27 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static Guid GetConversationHandle(string connectionString, string databaseObjectsNaming)
-        {
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
-
-                    sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
-                    sqlCommand.Parameters.Add(sqlParameter);
-                    sqlCommand.ExecuteNonQuery();
-                    var dialogHandle = (Guid)sqlParameter.Value;
-
-                    return dialogHandle;
-                }
-            }
-        }
-
-        private static void SendEndConversationMessage(SqlConnection sqlConnection, SqlGuid handle)
-        {
-            using (var sqlCommand = sqlConnection.CreateCommand())
-            {
-                sqlCommand.CommandText = "end conversation @handle";
-                sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
-                sqlCommand.Parameters["@handle"].Value = handle;
-                sqlCommand.ExecuteNonQuery();
-            }
-        }
-
-        private static void RaiseEvent(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
+        private static void NotifyListenersAboutChange(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (delegates == null) return;
-            foreach (var dlg in delegates.Where(d => d != null)) dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
+
+            foreach (var dlg in delegates.Where(d => d != null))
+            {
+                try
+                {
+                    dlg.Method.Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(messagesBag, modelMapper, userInterestedColumns) });
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
         }
 
         private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
             if (
-                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) || 
+                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "VARBINARY", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "CHAR", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "NCHAR", StringComparison.OrdinalIgnoreCase) ||
@@ -1064,14 +1072,13 @@ namespace TableDependency.SqlClient
             return $"convert(nvarchar(max), @{userInterestedColumn.Name.Replace(Space, string.Empty)}{ConvertFormat(userInterestedColumn)})";
         }
 
-        private static string PrepareSendConversation(string databaseObjectsNaming, string dmlType, IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF @{insterestedColumn.Name.Replace(Space, string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{dmlType}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .Select(insterestedColumn => $"IF @{insterestedColumn.Name.Replace(Space, string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
                 .ToList();
 
-            sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
-            sendList.Add($";send on conversation @h message type[{string.Format(EndMessageTemplate, databaseObjectsNaming)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
+            sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
 
             return string.Join(Environment.NewLine, sendList);
         }
@@ -1170,7 +1177,7 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WHERE database_id = db_id()";
-                    if ((bool) sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
+                    if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
                 }
             }
         }
@@ -1183,7 +1190,7 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{_tableName}' AND TABLE_SCHEMA = '{_schemaName}'";
-                    if ((int) sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
+                    if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
                 }
             }
         }

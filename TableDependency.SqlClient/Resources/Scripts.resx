@@ -123,14 +123,13 @@ BEGIN
 	SET NOCOUNT ON;
 	BEGIN TRANSACTION
 
-	IF EXISTS (SELECT * FROM sys.service_queues WHERE name = N'{0}')
+	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N'{0}')
 	BEGIN
-		IF (SELECT COUNT(*) FROM [{0}] WHERE message_type_name = 'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer') &gt; 0 
+		IF ((SELECT COUNT(*) FROM dbo.[{0}] WITH(NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer') &gt; 0)
 		BEGIN 
 			{1}
 		END 
 	END
-
 	COMMIT TRANSACTION
 END</value>
   </data>
@@ -191,12 +190,15 @@ BEGIN
 
 				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
-					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+					RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
 				END
-				ELSE
+
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
 				BEGIN
-					END CONVERSATION @h;
+					RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
 				END
+				
+				END CONVERSATION @h;
 			END
 		
 			IF @dmlType = '{11}'
@@ -209,12 +211,15 @@ BEGIN
 
 				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
-					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+					RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
 				END
-				ELSE
+
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
 				BEGIN
-					END CONVERSATION @h;
+					RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
 				END
+				
+				END CONVERSATION @h;
 			END
 
 			IF @dmlType = '{12}'
@@ -227,35 +232,52 @@ BEGIN
 
 				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
 				BEGIN
-					RAISERROR ('SERVICE BROKER IN ERROR STATE', 18, 127)
+					RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
 				END
-				ELSE
+
+				IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
 				BEGIN
-					END CONVERSATION @h;
+					RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
 				END
+				
+				END CONVERSATION @h;
 			END
 		END
 
-		IF @@TRANCOUNT &gt; 0 COMMIT TRANSACTION;
+		IF @@TRANCOUNT &gt; 0 COMMIT TRANSACTION
 	END TRY
 	BEGIN CATCH
-		DECLARE @ErrorMessage NVARCHAR(4000);
-    		DECLARE @ErrorSeverity INT;
-    		DECLARE @ErrorState INT;
+		DECLARE @ErrorMessage NVARCHAR(4000)
+		DECLARE @ErrorSeverity INT
+    	DECLARE @ErrorState INT
 
-		SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE();
+		SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE()
 
-		IF @@TRANCOUNT &gt; 0 ROLLBACK TRANSACTION;
+		IF @@TRANCOUNT &gt; 0 ROLLBACK TRANSACTION
 
-		RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
+		RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState)
 	END CATCH
 END</value>
   </data>
   <data name="ScriptDropAll" xml:space="preserve">
-    <value>declare @schema_id INT
-select @schema_id = schema_id from sys.schemas where name = '{2}'
+    <value>DECLARE @schema_id INT
+DECLARE @conversation_handle UNIQUEIDENTIFIER
+DECLARE @rows INT
 
-IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N'{0}') EXEC ('ALTER QUEUE {2}.[{0}] WITH ACTIVATION (STATUS = OFF)');
+SET @rows = 1;
+SELECT @schema_id = schema_id FROM sys.schemas WHERE name = N'{2}';
+
+IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') EXEC (N'ALTER QUEUE {2}.[{0}] WITH ACTIVATION (STATUS = OFF)');
+
+WHILE (@rows &gt; 0)
+BEGIN
+	SELECT TOP 1 @conversation_handle = conversation_handle FROM sys.conversation_endpoints WITH(NOLOCK) WHERE far_service = N'{0}';
+	SET @rows = @@ROWCOUNT;
+	IF (@rows &gt; 0)
+	BEGIN
+		END CONVERSATION @conversation_handle WITH CLEANUP;
+	END
+END
 
 IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER {2}.[tr_{0}];
 IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];

@@ -92,7 +92,7 @@ namespace TableDependency.OracleClient.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to CREATE OR REPLACE TRIGGER TR_{0}
-        ///AFTER {13}{1} ON {2}
+        ///AFTER {15}{1} ON {2}
         ///REFERENCING OLD AS OLD NEW AS NEW 
         ///FOR EACH ROW
         ///BEGIN
@@ -104,12 +104,10 @@ namespace TableDependency.OracleClient.Resources {
         ///    message_content TYPE_{0};
         ///    lob_loc BLOB;
         ///    l_clob CLOB;
-        ///    messageStart VARCHAR2(50) := &apos;{3}&apos;;
-        ///    messageEnd VARCHAR2(50) := &apos;{4}&apos;;
-        ///    dmlType VARCHAR2(50);
-        ///
-        ///    l_dest_offset integer;
-        ///    l_src_offset  integer; [rest of string was truncated]&quot;;.
+        ///    messageStartInsert VARCHAR2(50) := &apos;{3}&apos;;
+        ///    messageStartUpdate VARCHAR2(50) := &apos;{4}&apos;;
+        ///    messageStartDelete VARCHAR2(50) := &apos;{5}&apos;;
+        ///    messageEnd VARCHAR [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string CreateTriggerEnqueueMessage {
             get {

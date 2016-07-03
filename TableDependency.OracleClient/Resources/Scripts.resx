@@ -156,7 +156,7 @@ END;</value>
   </data>
   <data name="CreateTriggerEnqueueMessage" xml:space="preserve">
     <value>CREATE OR REPLACE TRIGGER TR_{0}
-AFTER {13}{1} ON {2}
+AFTER {15}{1} ON {2}
 REFERENCING OLD AS OLD NEW AS NEW 
 FOR EACH ROW
 BEGIN
@@ -168,8 +168,10 @@ BEGIN
     message_content TYPE_{0};
     lob_loc BLOB;
     l_clob CLOB;
-    messageStart VARCHAR2(50) := '{3}';
-    messageEnd VARCHAR2(50) := '{4}';
+    messageStartInsert VARCHAR2(50) := '{3}';
+    messageStartUpdate VARCHAR2(50) := '{4}';
+    messageStartDelete VARCHAR2(50) := '{5}';
+    messageEnd VARCHAR2(50) := '{6}';
     dmlType VARCHAR2(50);
 
     l_dest_offset integer;
@@ -184,21 +186,21 @@ BEGIN
     enqueue_options.visibility := DBMS_AQ.ON_COMMIT;
      
     IF INSERTING THEN
-      dmlType := '{6}';
-      {7}
+      dmlType := '{8}';
+      {9}
     ELSIF UPDATING THEN
-      IF {14} THEN 
+      IF {16} THEN 
             RETURN;      
       ELSE
-            dmlType := '{8}';
-            {9}    
+            dmlType := '{10}';
+            {11}    
       END IF;
     ELSIF DELETING THEN 
-      dmlType := '{10}';
-      {11}
+      dmlType := '{12}';
+      {13}
     END IF;
        
-    {12}
+    {14}
     
   END;
 END;</value>

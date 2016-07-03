@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TableDependency.SqlClient")]
-[assembly: AssemblyDescription("TableDependency.SqlClient is a C# component used to receive database notifications when table's contents has been changed")]
+[assembly: AssemblyDescription("TableDependency.SqlClient is a C# component used to receive SQL Server © database notifications when table's contents has been changed")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Christian Del Bianco")]
 [assembly: AssemblyProduct("TableDependency.SqlClient")]

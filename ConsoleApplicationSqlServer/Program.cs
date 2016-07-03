@@ -20,7 +20,7 @@ namespace ConsoleApplicationSqlServer
             var mapper = new ModelToTableMapper<SeatsAvailability>();
             mapper.AddMapping(c => c.Seats, "SeatsAvailability");
 
-            using (var tableDependency = new SqlTableDependency<SeatsAvailability>(connectionString, "FlightBookings"))
+            using (var tableDependency = new SqlTableDependency<SeatsAvailability>(connectionString, "FlightBookings", mapper))
             {
                 tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;

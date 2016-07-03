@@ -57,6 +57,7 @@ namespace TableDependency.OracleClient
     {
         #region Private variables
 
+        protected const string EndMessageTemplate = "{0}/EndDialog";
         private const string MyName = "OracleTableDependency";
         private const string Quotes = "\"";
 
@@ -389,12 +390,17 @@ namespace TableDependency.OracleClient
 
         protected override IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> columnsTableList, string databaseObjectsNaming)
         {
-            var insertMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Insert}/{c.Name.Replace(Quotes, string.Empty)}").ToList();
-            var updateMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Update}/{c.Name.Replace(Quotes, string.Empty)}").ToList();
-            var deleteMessageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{ChangeType.Delete}/{c.Name.Replace(Quotes, string.Empty)}").ToList();
-            var messageBoundaries = new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming) };
+            var messageTypes = columnsTableList.Select(c => $"{databaseObjectsNaming}/{c.Name.Replace(Quotes, string.Empty)}").ToList();
 
-            return insertMessageTypes.Concat(updateMessageTypes).Concat(deleteMessageTypes).Concat(messageBoundaries).ToList();
+            var messageBoundaries = new List<string>
+            {
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
+                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete),
+                string.Format(EndMessageTemplate, databaseObjectsNaming)
+            };
+
+            return messageTypes.Concat(messageBoundaries).ToList();
         }
 
         protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int timeOutWatchDog)
@@ -428,7 +434,9 @@ namespace TableDependency.OracleClient
                         this.WriteTraceMessage(TraceLevel.Verbose, "QUEUE started.");
 
                         var declareStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + " " + c.Type + c.Size + ";"));
-                        var startMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention);
+                        var startInsertMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Insert);
+                        var startUdateMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Update);
+                        var startDeleteMessageStatement = string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Delete);
                         var endMessageStatement = string.Format(EndMessageTemplate, dataBaseObjectsNamingConvention);
                         var setNewValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + " := :NEW." + c.Name + ";"));
                         var setOldValueStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => "v_" + c.Name.Replace(" ", "_").Replace(Quotes, string.Empty) + " := :OLD." + c.Name + ";"));
@@ -447,7 +455,9 @@ namespace TableDependency.OracleClient
                             dataBaseObjectsNamingConvention,
                             GetUpdateOfStatement(userInterestedColumns, updateOf),
                             tableName,
-                            startMessageStatement,
+                            startInsertMessageStatement,
+                            startUdateMessageStatement,
+                            startDeleteMessageStatement,
                             endMessageStatement,
                             declareStatement,
                             insertDml,
@@ -841,7 +851,6 @@ namespace TableDependency.OracleClient
             var task = default(Task);
             var getQueueMessageCommand = default(OracleCommand);
             var newMessageReadyToBeNotified = false;
-            var messagesBag = new MessagesBag(encoding ?? Encoding.UTF8, string.Format(StartMessageTemplate, databaseObjectsNaming), string.Format(EndMessageTemplate, databaseObjectsNaming));
 
             try
             {
@@ -856,64 +865,59 @@ namespace TableDependency.OracleClient
 
                     task = Task.Factory.StartNew(() =>
                     {
-                        using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, TimeSpan.MaxValue, TransactionScopeAsyncFlowOption.Enabled))
+                        var messagesBag = CreateMessagesBag(databaseObjectsNaming, encoding);
+
+                        using (var connection = new OracleConnection(connectionString))
                         {
-                            this.WriteTraceMessage(TraceLevel.Verbose, "Transaction started.");
+                            connection.Open();
+                            this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
 
-                            using (var connection = new OracleConnection(connectionString))
+                            using (getQueueMessageCommand = connection.CreateCommand())
                             {
-                                connection.Open();
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
+                                getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
+                                getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
+                                getQueueMessageCommand.CommandTimeout = 0;
+                                getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
 
-                                using (getQueueMessageCommand = connection.CreateCommand())
+                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
+                                this.WriteTraceMessage(TraceLevel.Verbose, "Running stored to get message.");
+
+                                using (var reader = getQueueMessageCommand.ExecuteReader(CommandBehavior.CloseConnection))
                                 {
-                                    getQueueMessageCommand.CommandText = $"DEQ_{databaseObjectsNaming}";
-                                    getQueueMessageCommand.CommandType = CommandType.StoredProcedure;
-                                    getQueueMessageCommand.CommandTimeout = 0;
-                                    getQueueMessageCommand.Parameters.Add(new OracleParameter { ParameterName = "p_recordset", OracleDbType = OracleDbType.RefCursor, Direction = ParameterDirection.Output });
-
-                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
-                                    this.WriteTraceMessage(TraceLevel.Verbose, "Running stored to get message.");
-
-                                    using (var reader = getQueueMessageCommand.ExecuteReader(CommandBehavior.CloseConnection))
+                                    while (reader.Read())
                                     {
-                                        while (reader.Read())
+                                        var messageType = reader.IsDBNull(0) ? null : reader.GetString(0);
+                                        this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
+
+                                        if (processableMessages.Contains(messageType))
                                         {
-                                            var messageType = reader.IsDBNull(0) ? null : reader.GetString(0);
-                                            this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
+                                            var messageContent = reader.IsDBNull(1) ? null : (byte[])reader[1];
 
-                                            if (processableMessages.Contains(messageType))
+                                            var messageStatus = messagesBag.AddMessage(messageType, messageContent);
+                                            if (messageStatus == MessagesBagStatus.Closed)
                                             {
-                                                var messageContent = reader.IsDBNull(1) ? null : (byte[]) reader[1];
-
-                                                var messageStatus = messagesBag.AddMessage(messageType, messageContent);
-                                                if (messageStatus == MessagesBagStatus.Closed)
-                                                {
-                                                    newMessageReadyToBeNotified = true;
-                                                    NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
-                                                    this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
-                                                    break;
-                                                }
+                                                newMessageReadyToBeNotified = true;
+                                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
+                                                this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
+                                                break;
                                             }
-                                            else
-                                            {
-                                                this.WriteTraceMessage(TraceLevel.Verbose, $"Message discarted [{messageType}].");
-                                            }
+                                        }
+                                        else
+                                        {
+                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Message discarted [{messageType}].");
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            if (newMessageReadyToBeNotified)
-                            {
-                                newMessageReadyToBeNotified = false;
-                                RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
+                        if (newMessageReadyToBeNotified)
+                        {
+                            newMessageReadyToBeNotified = false;
+                            RaiseEvent(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                            this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
 
-                                transactionScope.Complete();
-                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
-                                this.WriteTraceMessage(TraceLevel.Verbose, "Transaction completed.");
-                            }
+                            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
                         }
                     }, cancellationToken);
 
@@ -927,7 +931,7 @@ namespace TableDependency.OracleClient
             }
             catch (Exception exception)
             {
-                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToError);                
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StoppedDueToError);
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
             }
@@ -959,6 +963,20 @@ namespace TableDependency.OracleClient
             }
 
             this.WriteTraceMessage(TraceLevel.Verbose, "Exiting from WaitForNotifications.");
+        }
+
+        private static MessagesBag CreateMessagesBag(string databaseObjectsNaming, Encoding encoding)
+        {
+            var messagesBag = new MessagesBag(
+                encoding ?? Encoding.UTF8,
+                new List<string>
+                {
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)
+                },
+                string.Format(EndMessageTemplate, databaseObjectsNaming));
+            return messagesBag;
         }
 
         private static List<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)

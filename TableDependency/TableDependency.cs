@@ -46,9 +46,8 @@ namespace TableDependency
     public abstract class TableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
         #region Protected variables
-
-        protected const string EndMessageTemplate = "{0}/EndDialog";
-        protected const string StartMessageTemplate = "{0}/StartDialog";
+        
+        protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
 
         protected CancellationTokenSource _cancellationTokenSource;
         protected string _dataBaseObjectsNamingConvention;
@@ -222,7 +221,14 @@ namespace TableDependency
 
             foreach (var dlg in onStatusChangedSubscribedList.Where(d => d != null))
             {
-                dlg.Method.Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status) });
+                try
+                {
+                    dlg.Method.Invoke(dlg.Target, new object[] {null, new StatusChangedEventArgs(status)});
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 
@@ -232,7 +238,14 @@ namespace TableDependency
             {
                 foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
                 {
-                    dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
+                    try
+                    {
+                        dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                 }
             }
         }
@@ -358,15 +371,22 @@ namespace TableDependency
 
         protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
         {
-            if (this.TraceListener == null) return;
-            if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;            
-
-            if (this.TraceLevel >= traceLevel)
+            try
             {
-                var messageToWrite = new StringBuilder(message);
-                if (exception != null) messageToWrite.Append(this.DumpException(exception));
-                this.TraceListener.WriteLine("At " + DateTime.Now.ToString("o") + " " + _whoIAm + " says: " + messageToWrite);
-                this.TraceListener.Flush();
+                if (this.TraceListener == null) return;
+                if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;
+
+                if (this.TraceLevel >= traceLevel)
+                {
+                    var messageToWrite = new StringBuilder(message);
+                    if (exception != null) messageToWrite.Append(this.DumpException(exception));
+                    this.TraceListener.WriteLine("At " + DateTime.Now.ToString("o") + " " + _whoIAm + " says: " + messageToWrite);
+                    this.TraceListener.Flush();
+                }
+            }
+            catch
+            {
+                // ignored
             }
         }
 

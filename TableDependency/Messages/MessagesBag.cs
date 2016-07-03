@@ -38,28 +38,28 @@ namespace TableDependency.Messages
         #region Member variables
 
         private readonly string _endMessageSignature;
-        private readonly string _startMessageSignature;
+        private readonly IList<string> _startMessagesSignature;
 
         #endregion
 
         #region Properties
         public Encoding Encoding { get; }
-        public List<Message> MessageSheets { get; }
         public ChangeType MessageType { get; private set; }
+        public List<Message> MessageSheets { get; }        
         public MessagesBagStatus Status { get; private set; }
 
         #endregion
 
         #region Constructors
 
-        internal MessagesBag(Encoding encoding, string startMessageSignature, string endMessageSignature)
+        internal MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature)
         {            
             this.MessageSheets = new List<Message>();
-            this.Status = MessagesBagStatus.Open;
-
+            this.Status = MessagesBagStatus.None;
             this.Encoding = encoding;
-            this._endMessageSignature = endMessageSignature;
-            this._startMessageSignature = startMessageSignature;
+
+            _endMessageSignature = endMessageSignature;
+            _startMessagesSignature = startMessagesSignature;
         }
 
         #endregion
@@ -68,25 +68,29 @@ namespace TableDependency.Messages
 
         internal MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
-            if (rawMessageType == _startMessageSignature)
+            if (_startMessagesSignature.Contains(rawMessageType))
             {
-                this.MessageType = (ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue));
+                if (this.Status != MessagesBagStatus.None) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}");
+
+                this.MessageType = GetMessageType(rawMessageType);
                 this.MessageSheets.Clear();
+
                 return (this.Status = MessagesBagStatus.Open);
             }
 
             if (rawMessageType == _endMessageSignature)
             {
-                if ((ChangeType)Enum.Parse(typeof(ChangeType), this.Encoding.GetString(messageValue)) != this.MessageType) throw new DataMisalignedException();
+                if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}");
                 return (this.Status = MessagesBagStatus.Closed);
             }
 
-            if (this.Status == MessagesBagStatus.Closed) throw new MessageMisalignedException("Envelop already closed.");
-            if (this.MessageType != GetMessageType(rawMessageType)) throw new InvalidMessageTypeException(rawMessageType, this.MessageType);
+            if (this.Status == MessagesBagStatus.Closed)
+            {
+                throw new MessageMisalignedException($"Received {rawMessageType} while current status is {MessagesBagStatus.Closed}");
+            }
 
             this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
-
-            return MessagesBagStatus.Collecting;
+            return (this.Status = MessagesBagStatus.Collecting);
         }
 
         #endregion
@@ -97,11 +101,11 @@ namespace TableDependency.Messages
         {
             var messageChunk = rawMessageType.Split('/');
 
-            if (string.Compare(messageChunk[1], ChangeType.Delete.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(messageChunk[2], ChangeType.Delete.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Delete;
-            if (string.Compare(messageChunk[1], ChangeType.Insert.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(messageChunk[2], ChangeType.Insert.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Insert;
-            if (string.Compare(messageChunk[1], ChangeType.Update.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
+            if (string.Compare(messageChunk[2], ChangeType.Update.ToString(), StringComparison.OrdinalIgnoreCase) == 0)
                 return ChangeType.Update;
 
             return ChangeType.None;

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TableDependency.OracleClient")]
-[assembly: AssemblyDescription("TableDependency.OracleClient is a C# component used to receive Oracle ® database notifications when a table's contents has been changed.")]
+[assembly: AssemblyDescription("TableDependency.OracleClient is a C# component used to receive Oracle © database notifications when a table's contents has been changed.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Christian Del Bianco")]
 [assembly: AssemblyProduct("TableDependency.OracleClient")]
