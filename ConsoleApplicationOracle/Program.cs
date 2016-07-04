@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Configuration;
+using System.Diagnostics;
+using System.IO;
 using Oracle.ManagedDataAccess.Client;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
 using TableDependency.OracleClient;
 using Oracle.ManagedDataAccess.Types;
+using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationOracle
 {
@@ -48,7 +51,8 @@ namespace ConsoleApplicationOracle
             using (var tableDependency = new OracleTableDependency<DatabaseObjectCleanUpTestOracleModel>(ConnectionString, TableName, mapper))
             {
                 tableDependency.OnChanged += Changed;
-                tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
+                tableDependency.TraceLevel = TraceLevel.Verbose;
+                tableDependency.TraceListener = new TextWriterTraceListener(File.Create("c:\\temp\\output.txt"));
                 tableDependency.OnError += tableDependency_OnError;
 
                 tableDependency.Start();
@@ -56,11 +60,6 @@ namespace ConsoleApplicationOracle
                 Console.WriteLine(@"Press a key to exit");
                 Console.ReadKey();
             }
-        }
-
-        private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
-        {
-            Console.WriteLine(@"Status: " + e.Status);
         }
 
         static void tableDependency_OnError(object sender, ErrorEventArgs e)
