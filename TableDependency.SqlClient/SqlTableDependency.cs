@@ -335,9 +335,11 @@ namespace TableDependency.SqlClient
 
             base.Start(timeOut, watchDogTimeOut);
 
-            var onChangedSubscribedList = OnChanged.GetInvocationList();
+            var onChangedSubscribedList = OnChanged?.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
             var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
+
+            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
             _cancellationTokenSource = new CancellationTokenSource();
             _task = Task.Factory.StartNew(() =>
@@ -749,9 +751,7 @@ namespace TableDependency.SqlClient
             Encoding encoding)
         {
             var newMessageReadyToBeNotified = false;
-
-            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
-            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
+            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");            
 
             var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
             

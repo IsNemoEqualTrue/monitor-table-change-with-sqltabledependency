@@ -68,8 +68,6 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(1 * 25 * 1000);
             }
 
-            Thread.Sleep(1 * 60 * 1000);
-
             using (var tableDependency = new OracleTableDependency<DisposeAndRestartWithSameObjectsTestOracleModel>(ConnectionString, TableName, mapper, true, namingToUse))
             {
                 tableDependency.OnChanged += TableDependency_Changed;

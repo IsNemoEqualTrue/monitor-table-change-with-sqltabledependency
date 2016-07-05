@@ -359,9 +359,10 @@ namespace TableDependency.OracleClient
 
             if (_automaticDatabaseObjectsTeardown) StartWatchDog(_connectionString, _dataBaseObjectsNamingConvention, watchDogTimeOut);
 
-            var onChangedSubscribedList = OnChanged.GetInvocationList();
+            var onChangedSubscribedList = OnChanged?.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
             var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
+
             NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -844,7 +845,7 @@ namespace TableDependency.OracleClient
             bool automaticDatabaseObjectsTeardown,
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding = null)
-        {
+        {            
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
             NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
 
