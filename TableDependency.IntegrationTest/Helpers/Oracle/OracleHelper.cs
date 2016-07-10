@@ -5,7 +5,7 @@ namespace TableDependency.IntegrationTest.Helpers.Oracle
 {
     internal static class OracleHelper
     {
-        internal static bool AreAllDbObjectDisposed(string connectionString, string dbObjectNaming)
+        internal static bool AreAllDbObjectsDisposed(string connectionString, string dbObjectNaming)
         {
             using (var connection = new OracleConnection(connectionString))
             {

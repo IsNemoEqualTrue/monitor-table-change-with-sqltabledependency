@@ -85,7 +85,7 @@ namespace TableDependency.IntegrationTest
                 t.Wait(2 * 60 * 1000);
             }
 
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, namingToUse));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, namingToUse));
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Description, _checkValues[ChangeType.Insert.ToString()].Item1.Description);
         }

@@ -102,7 +102,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Name, "Pizza");
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Infos, "FUNGHI PORCINI");
 
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item5> e)

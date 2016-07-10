@@ -750,10 +750,15 @@ namespace TableDependency.SqlClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding)
         {
+            var waitforSqlScript = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
             var newMessageReadyToBeNotified = false;
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");            
-
-            var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
+           
+            if (automaticDatabaseObjectsTeardown)
+            {
+                var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
+                waitforSqlScript = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog};" + waitforSqlScript;
+            }
             
             try
             {
@@ -761,12 +766,6 @@ namespace TableDependency.SqlClient
 
                 while (true)
                 {
-                    if (automaticDatabaseObjectsTeardown)
-                    {
-                        BeginConversationTimer(connectionString, dialogHandle, timeOutWatchDog);
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Executed begin conversation timer.");
-                    }
-
                     var messagesBag = CreateMessagesBag(databaseObjectsNaming, encoding);
 
                     try
@@ -778,7 +777,7 @@ namespace TableDependency.SqlClient
 
                             using (var sqlCommand = sqlConnection.CreateCommand())
                             {
-                                sqlCommand.CommandText = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
+                                sqlCommand.CommandText = waitforSqlScript;
                                 sqlCommand.CommandTimeout = 0;
 
                                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
@@ -885,7 +884,7 @@ namespace TableDependency.SqlClient
         {
             using (var sqlConnection = new SqlConnection(connectionString))
             {
-                sqlConnection.OpenAsync();
+                sqlConnection.Open();
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {

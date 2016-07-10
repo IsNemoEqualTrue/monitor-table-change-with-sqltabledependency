@@ -108,7 +108,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            Assert.IsFalse(OracleHelper.AreAllDbObjectDisposed(ConnectionString, NamingToUse));
+            Assert.IsFalse(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, NamingToUse));
 
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
@@ -123,7 +123,7 @@ namespace TableDependency.IntegrationTest
 
             var results = checkValues.Split(',');
             Assert.AreEqual("Valentina", results[0]);
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, nameUsed));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, nameUsed));
         }
     }
 

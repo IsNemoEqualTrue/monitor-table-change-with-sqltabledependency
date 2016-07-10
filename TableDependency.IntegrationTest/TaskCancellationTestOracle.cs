@@ -68,16 +68,16 @@ namespace TableDependency.IntegrationTest
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(1000);
-
-                tableDependency.Stop();
+                Thread.Sleep(500);
             }
-            catch
+            finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            var areAllDbObjectDisposed = OracleHelper.AreAllDbObjectsDisposed(ConnectionString, naming);
+
+            Assert.IsTrue(areAllDbObjectDisposed == true);
         }
     }
 }

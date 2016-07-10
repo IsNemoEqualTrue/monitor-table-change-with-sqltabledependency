@@ -65,7 +65,7 @@ namespace TableDependency.IntegrationTest
             AppDomain.Unload(domain);
 
             Assert.IsTrue(status != TableDependencyStatus.StoppedDueToError && status != TableDependencyStatus.StoppedDueToCancellation);
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, dbObjectsNaming));
         }
 
         public class AppDomainOracleCleannUpOracle : MarshalByRefObject

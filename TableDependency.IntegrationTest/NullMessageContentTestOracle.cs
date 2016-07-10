@@ -84,7 +84,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(_id > 0);
             Assert.IsTrue(string.IsNullOrWhiteSpace(_name));
             Assert.IsTrue(string.IsNullOrWhiteSpace(_description));
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, naming));
         }
 
         [TestCategory("Oracle")]
@@ -117,7 +117,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(_id > 0);
             Assert.IsTrue(string.IsNullOrWhiteSpace(_name));
             Assert.IsTrue(string.IsNullOrWhiteSpace(_description));
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NullMessageContentTestOracleModel> e)

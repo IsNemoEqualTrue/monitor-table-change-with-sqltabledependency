@@ -89,7 +89,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(OracleHelper.AreAllDbObjectDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(OracleHelper.AreAllDbObjectsDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
         }
     }
 
