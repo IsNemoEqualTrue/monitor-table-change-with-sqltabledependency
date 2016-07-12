@@ -52,7 +52,6 @@ using TableDependency.SqlClient.Exceptions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.Utilities;
-using IsolationLevel = System.Transactions.IsolationLevel;
 
 #endregion
 
@@ -352,7 +351,7 @@ namespace TableDependency.SqlClient
                     _schemaName,
                     _dataBaseObjectsNamingConvention,
                     timeOut,
-                    watchDogTimeOut,                    
+                    watchDogTimeOut,
                     _processableMessages,
                     _mapper,
                     _automaticDatabaseObjectsTeardown,
@@ -750,16 +749,14 @@ namespace TableDependency.SqlClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding)
         {
+            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
+
             var waitforSqlScript = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
-            var newMessageReadyToBeNotified = false;
-            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");            
-           
-            if (automaticDatabaseObjectsTeardown)
-            {
-                var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
-                waitforSqlScript = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog};" + waitforSqlScript;
-            }
-            
+            var newMessageReadyToBeNotified = false;            
+
+            var dialogHandle = BeginDialogConversation(connectionString, databaseObjectsNaming);
+            if (automaticDatabaseObjectsTeardown) waitforSqlScript = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog};" + waitforSqlScript;
+
             try
             {
                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
@@ -793,8 +790,6 @@ namespace TableDependency.SqlClient
                                         if (messageType.Value == SqlMessageTypes.ErrorType)
                                         {
                                             this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}].");
-                                            EndConversation(sqlConnection, sqlDataReader.GetSqlGuid(0));
-
                                             if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
                                             throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
                                         }
@@ -844,6 +839,16 @@ namespace TableDependency.SqlClient
                 if (cancellationToken.IsCancellationRequested == false) NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
             }
+            finally
+            {
+                if (dialogHandle != Guid.Empty)
+                {
+                    using (var sqlConnection = new SqlConnection(connectionString))
+                    {
+                        EndConversation(sqlConnection, dialogHandle);
+                    }
+                }
+            }
 
             this.WriteTraceMessage(TraceLevel.Verbose, "Exiting from WaitForNotifications.");
         }
@@ -876,21 +881,6 @@ namespace TableDependency.SqlClient
                     var dialogHandle = (Guid)sqlParameter.Value;
 
                     return dialogHandle;
-                }
-            }
-        }
-
-        private static void BeginConversationTimer(string connectionString, SqlGuid dialogHandle, int timeOutWatchDog)
-        {
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog};";
-                    sqlCommand.CommandTimeout = 0;
-                    sqlCommand.ExecuteNonQuery();
                 }
             }
         }

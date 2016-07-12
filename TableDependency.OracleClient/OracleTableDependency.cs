@@ -24,6 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+#region Usings
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -32,7 +33,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using Oracle.ManagedDataAccess.Client;
 using TableDependency.Classes;
 using TableDependency.Delegates;
@@ -47,6 +47,7 @@ using TableDependency.OracleClient.Exceptions;
 using TableDependency.OracleClient.Helpers;
 using TableDependency.OracleClient.Resources;
 using TableDependency.Utilities;
+#endregion
 
 namespace TableDependency.OracleClient
 {
@@ -446,10 +447,10 @@ namespace TableDependency.OracleClient
                         var deleteDml = ChangeType.Delete.ToString();
 
                         var enqueueStartMessage = PrepareStartEnqueueScript(dataBaseObjectsNamingConvention) + Environment.NewLine;
-                        var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => this.PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
+                        var enqueueFieldsStatement = string.Join(Environment.NewLine, userInterestedColumns.Select(c => PrepareEnqueueScript(c, dataBaseObjectsNamingConvention))) + Environment.NewLine;
                         var enqueueEndMessage = PrepareEndEnqueueScript(dataBaseObjectsNamingConvention);
 
-                        var triggerOnlyValueChangeCondition = this.PrepareEventOnlyWhenAnyValueChangedCondition(userInterestedColumns);
+                        var triggerOnlyValueChangeCondition = PrepareEventOnlyWhenAnyValueChangedCondition(userInterestedColumns);
 
                         command.CommandText = string.Format(
                             Scripts.CreateTriggerEnqueueMessage,
@@ -494,7 +495,7 @@ namespace TableDependency.OracleClient
             return RetrieveProcessableMessages(userInterestedColumns, dataBaseObjectsNamingConvention);
         }
 
-        private string PrepareEventOnlyWhenAnyValueChangedCondition(IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareEventOnlyWhenAnyValueChangedCondition(IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var conditions = new List<string>();
 
@@ -645,7 +646,7 @@ namespace TableDependency.OracleClient
                 $"DBMS_AQ.ENQUEUE(queue_name => 'QUE_{dataBaseObjectsNamingConvention}', enqueue_options => enqueue_options, message_properties => message_properties, payload => TYPE_{dataBaseObjectsNamingConvention}(messageEnd, message_buffer), msgid => message_handle);" + Environment.NewLine;
         }
 
-        private string PrepareEnqueueScript(ColumnInfo column, string dataBaseObjectsNamingConvention)
+        private static string PrepareEnqueueScript(ColumnInfo column, string dataBaseObjectsNamingConvention)
         {
             var messageType = $"'{dataBaseObjectsNamingConvention}/{column.Name.Replace(Quotes, string.Empty)}'";
 
@@ -846,8 +847,7 @@ namespace TableDependency.OracleClient
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding = null)
         {            
-            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
-            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
+            this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");            
 
             var task = default(Task);
             var getQueueMessageCommand = default(OracleCommand);
@@ -855,13 +855,11 @@ namespace TableDependency.OracleClient
 
             try
             {
+                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
+
                 while (true)
                 {
-                    if (automaticDatabaseObjectsTeardown)
-                    {
-                        StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
-                        this.WriteTraceMessage(TraceLevel.Verbose, "WatchDog Started.");
-                    }
+                    if (automaticDatabaseObjectsTeardown) this.StartWatchDog(connectionString, databaseObjectsNaming, timeOutWatchDog);
 
                     task = Task.Factory.StartNew(() =>
                     {
@@ -998,7 +996,7 @@ namespace TableDependency.OracleClient
             return afters;
         }
 
-        private static void StartWatchDog(string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
+        private void StartWatchDog(string connectionString, string databaseObjectsNaming, int timeOutWatchDog)
         {
             using (var connection = new OracleConnection(connectionString))
             {
@@ -1010,6 +1008,8 @@ namespace TableDependency.OracleClient
                     command.ExecuteNonQuery();
                 }
             }
+
+            this.WriteTraceMessage(TraceLevel.Verbose, "WatchDog Started.");
         }
 
         private static void StopWatchDog(string connectionString, string databaseObjectsNaming)
