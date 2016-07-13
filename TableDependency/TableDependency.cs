@@ -64,7 +64,6 @@ namespace TableDependency
         protected TableDependencyStatus _status;
         protected DmlTriggerType _dmlTriggerType;
         protected bool _disposed;
-        protected string _whoIAm;
 
         #endregion
 
@@ -149,15 +148,15 @@ namespace TableDependency
 
         #region Constructors
 
-        protected TableDependency(string howIAm, string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
-            this.TableDependencyCommonSettings(howIAm, connectionString, tableName);
+            this.TableDependencyCommonSettings(connectionString, tableName);
             this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
-        protected TableDependency(string howIAm, string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
         {
-            this.TableDependencyCommonSettings(howIAm, connectionString, tableName);
+            this.TableDependencyCommonSettings(connectionString, tableName);
             this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
         }
 
@@ -380,7 +379,7 @@ namespace TableDependency
                 {
                     var messageToWrite = new StringBuilder(message);
                     if (exception != null) messageToWrite.Append(this.DumpException(exception));
-                    this.TraceListener.WriteLine("At " + DateTime.Now.ToString("o") + " " + _whoIAm + " says: " + messageToWrite);
+                    this.TraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + messageToWrite);
                     this.TraceListener.Flush();
                 }
             }
@@ -430,14 +429,13 @@ namespace TableDependency
 
         #region Private methods
 
-        private void TableDependencyCommonSettings(string howIAm, string connectionString, string tableName)
+        private void TableDependencyCommonSettings( string connectionString, string tableName)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));            
             this.Check451FromRegistry();
 
             _tableName = this.GetCandidateTableName(tableName);
             _schemaName = this.GetCandidateSchemaName(tableName);
-            _whoIAm = howIAm;
 
             this.PreliminaryChecks(connectionString, _tableName);
         }

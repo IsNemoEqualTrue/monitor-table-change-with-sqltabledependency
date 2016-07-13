@@ -67,7 +67,6 @@ namespace TableDependency.SqlClient
         private const string Max = "MAX";
         private const string Comma = ",";
         private const string Space = " ";
-        private const string MyName = "SqlTableDependency";
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
 
         #endregion
@@ -104,7 +103,7 @@ namespace TableDependency.SqlClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         public SqlTableDependency(string connectionString)
-            : base(MyName, connectionString, null, null, (IList<string>)null, DmlTriggerType.All, true)
+            : base(connectionString, null, null, (IList<string>)null, DmlTriggerType.All, true)
         {
         }
 
@@ -114,7 +113,7 @@ namespace TableDependency.SqlClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
         public SqlTableDependency(string connectionString, string tableName)
-            : base(MyName, connectionString, tableName, null, (IList<string>)null, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, (IList<string>)null, DmlTriggerType.All, true, null)
         {
         }
 
@@ -125,7 +124,7 @@ namespace TableDependency.SqlClient
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">Model to columns table mapper.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
-            : base(MyName, connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, true, null)
         {
         }
 
@@ -137,7 +136,7 @@ namespace TableDependency.SqlClient
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -150,7 +149,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -164,7 +163,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -177,7 +176,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -192,7 +191,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -204,7 +203,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -214,7 +213,7 @@ namespace TableDependency.SqlClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, IList<string> updateOf)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -225,7 +224,7 @@ namespace TableDependency.SqlClient
         /// <param name="tableName">Name of the table.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, string tableName, IList<string> updateOf)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -237,7 +236,7 @@ namespace TableDependency.SqlClient
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -251,7 +250,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -266,7 +265,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -279,7 +278,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -291,7 +290,7 @@ namespace TableDependency.SqlClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public SqlTableDependency(string connectionString, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
         }
 
@@ -302,7 +301,7 @@ namespace TableDependency.SqlClient
         /// <param name="tableName">Name of the table.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -312,7 +311,7 @@ namespace TableDependency.SqlClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public SqlTableDependency(string connectionString, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
         {
         }
 
@@ -783,10 +782,10 @@ namespace TableDependency.SqlClient
                                 using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                 {
                                     while (sqlDataReader.Read())
-                                    {
-                                        this.WriteTraceMessage(TraceLevel.Verbose, "Message received.");
-
+                                    {                                        
                                         var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
+                                        this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
+
                                         if (messageType.Value == SqlMessageTypes.ErrorType)
                                         {
                                             this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}].");
@@ -805,6 +804,10 @@ namespace TableDependency.SqlClient
                                                 this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
                                                 break;
                                             }
+                                        }
+                                        else
+                                        {
+                                            this.WriteTraceMessage(TraceLevel.Warning, $"Message discarted [{messageType}].");
                                         }
                                     }
                                 }

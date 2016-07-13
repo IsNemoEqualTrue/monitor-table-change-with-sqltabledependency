@@ -59,7 +59,6 @@ namespace TableDependency.OracleClient
         #region Private variables
 
         protected const string EndMessageTemplate = "{0}/EndDialog";
-        private const string MyName = "OracleTableDependency";
         private const string Quotes = "\"";
 
         #endregion
@@ -96,7 +95,7 @@ namespace TableDependency.OracleClient
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         public OracleTableDependency(string connectionString)
-            : base(MyName, connectionString, null, null, (IList<string>)null, DmlTriggerType.All, true)
+            : base(connectionString, null, null, (IList<string>)null, DmlTriggerType.All, true)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -107,7 +106,7 @@ namespace TableDependency.OracleClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table to monitor.</param>
         public OracleTableDependency(string connectionString, string tableName)
-            : base(MyName, connectionString, tableName, null, (IList<string>)null, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, (IList<string>)null, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -119,7 +118,7 @@ namespace TableDependency.OracleClient
         /// <param name="tableName">Name of the table to monitor.</param>
         /// <param name="mapper">Model to columns table mapper.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
-            : base(MyName, connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -131,7 +130,7 @@ namespace TableDependency.OracleClient
         /// <param name="tableName">Name of the table.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, string tableName, IList<string> updateOf)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -144,7 +143,7 @@ namespace TableDependency.OracleClient
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -158,7 +157,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -173,7 +172,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -187,7 +186,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -200,7 +199,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, IList<string> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -211,7 +210,7 @@ namespace TableDependency.OracleClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, IList<string> updateOf)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -223,7 +222,7 @@ namespace TableDependency.OracleClient
         /// <param name="tableName">Name of the table.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -236,7 +235,7 @@ namespace TableDependency.OracleClient
         /// <param name="mapper">Model to columns table mapper.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -251,7 +250,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -267,7 +266,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -281,7 +280,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -296,7 +295,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, null, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, null, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -309,7 +308,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, UpdateOfModel<T> updateOf, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -320,7 +319,7 @@ namespace TableDependency.OracleClient
         /// <param name="connectionString">The connection string.</param>
         /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
         public OracleTableDependency(string connectionString, UpdateOfModel<T> updateOf)
-            : base(MyName, connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
+            : base(connectionString, null, null, updateOf, DmlTriggerType.All, true, null)
         {
             _tableName = _tableName.ToUpper();
         }
@@ -336,7 +335,7 @@ namespace TableDependency.OracleClient
         /// <param name="automaticDatabaseObjectsTeardown">Destroy all database objects created for receive notifications.</param>
         /// <param name="namingConventionForDatabaseObjects">The naming convention for database objects.</param>
         public OracleTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
-            : base(MyName, connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
+            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects)
         {
             _tableName = _tableName.ToUpper();
         }
