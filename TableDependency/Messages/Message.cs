@@ -25,14 +25,14 @@
 #endregion
 namespace TableDependency.Messages
 {
-    internal class Message
+    public class Message
     {
-        internal string Recipient { get; }
-        internal byte[] Body { get; }
+        public string Recipient { get; }
+        public byte[] Body { get; }
 
         #region Constructors
 
-        internal Message(string recipient, byte[] body)
+        public Message(string recipient, byte[] body)
         {
             this.Recipient = recipient;
             this.Body = body;

@@ -50,9 +50,7 @@ namespace TableDependency
         protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
 
         protected CancellationTokenSource _cancellationTokenSource;
-        protected string _dataBaseObjectsNamingConvention;
-        protected bool _automaticDatabaseObjectsTeardown = true;
-        protected bool _needsToCreateDatabaseObjects = true;
+        protected string _dataBaseObjectsNamingConvention;        
         protected ModelToTableMapper<T> _mapper;
         protected string _connectionString;
         protected string _tableName;
@@ -148,16 +146,16 @@ namespace TableDependency
 
         #region Constructors
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
         {
             this.TableDependencyCommonSettings(connectionString, tableName);
-            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType);
         }
 
-        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects = null)
+        protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
         {
             this.TableDependencyCommonSettings(connectionString, tableName);
-            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType, automaticDatabaseObjectsTeardown, namingConventionForDatabaseObjects);
+            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType);
         }
 
         #endregion
@@ -183,9 +181,7 @@ namespace TableDependency
                 return;
             }
 
-            _processableMessages = _needsToCreateDatabaseObjects
-                ? this.CreateDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut)
-                : this.RetrieveProcessableMessages(_userInterestedColumns, _dataBaseObjectsNamingConvention);
+            _processableMessages = this.CreateDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
         }
 
         /// <summary>
@@ -201,7 +197,7 @@ namespace TableDependency
 
             _task = null;
 
-            if (_automaticDatabaseObjectsTeardown) DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -253,7 +249,7 @@ namespace TableDependency
 
         protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
-        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType, bool automaticDatabaseObjectsTeardown, string namingConventionForDatabaseObjects)
+        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
         {
             if (mapper != null && mapper.Count() == 0) throw new ModelToTableMapperException("Empty mapper");
 
@@ -271,17 +267,13 @@ namespace TableDependency
             _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
             _updateOf = updateOf;
             _userInterestedColumns = GetUserInterestedColumns(updateOf);
-            _automaticDatabaseObjectsTeardown = automaticDatabaseObjectsTeardown;
-            _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention(namingConventionForDatabaseObjects);
-            _needsToCreateDatabaseObjects = CheckIfNeedsToCreateDatabaseObjects();
+            _dataBaseObjectsNamingConvention = GeneratedataBaseObjectsNamingConvention();
             _dmlTriggerType = dmlTriggerType;
         }
 
         protected abstract IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf);
 
-        protected abstract string GeneratedataBaseObjectsNamingConvention(string namingConventionForDatabaseObjects);
-
-        protected abstract bool CheckIfNeedsToCreateDatabaseObjects();
+        protected abstract string GeneratedataBaseObjectsNamingConvention();
 
         protected abstract void PreliminaryChecks(string connectionString, string candidateTableName);
 

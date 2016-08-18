@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class UpdateOfException : TableDependencyException
     {
-        protected internal UpdateOfException(string message)
+        public UpdateOfException(string message)
             : base(message)
         { }
     }

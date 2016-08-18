@@ -31,6 +31,6 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class Net451Exception : TableDependencyException
     {
-        protected internal Net451Exception() : base (".NET Framework 4.5.1 or later is mandatory.") { }
+        public Net451Exception() : base (".NET Framework 4.5.1 or later is mandatory.") { }
     }
 }

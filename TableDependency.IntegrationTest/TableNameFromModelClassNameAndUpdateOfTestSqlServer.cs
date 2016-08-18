@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
@@ -13,6 +14,16 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class AAA_Item3
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column(ColumnName)]
+        public string FamilyName { get; set; }
+        private const string ColumnName = "SURNAME";
+        public static string GetColumnName => ColumnName;
+    }
+
     [TestClass]
     public class TableNameFromModelClassNameAndUpdateOfTestSqlServer
     {

@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class ColumnTypeNotSupportedException : TableDependencyException
     {
-        protected internal ColumnTypeNotSupportedException(string message = null, Exception exception = null)
+        public ColumnTypeNotSupportedException(string message = null, Exception exception = null)
             : base(message, exception)
         { }
     }

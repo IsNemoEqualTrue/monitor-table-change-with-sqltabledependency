@@ -80,12 +80,12 @@ namespace TableDependency.Mappers
 
         #region Internal methods
 
-        internal string GetMapping(PropertyInfo propertyInfo)
+        public string GetMapping(PropertyInfo propertyInfo)
         {
             return _mappings.ContainsKey(propertyInfo) ? _mappings[propertyInfo] : null;
         }
 
-        internal string GetMapping(string tableColumnName)
+        public string GetMapping(string tableColumnName)
         {
             if (GetMappings().Any(kvp => kvp.Value != null && string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0))
             {
@@ -96,12 +96,12 @@ namespace TableDependency.Mappers
             return null;
         }
 
-        internal void AddMapping(PropertyInfo pi, string columnName)
+        public void AddMapping(PropertyInfo pi, string columnName)
         {
             _mappings[pi] = columnName;
         }
 
-        internal IDictionary<PropertyInfo, string> GetMappings()
+        public IDictionary<PropertyInfo, string> GetMappings()
         {
             return _mappings;
         }

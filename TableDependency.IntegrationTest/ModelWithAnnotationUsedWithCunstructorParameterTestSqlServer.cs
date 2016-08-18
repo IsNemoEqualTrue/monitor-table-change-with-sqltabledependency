@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
@@ -12,9 +13,19 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    [Table("AAWItemsTable")]
+    public class Item5
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        [Column("Long Description")]
+        public string Infos { get; set; }
+    }
+
     [TestClass]
     public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer
     {
+
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAA";
         private static int _counter = 0;

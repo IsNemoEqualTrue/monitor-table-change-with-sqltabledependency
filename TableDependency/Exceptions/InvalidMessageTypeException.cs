@@ -32,7 +32,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class InvalidMessageTypeException : TableDependencyException
     {
-        protected internal InvalidMessageTypeException(string rawMessageType, ChangeType expectedMessageType)
+        public InvalidMessageTypeException(string rawMessageType, ChangeType expectedMessageType)
             : base($"Received message type: {rawMessageType}. Expected message type: {expectedMessageType}.")
         { }
     }

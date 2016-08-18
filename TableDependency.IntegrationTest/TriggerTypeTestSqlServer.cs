@@ -97,8 +97,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     new List<string>() { "second name" }, 
-                    DmlTriggerType.Insert, 
-                    true);
+                    DmlTriggerType.Insert);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -125,8 +124,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     new List<string>() { "second name" },
-                    DmlTriggerType.Delete,
-                    true);
+                    DmlTriggerType.Delete);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -153,8 +151,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     new List<string>() { "second name" },
-                    DmlTriggerType.Delete | DmlTriggerType.Insert,
-                    true);
+                    DmlTriggerType.Delete | DmlTriggerType.Insert);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -180,8 +177,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Insert,
-                    true);
+                    DmlTriggerType.Insert);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -219,8 +215,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Delete,
-                    true);
+                    DmlTriggerType.Delete);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -258,8 +253,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Update,
-                    true);
+                    DmlTriggerType.Update);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -297,8 +291,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Insert | DmlTriggerType.Delete,
-                    true);
+                    DmlTriggerType.Insert | DmlTriggerType.Delete);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -339,8 +332,8 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Insert | DmlTriggerType.Update,
-                    true);
+                    DmlTriggerType.Insert | DmlTriggerType.Update
+                    );
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -381,8 +374,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.Delete | DmlTriggerType.Insert | DmlTriggerType.Update,
-                    true);
+                    DmlTriggerType.Delete | DmlTriggerType.Insert | DmlTriggerType.Update);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -426,8 +418,7 @@ namespace TableDependency.IntegrationTest
                     TableName,
                     null,
                     (IList<string>)null,
-                    DmlTriggerType.All,
-                    true);
+                    DmlTriggerType.All);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;

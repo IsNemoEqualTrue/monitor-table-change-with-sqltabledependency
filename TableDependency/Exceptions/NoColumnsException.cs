@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class NoColumnsException : TableDependencyException
     {
-        protected internal NoColumnsException(string tableName)
+        public NoColumnsException(string tableName)
             : base($"No columns for table {tableName}")
         { }
     }

@@ -62,59 +62,28 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="DataAnnotationTestOracle.cs" />
     <Compile Include="DataAnnotationTestSqlServer.cs" />
-    <Compile Include="DatabaseObjectCleanUpTestOracle.cs" />
     <Compile Include="EnumTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
     <Compile Include="Issues\Issue27.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
-    <Compile Include="NullMessageContentTestOracle.cs" />
-    <Compile Include="NoTableAndColumnDefinitionsTestOracleServer.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />
-    <Compile Include="GetMessageAfterRestartTestOracle.cs" />
-    <Compile Include="NoDisposeAndRestartWithSameObjectsTestOracle.cs" />
-    <Compile Include="GetMessageAfterRestartTestSqlServer.cs" />
-    <Compile Include="NoDisposeAndRestartWithSameObjectsTestSqlServer.cs" />
-    <Compile Include="DisposeAndRestartWithSameObjectsTestSqlServer.cs" />
-    <Compile Include="DisposeAndRestartWithSameObjectsTestOracle.cs" />
-    <Compile Include="EventForAllColumnsTestOracle.cs" />
     <Compile Include="EventForAllColumnsTestSqlServer.cs" />
     <Compile Include="EventForSpecificColumnsTestSqlServer.cs" />
-    <Compile Include="EventForSpecificColumnsTestOracle.cs" />
     <Compile Include="LoadAndCountTestSqlServer.cs" />
-    <Compile Include="LoadAndCountTestOracle.cs" />
-    <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestOracle.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
-    <Compile Include="Helpers\Oracle\OracleHelper.cs" />
     <Compile Include="Helpers\SqlServer\SqlServerHelper.cs" />
     <Compile Include="MargeTestSqlServer.cs" />
-    <Compile Include="MergeTestOracle.cs" />
-    <Compile Include="MultiDmlOperationsTestOracle.cs" />
     <Compile Include="MultiDmlOperationsTestSqlServer.cs" />
-    <Compile Include="NoMapperUseTestOracle.cs" />
     <Compile Include="NoMapperUseTestSqlServer.cs" />
-    <Compile Include="NoProblemDurignCommandTimeoutForNoMessagesTestOracle.cs" />
     <Compile Include="NoProblemDurignCommandTimeoutForNoMessagesTestSqlServer.cs" />
-    <Compile Include="PreliminaryTestOracle.cs" />
     <Compile Include="PreliminaryTestSqlServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StatusTestOracle.cs" />
     <Compile Include="StatusTestSqlServer.cs" />
-    <Compile Include="TableNameFromModelClassNameAndUpdateOfTestOracle.cs" />
     <Compile Include="TableNameFromModelClassNameAndUpdateOfTestSqlServer.cs" />
-    <Compile Include="TaskCancellationTestOracle.cs" />
     <Compile Include="TaskCancellationTestSqlServer.cs" />
-    <Compile Include="TriggerTypeTestOracle.cs" />
     <Compile Include="TriggerTypeTestSqlServer.cs" />
-    <Compile Include="TypeChecks\Oracle\CharType.cs" />
-    <Compile Include="TypeChecks\Oracle\DateTypes.cs" />
-    <Compile Include="TypeChecks\Oracle\NVarchar2Type.cs" />
-    <Compile Include="TypeChecks\Oracle\RawTypes.cs" />
-    <Compile Include="TypeChecks\Oracle\FloatAndIntegerTypes.cs" />
-    <Compile Include="TypeChecks\Oracle\Varchar2Type.cs" />
-    <Compile Include="TypeChecks\Oracle\XmlType.cs" />
     <Compile Include="TypeChecks\SqlServer\BigIntDecimalAndFloatTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\BinaryBitCharVarbinaryTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\DateTypeTestSqlServer.cs" />
@@ -122,14 +91,9 @@
     <Compile Include="TypeChecks\SqlServer\GuidSmallMoneyTypes.cs" />
     <Compile Include="TypeChecks\SqlServer\XmlNVarcharMaxAndVarcharMaxType2.cs" />
     <Compile Include="TypeChecks\SqlServer\XmlNVarcharMaxAndVarcharMaxType.cs" />
-    <Compile Include="UpdateOfUsingLambaTestOracle.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TableDependency.OracleClient\TableDependency.OracleClient.csproj">
-      <Project>{41f1e2b4-5f77-4f40-a511-2f90c8dfdb12}</Project>
-      <Name>TableDependency.OracleClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
       <Project>{3b201820-cb8f-41a1-8430-0c806bcf7494}</Project>
       <Name>TableDependency.SqlClient</Name>

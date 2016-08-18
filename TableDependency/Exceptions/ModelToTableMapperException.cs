@@ -30,11 +30,11 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class ModelToTableMapperException : TableDependencyException
     {
-        protected internal ModelToTableMapperException()
+        public ModelToTableMapperException()
             : base("Invalid mapping.")
         { }
 
-        protected internal ModelToTableMapperException(string message)
+        public ModelToTableMapperException(string message)
             : base(message)
         { }
     }

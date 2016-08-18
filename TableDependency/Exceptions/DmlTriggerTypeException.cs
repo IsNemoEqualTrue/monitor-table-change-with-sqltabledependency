@@ -31,7 +31,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class DmlTriggerTypeException : TableDependencyException
     {
-        protected internal DmlTriggerTypeException(string message = null)
+        public DmlTriggerTypeException(string message = null)
             : base(message)
         { }
     }

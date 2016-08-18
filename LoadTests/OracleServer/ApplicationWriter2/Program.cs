@@ -32,7 +32,6 @@ namespace ApplicationWriter2
 
             System.Threading.Thread.Sleep(5000);
 
-            string sql = null;
 
             using (var connection = new OracleConnection(ConnectionString))
             {

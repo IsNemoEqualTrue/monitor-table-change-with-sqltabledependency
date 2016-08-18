@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class InvalidConnectionStringException : TableDependencyException
     {
-        protected internal InvalidConnectionStringException(Exception innerException = null)
+        public InvalidConnectionStringException(Exception innerException = null)
             : base("Invalid connection string.", innerException)
         { }
     }

@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class NotExistingTableException : TableDependencyException
     {
-        protected internal NotExistingTableException(string tableName)
+        public NotExistingTableException(string tableName)
             : base($"Table '{tableName}' does not exists.")
         { }
     }

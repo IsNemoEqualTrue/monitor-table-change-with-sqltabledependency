@@ -54,7 +54,7 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal RecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns)
+        protected RecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
@@ -68,7 +68,7 @@ namespace TableDependency.EventArgs
 
         #region Internal methods
 
-        internal virtual T MaterializeEntity(List<Message> messages, ModelToTableMapper<T> mapper)
+        protected virtual T MaterializeEntity(List<Message> messages, ModelToTableMapper<T> mapper)
         {
             var entity = (T)Activator.CreateInstance(typeof(T));
 
@@ -89,12 +89,12 @@ namespace TableDependency.EventArgs
             return entity;
         }
 
-        internal virtual ColumnInfo GetColumnInfo(string columnName)
+        public virtual ColumnInfo GetColumnInfo(string columnName)
         {
             return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        internal virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
+        public virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
         {
             var formatCulture = new CultureInfo("en-US", false);
             var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(formatCulture);

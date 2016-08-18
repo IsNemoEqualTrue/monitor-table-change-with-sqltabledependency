@@ -32,7 +32,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class SomeDatabaseObjectsNotPresentException : TableDependencyException
     {
-        protected internal SomeDatabaseObjectsNotPresentException(Dictionary<string, bool> missingObjects)
+        public SomeDatabaseObjectsNotPresentException(Dictionary<string, bool> missingObjects)
             : base()
         {
             var errorMessage = new StringBuilder("Having specified a naming convention for Database objects all of them must be absents or be presents. The following object are missing:");

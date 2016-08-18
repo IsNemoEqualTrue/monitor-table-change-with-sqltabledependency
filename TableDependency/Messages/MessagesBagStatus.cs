@@ -26,7 +26,7 @@
 
 namespace TableDependency.Messages
 {
-    internal enum MessagesBagStatus
+    public enum MessagesBagStatus
     {
         None,
         Open,

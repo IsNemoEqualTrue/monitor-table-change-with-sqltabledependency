@@ -28,7 +28,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TableDependency.Extensions
+namespace TableDependency.SqlClient.Extensions
 {
     internal static class TaskExtensions
     {

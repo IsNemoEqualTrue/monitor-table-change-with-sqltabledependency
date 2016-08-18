@@ -31,7 +31,7 @@ using System.Reflection;
 
 namespace TableDependency.Utilities
 {
-    internal static class ModelUtil
+    public static class ModelUtil
     {
         private static readonly IList<Type> ProcessableModelTypes = new List<Type>
         {
@@ -55,7 +55,7 @@ namespace TableDependency.Utilities
             typeof (Enum)
         };
 
-        internal static IEnumerable<PropertyInfo> GetModelPropertiesInfo<T>()
+        public static IEnumerable<PropertyInfo> GetModelPropertiesInfo<T>()
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)

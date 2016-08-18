@@ -30,7 +30,7 @@ namespace TableDependency.Exceptions
     [Serializable]
     public class MessageMisalignedException : TableDependencyException
     {
-        protected internal MessageMisalignedException(string message = null)
+        public MessageMisalignedException(string message = null)
             : base(message)
         { }
     }

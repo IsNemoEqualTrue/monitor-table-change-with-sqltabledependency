@@ -33,7 +33,7 @@ using TableDependency.Exceptions;
 
 namespace TableDependency.Messages
 {
-    internal class MessagesBag
+    public class MessagesBag
     {
         #region Member variables
 
@@ -52,7 +52,7 @@ namespace TableDependency.Messages
 
         #region Constructors
 
-        internal MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature)
+        public MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature)
         {            
             this.MessageSheets = new List<Message>();
             this.Status = MessagesBagStatus.None;
@@ -66,7 +66,7 @@ namespace TableDependency.Messages
 
         #region Public Methods
 
-        internal MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
+        public MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
         {
             if (_startMessagesSignature.Contains(rawMessageType))
             {
