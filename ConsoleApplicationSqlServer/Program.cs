@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Configuration;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.IO;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
@@ -17,12 +13,9 @@ namespace ConsoleApplicationSqlServer
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
-            var mapper = new ModelToTableMapper<SeatsAvailability>();
-            mapper.AddMapping(c => c.Seats, "SeatsAvailability");
-
-            using (var tableDependency = new SqlTableDependency<SeatsAvailability>(connectionString, "FlightBookings", mapper))
+            using (var tableDependency = new SqlTableDependency<Customer>(connectionString))
             {
-                tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
+                //tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
@@ -33,6 +26,8 @@ namespace ConsoleApplicationSqlServer
 
                 tableDependency.Stop();
             }
+
+            Console.WriteLine(@"I ended withour error.");
         }
 
         private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
@@ -45,7 +40,7 @@ namespace ConsoleApplicationSqlServer
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<SeatsAvailability> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
         {
             Console.WriteLine(Environment.NewLine);
 
@@ -53,9 +48,9 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"From: " + changedEntity.From);
-                Console.WriteLine(@"To: " + changedEntity.To);
-                Console.WriteLine(@"Seats free: " + changedEntity.Seats);
+                Console.WriteLine(@"Name: " + changedEntity.Name);
+                Console.WriteLine(@"Surame: " + changedEntity.Surname);
+                Console.WriteLine(@"Id: " + changedEntity.Id);
             }
         }
     }
