@@ -68,7 +68,7 @@ namespace TableDependency.SqlClient.Resources {
         ///
         ///	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N&apos;{0}&apos;)
         ///	BEGIN
-        ///		IF ((SELECT COUNT(*) FROM dbo.[{0}] WITH(NOLOCK) WHERE message_type_name = N&apos;http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer&apos;) &gt; 0)
+        ///		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N&apos;http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer&apos;) &gt; 0)
         ///		BEGIN 
         ///			{1}
         ///		END 
@@ -108,6 +108,33 @@ namespace TableDependency.SqlClient.Resources {
         internal static string CreateTrigger {
             get {
                 return ResourceManager.GetString("CreateTrigger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT DB_NAME() AS TABLE_CATALOG,
+        ///SCHEMA_NAME(o.schema_id) AS TABLE_SCHEMA,
+        ///o.name	AS TABLE_NAME,
+        ///c.name	AS COLUMN_NAME,
+        ///COLUMNPROPERTY(c.object_id, c.name, &apos;ordinal&apos;) AS ORDINAL_POSITION,
+        ///convert(nvarchar(4000), OBJECT_DEFINITION(c.default_object_id))	AS COLUMN_DEFAULT,
+        ///convert(varchar(3), CASE c.is_nullable WHEN 1 THEN &apos;YES&apos; ELSE &apos;NO&apos; END)	AS IS_NULLABLE,
+        ///ISNULL(TYPE_NAME(c.system_type_id), t.name)	AS DATA_TYPE,
+        ///COLUMNPROPERTY(c.object_id, c.name, &apos;charmaxlen&apos;) AS CHARACTER_MAXIMUM_LENGTH,
+        ///COLUM [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string InformationSchemaColumns {
+            get {
+                return ResourceManager.GetString("InformationSchemaColumns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN (&apos;U&apos;, &apos;V&apos;) and o.name = &apos;{0}&apos; and s.name = &apos;{1}&apos;.
+        /// </summary>
+        internal static string InformationSchemaTables {
+            get {
+                return ResourceManager.GetString("InformationSchemaTables", resourceCulture);
             }
         }
         
