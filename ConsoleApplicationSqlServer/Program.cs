@@ -13,9 +13,8 @@ namespace ConsoleApplicationSqlServer
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
-            using (var tableDependency = new SqlTableDependency<Customer>(connectionString))
+            using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "Customers"))
             {
-                //tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
@@ -28,11 +27,6 @@ namespace ConsoleApplicationSqlServer
             }
 
             Console.WriteLine(@"I ended withour error.");
-        }
-
-        private static void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
-        {
-            Console.WriteLine(@"Status: " + e.Status);
         }
 
         private static void TableDependency_OnError(object sender, ErrorEventArgs e)

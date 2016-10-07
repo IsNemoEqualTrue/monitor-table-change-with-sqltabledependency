@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ConsoleApplicationSqlServer
+﻿namespace ConsoleApplicationSqlServer
 {
     public class Customer
     {

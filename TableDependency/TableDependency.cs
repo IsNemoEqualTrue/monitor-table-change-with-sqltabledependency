@@ -56,7 +56,7 @@ namespace TableDependency
         protected string _tableName;
         protected string _schemaName;
         protected Task _task;
-        protected IList<string> _processableMessages;
+        protected IList<string> _processableMessages;        
         protected IEnumerable<ColumnInfo> _userInterestedColumns;
         protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
