@@ -536,14 +536,12 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
 
-
                         var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
                         sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
                         sqlCommand.Parameters.Add(sqlParameter);
                         sqlCommand.ExecuteNonQuery();
                         _dialogHandle = (Guid)sqlParameter.Value;
-
-
+                        
                         sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                         sqlCommand.ExecuteNonQuery();
                     }
@@ -734,25 +732,6 @@ namespace TableDependency.SqlClient
                 },
                 SqlMessageTypes.EndDialogType);
         }
-
-        //private static Guid BeginDialogConversation(string connectionString, string databaseObjectsNaming)
-        //{
-        //    using (var sqlConnection = new SqlConnection(connectionString))
-        //    {
-        //        sqlConnection.Open();
-        //        using (var sqlCommand = sqlConnection.CreateCommand())
-        //        {
-        //            var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
-
-        //            sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
-        //            sqlCommand.Parameters.Add(sqlParameter);
-        //            sqlCommand.ExecuteNonQuery();
-        //            var dialogHandle = (Guid)sqlParameter.Value;
-
-        //            return dialogHandle;
-        //        }
-        //    }
-        //}
 
         private static void EndConversation(SqlConnection sqlConnection, SqlGuid handle)
         {
