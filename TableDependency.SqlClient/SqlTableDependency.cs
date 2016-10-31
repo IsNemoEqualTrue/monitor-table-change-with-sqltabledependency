@@ -234,7 +234,7 @@ namespace TableDependency.SqlClient
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (OnChanged == null) throw new NoSubscriberException();
-           
+
             var onChangedSubscribedList = OnChanged?.GetInvocationList();
             var onErrorSubscribedList = OnError?.GetInvocationList();
             var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
@@ -278,15 +278,11 @@ namespace TableDependency.SqlClient
                     var splitted = tableName.Split('.');
                     return splitted[1].Replace("[", string.Empty).Replace("]", string.Empty);
                 }
-                else
-                {
-                    return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
-                }
+
+                return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
-            else
-            {
-                return (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
-            }
+
+            return (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
         }
 
         /// <summary>
@@ -299,20 +295,12 @@ namespace TableDependency.SqlClient
         {
             if (!string.IsNullOrWhiteSpace(tableName))
             {
-                if (tableName.Contains("."))
-                {
-                    var splitted = tableName.Split('.');
-                    return splitted[0].Trim() != string.Empty ? splitted[0].Replace("[", string.Empty).Replace("]", string.Empty) : string.Empty;
-                }
-                else
-                {
-                    return "dbo";
-                }
+                if (!tableName.Contains(".")) return "dbo";
+                var splitted = tableName.Split('.');
+                return splitted[0].Trim() != string.Empty ? splitted[0].Replace("[", string.Empty).Replace("]", string.Empty) : string.Empty;
             }
-            else
-            {
-                return (!string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetSchemaNameFromTableDataAnnotation() : "dbo");
-            }
+
+            return !string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetSchemaNameFromTableDataAnnotation() : "dbo";
         }
 
         internal int GetSchemaId(string schemaName, string connectionString)
@@ -405,7 +393,7 @@ namespace TableDependency.SqlClient
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
         {
-            var dropMessageStartEnd = new List<string>()
+            var dropMessageStartEnd = new List<string>
             {
                 $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}];",
                 $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}];",
@@ -433,6 +421,7 @@ namespace TableDependency.SqlClient
 
         protected override void PreliminaryChecks(string connectionString, string tableName)
         {
+            CheckIfParameterlessConstructorExists();
             CheckIfConnectionStringIsValid(connectionString);
             CheckIfUserHasPermissions(connectionString);
             CheckIfServiceBrokerIsEnabled(connectionString);
@@ -445,6 +434,14 @@ namespace TableDependency.SqlClient
         #endregion
 
         #region Private methods
+
+        private static void CheckIfParameterlessConstructorExists()
+        {
+            if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
+            {
+                throw new ModelWithoutParameterlessConstructor();
+            }
+        }
 
         private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
@@ -511,10 +508,10 @@ namespace TableDependency.SqlClient
                         var sendInsertConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
                         var sendUpdatedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
                         var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
-                        var whereStatement = PrepareWhereStatement(interestedColumns);
+                        var exceptStatement = PrepareExceptStatement(interestedColumns);
                         var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
-                            ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, whereStatement)
-                            : string.Format(Scripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, whereStatement);
+                            ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement)
+                            : string.Format(Scripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement);
 
                         sqlCommand.CommandText = string.Format(
                             Scripts.CreateTrigger,
@@ -541,7 +538,7 @@ namespace TableDependency.SqlClient
                         sqlCommand.Parameters.Add(sqlParameter);
                         sqlCommand.ExecuteNonQuery();
                         _dialogHandle = (Guid)sqlParameter.Value;
-                        
+
                         sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                         sqlCommand.ExecuteNonQuery();
                     }
@@ -557,7 +554,7 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static string PrepareWhereStatement(IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareExceptStatement(IEnumerable<ColumnInfo> userInterestedColumns)
         {
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
             if (interestedColumns.Any(tableColumn =>
@@ -575,10 +572,7 @@ namespace TableDependency.SqlClient
                 sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
             }
 
-            return string.Format(
-                Environment.NewLine + "WHERE NOT EXISTS(SELECT 1 FROM INSERTED AS [m_New] INNER JOIN DELETED AS [m_Old] ON BINARY_CHECKSUM({0}) = BINARY_CHECKSUM({1}))",
-                sBuilderNewColumns,
-                sBuilderOldColumns);
+            return $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
         }
 
         private static IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
@@ -618,7 +612,7 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var waitforSqlScript = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog}; WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
-            var newMessageReadyToBeNotified = false;            
+            var newMessageReadyToBeNotified = false;
 
             try
             {
@@ -646,7 +640,7 @@ namespace TableDependency.SqlClient
                                 using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                 {
                                     while (sqlDataReader.Read())
-                                    {                                        
+                                    {
                                         var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
                                         this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
 
@@ -841,7 +835,7 @@ namespace TableDependency.SqlClient
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
-                {                   
+                {
                     sqlCommand.CommandText = string.Format(Scripts.InformationSchemaColumns, _schemaName, _tableName);
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
@@ -849,10 +843,10 @@ namespace TableDependency.SqlClient
                         var name = reader["COLUMN_NAME"].ToString();
                         var type = reader["DATA_TYPE"].ToString().ConvertNumericType();
                         var size = ComputeSize(
-                            type, 
-                            reader.GetSafeString(reader.GetOrdinal("CHARACTER_MAXIMUM_LENGTH")), 
-                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_PRECISION")), 
-                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_SCALE")), 
+                            type,
+                            reader.GetSafeString(reader.GetOrdinal("CHARACTER_MAXIMUM_LENGTH")),
+                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_PRECISION")),
+                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_SCALE")),
                             reader.GetSafeString(reader.GetOrdinal("DATETIME_PRECISION")));
 
                         columnsList.Add(new ColumnInfo(name, type, size));
@@ -883,6 +877,7 @@ namespace TableDependency.SqlClient
             foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
             {
                 if (
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "IMAGE", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "TEXT", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "NTEXT", StringComparison.OrdinalIgnoreCase) ||
@@ -901,7 +896,7 @@ namespace TableDependency.SqlClient
 
         private static string ConvertFormat(ColumnInfo userInterestedColumn)
         {
-            return (string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase)) ? ", 121" : string.Empty;
+            return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
         }
 
         private static string ConvertValueByType(ColumnInfo userInterestedColumn)

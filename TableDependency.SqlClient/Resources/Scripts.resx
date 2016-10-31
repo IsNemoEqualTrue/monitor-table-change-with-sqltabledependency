@@ -331,7 +331,7 @@ IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'{
   <data name="TriggerUpdateWithColumns" xml:space="preserve">
     <value>IF ({0}) BEGIN
     SET @dmlType = '{3}'
-    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED
+    INSERT INTO @modifiedRecordsTable SELECT {2} FROM
     {4}
 END
 ELSE BEGIN
@@ -340,7 +340,7 @@ END</value>
   </data>
   <data name="TriggerUpdateWithoutColumns" xml:space="preserve">
     <value>SET @dmlType = '{2}'
-INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED
+INSERT INTO @modifiedRecordsTable SELECT {1} FROM
 {3}</value>
   </data>
 </root>

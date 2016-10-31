@@ -52,6 +52,7 @@
     <Compile Include="Exceptions\DmlTriggerTypeException.cs" />
     <Compile Include="Exceptions\InvalidMessageTypeException.cs" />
     <Compile Include="Exceptions\MessageMisalignedException.cs" />
+    <Compile Include="Exceptions\ModelWithoutParameterlessConstructor.cs" />
     <Compile Include="Exceptions\Net451Exception.cs" />
     <Compile Include="Exceptions\NoColumnsException.cs" />
     <Compile Include="Exceptions\SomeDatabaseObjectsNotPresentException.cs" />

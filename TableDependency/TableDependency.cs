@@ -421,7 +421,7 @@ namespace TableDependency
 
         #region Private methods
 
-        private void TableDependencyCommonSettings( string connectionString, string tableName)
+        private void TableDependencyCommonSettings(string connectionString, string tableName)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));            
             this.Check451FromRegistry();

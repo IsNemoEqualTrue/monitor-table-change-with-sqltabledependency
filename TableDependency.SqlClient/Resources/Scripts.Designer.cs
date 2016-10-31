@@ -162,7 +162,7 @@ namespace TableDependency.SqlClient.Resources {
         /// <summary>
         ///   Looks up a localized string similar to IF ({0}) BEGIN
         ///    SET @dmlType = &apos;{3}&apos;
-        ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM INSERTED
+        ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM
         ///    {4}
         ///END
         ///ELSE BEGIN
@@ -177,7 +177,7 @@ namespace TableDependency.SqlClient.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to SET @dmlType = &apos;{2}&apos;
-        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM INSERTED
+        ///INSERT INTO @modifiedRecordsTable SELECT {1} FROM
         ///{3}.
         /// </summary>
         internal static string TriggerUpdateWithoutColumns {

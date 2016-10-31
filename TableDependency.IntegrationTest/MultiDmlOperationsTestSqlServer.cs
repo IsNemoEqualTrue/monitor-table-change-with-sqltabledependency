@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,26 +12,37 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class MultiDmlOperationsTestSqlServerModel
+    public class MultiDmlOperationsTestSqlServerModel : IEquatable<MultiDmlOperationsTestSqlServerModel>
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
+
+        public bool Equals(MultiDmlOperationsTestSqlServerModel other)
+        {
+            if (other == null) return false;
+            if (this.Name != other.Name) return false;
+            if (this.Surname != other.Surname) return false;
+            return true;
+        }
     }
 
     [TestClass]
     public class MultiDmlOperationsTestSqlServer
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "MultiDmlOperations";
-        private static List<MultiDmlOperationsTestSqlServerModel> _checkValues = new List<MultiDmlOperationsTestSqlServerModel>();
+        private static readonly List<MultiDmlOperationsTestSqlServerModel> ModifiedValues = new List<MultiDmlOperationsTestSqlServerModel>();
+        private static readonly List<MultiDmlOperationsTestSqlServerModel> InitialValues = new List<MultiDmlOperationsTestSqlServerModel>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            InitialValues.Add(new MultiDmlOperationsTestSqlServerModel() { Name = "CHRISTIAN", Surname = "DEL BIANCO" });
+            InitialValues.Add(new MultiDmlOperationsTestSqlServerModel() { Name = "VELIA", Surname = "CECCARELLI" });
+            InitialValues.Add(new MultiDmlOperationsTestSqlServerModel() { Name = "ALFREDINA", Surname = "BRUSCHI" });
+
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -38,12 +50,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText =
-                        $"CREATE TABLE [{TableName}]( " +
-                        "[Id] [int] IDENTITY(1, 1) NOT NULL, " +
-                        "[First Name] [NVARCHAR](50) NOT NULL, " +
-                        "[Second Name] [NVARCHAR](50) NOT NULL, " +
-                        "[Born] [DATETIME] NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [First Name] [NVARCHAR](50) NOT NULL, [Second Name] [NVARCHAR](50) NOT NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -52,17 +59,12 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
-                    sqlCommand.ExecuteNonQuery();
-
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('CHRISTIAN', 'DEL BIANCO')";
-                    sqlCommand.ExecuteNonQuery();
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('VELIA', 'CECCARELLI')";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -71,7 +73,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -86,57 +88,84 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void MultiDeleteTest()
         {
-            _checkValues.Clear();
+            using (var sqlConnection = new SqlConnection(ConnectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    foreach (var item in InitialValues)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{item.Name}', '{item.Surname}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            ModifiedValues.Clear();
             SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
 
             try
             {
                 var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
-                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+                mapper.AddMapping(c => c.Name, "FIRST name");
+                mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
-                tableDependency.OnChanged += this.TableDependency_Changed;
-                tableDependency.OnError += this.TableDependency_OnError;
-                tableDependency.Start();
-
-                Thread.Sleep(5000);
-
-                var t = new Task(MultiDeleteOperation);
-                t.Start();
-                t.Wait(20000);
-            }
-            finally
-            {
-                tableDependency?.Dispose();
-            }
-
-            Assert.AreEqual("CHRISTIAN", _checkValues[1].Name);
-            Assert.AreEqual("DEL BIANCO", _checkValues[1].Surname);
-            Assert.AreEqual("VELIA", _checkValues[0].Name);
-            Assert.AreEqual("CECCARELLI", _checkValues[0].Surname);
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        public void MultiUpdateTest()
-        {
-            _checkValues.Clear();
-            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
-
-            try
-            {
-                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
-                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
-
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
 
                 Thread.Sleep(10000);
 
-                var t = new Task(MultiUpdateOperation);
+                var t = new Task(MultiDeleteOperation);
                 t.Start();
+                Thread.Sleep(20000);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
+
+            Assert.AreEqual(3, ModifiedValues.Count);
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[0])));
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[1])));
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[2])));
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TwoUpdateTest()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    foreach (var item in InitialValues)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{item.Name}', '{item.Surname}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            ModifiedValues.Clear();
+            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
+
+            try
+            {
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
+                mapper.AddMapping(c => c.Name, "FIRST name");
+                mapper.AddMapping(c => c.Surname, "Second Name");
+
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency.OnChanged += this.TableDependency_Changed;
+                tableDependency.OnError += this.TableDependency_OnError;
+                tableDependency.Start();
+
+                Thread.Sleep(10000);
+
+                var t = Task.Factory.StartNew(() => MultiUpdateOperation("VELIA"));
                 t.Wait(20000);
             }
             finally
@@ -144,17 +173,63 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual("AAA", _checkValues[1].Name);
-            Assert.AreEqual("DEL BIANCO", _checkValues[1].Surname);
-            Assert.AreEqual("AAA", _checkValues[0].Name);
-            Assert.AreEqual("CECCARELLI", _checkValues[0].Surname);
+            Assert.AreEqual(2, ModifiedValues.Count);
+            Assert.AreEqual(ModifiedValues[0].Name, "VELIA");
+            Assert.AreEqual(ModifiedValues[1].Name, "VELIA");
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void ThreeUpdateTest()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    foreach (var item in InitialValues)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{item.Name}', '{item.Surname}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            ModifiedValues.Clear();
+            SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
+
+            try
+            {
+                var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
+                mapper.AddMapping(c => c.Name, "FIRST name");
+                mapper.AddMapping(c => c.Surname, "Second Name");
+
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency.OnChanged += this.TableDependency_Changed;
+                tableDependency.OnError += this.TableDependency_OnError;
+                tableDependency.Start();
+
+                Thread.Sleep(10000);
+
+                var t = Task.Factory.StartNew(() => MultiUpdateOperation("xxx"));
+                t.Wait(20000);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
+
+            Assert.AreEqual(3, ModifiedValues.Count);
+            Assert.AreEqual(ModifiedValues[0].Name, "xxx");
+            Assert.AreEqual(ModifiedValues[1].Name, "xxx");
+            Assert.AreEqual(ModifiedValues[2].Name, "xxx");
         }
 
         [TestCategory("SqlServer")]
         [TestMethod]
         public void MultiInsertTest()
         {
-            _checkValues.Clear();
+            ModifiedValues.Clear();
             SqlTableDependency<MultiDmlOperationsTestSqlServerModel> tableDependency = null;
 
             try
@@ -162,7 +237,7 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -178,10 +253,10 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual("NONNA", _checkValues[1].Name);
-            Assert.AreEqual("DIRCE", _checkValues[1].Surname);
-            Assert.AreEqual("ZIA", _checkValues[0].Name);
-            Assert.AreEqual("ALFREDINA", _checkValues[0].Surname);
+            Assert.AreEqual(3, ModifiedValues.Count);
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[0])));
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[1])));
+            Assert.IsTrue(InitialValues.Any(i => i.Equals(ModifiedValues[2])));
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
@@ -191,49 +266,53 @@ namespace TableDependency.IntegrationTest
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<MultiDmlOperationsTestSqlServerModel> e)
         {
-            _checkValues.Add(new MultiDmlOperationsTestSqlServerModel { Name = e.Entity.Name, Surname = e.Entity.Surname });
+            ModifiedValues.Add(e.Entity);
         }
 
         private static void MultiInsertOperation()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('NONNA', 'DIRCE'), ('ZIA', 'ALFREDINA')";
-                    sqlCommand.ExecuteNonQuery();
+                    foreach (var item in InitialValues)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{item.Name}', '{item.Surname}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
                 }
             }
+
             Thread.Sleep(500);
         }
 
         private static void MultiDeleteOperation()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
+            Thread.Sleep(500);
         }
 
-        private static void MultiUpdateOperation()
+        private static void MultiUpdateOperation(string value)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = 'AAA'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{value}'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
+            Thread.Sleep(500);
         }
     }
 }
