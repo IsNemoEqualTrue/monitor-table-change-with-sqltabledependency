@@ -443,11 +443,16 @@ namespace TableDependency.SqlClient
             }
         }
 
+        [DebuggerStepThrough]
         private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
 
-            using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew))
+            var transactionOptions = new TransactionOptions();
+            transactionOptions.IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted;
+            transactionOptions.Timeout = new TimeSpan(0, 0, 1, 0, 0);
+
+            using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, transactionOptions))
             {
                 using (var sqlConnection = new SqlConnection(connectionString))
                 {
@@ -541,10 +546,10 @@ namespace TableDependency.SqlClient
 
                         sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                         sqlCommand.ExecuteNonQuery();
+
+                        transactionScope.Complete();
                     }
                 }
-
-                transactionScope.Complete();
             }
 
             this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");

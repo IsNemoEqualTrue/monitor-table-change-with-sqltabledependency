@@ -64,7 +64,6 @@ namespace TableDependency.SqlClient.Resources {
         ///   Looks up a localized string similar to CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
         ///BEGIN 
         ///	SET NOCOUNT ON;
-        ///	BEGIN TRANSACTION
         ///
         ///	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N&apos;{0}&apos;)
         ///	BEGIN
@@ -73,7 +72,6 @@ namespace TableDependency.SqlClient.Resources {
         ///			{1}
         ///		END 
         ///	END
-        ///	COMMIT TRANSACTION
         ///END.
         /// </summary>
         internal static string CreateProcedureQueueActivation {

@@ -121,7 +121,6 @@
     <value>CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
 BEGIN 
 	SET NOCOUNT ON;
-	BEGIN TRANSACTION
 
 	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N'{0}')
 	BEGIN
@@ -130,7 +129,6 @@ BEGIN
 			{1}
 		END 
 	END
-	COMMIT TRANSACTION
 END</value>
   </data>
   <data name="CreateTrigger" xml:space="preserve">

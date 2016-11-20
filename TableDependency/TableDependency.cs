@@ -397,7 +397,7 @@ namespace TableDependency
             return sb.ToString();
         }
 
-        private static void AddInnerException(StringBuilder sb, Exception exception)
+        protected static void AddInnerException(StringBuilder sb, Exception exception)
         {
             while (true)
             {
@@ -416,12 +416,8 @@ namespace TableDependency
                 break;
             }
         }
-
-        #endregion
-
-        #region Private methods
-
-        private void TableDependencyCommonSettings(string connectionString, string tableName)
+       
+        protected void TableDependencyCommonSettings(string connectionString, string tableName)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));            
             this.Check451FromRegistry();
