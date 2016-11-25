@@ -67,6 +67,7 @@ namespace TableDependency.SqlClient
         private const string Space = " ";
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
         private Guid _dialogHandle;
+        private string _userID;
 
         #endregion
 
@@ -446,9 +447,9 @@ namespace TableDependency.SqlClient
 #if !DEBUG
         [DebuggerStepThrough]
 #endif
-        /// <remarks>
-        /// Transaction time out 1 minutes. If you are debugging, get out of this method before this time out!!!
-        /// </remarks>        
+        // <remarks>
+        // Transaction time out 1 minutes. If you are debugging, get out of this method before this time out!!!
+        // </remarks>        
         private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
@@ -554,9 +555,9 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                         sqlCommand.ExecuteNonQuery();
 
-                    transactionScope.Complete();
+                        transactionScope.Complete();
+                    }
                 }
-            }
             }
 
             this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");
@@ -943,11 +944,12 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, colonne);
         }
 
-        private static void CheckIfConnectionStringIsValid(string connectionString)
+        private void CheckIfConnectionStringIsValid(string connectionString)
         {
             try
             {
-                new SqlConnectionStringBuilder(connectionString);
+                var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+                _userID = sqlConnectionStringBuilder.UserID;
             }
             catch (Exception exception)
             {
@@ -967,7 +969,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private static void CheckIfUserHasPermissions(string connectionString)
+        private void CheckIfUserHasPermissions(string connectionString)
         {
             try
             {
@@ -984,7 +986,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "SELECT [permission_name] FROM fn_my_permissions(NULL, 'DATABASE')";
+                    sqlCommand.CommandText = string.Format(Scripts.SelectUserGrants, _userID);
                     privilegesTable.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
                 }
             }
@@ -993,7 +995,7 @@ namespace TableDependency.SqlClient
             foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
             {
                 var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
-                if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("permission_name"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))) throw new UserWithNoPermissionException(permissionToCkeck);
+                if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("PermissionType"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))) throw new UserWithNoPermissionException(permissionToCkeck);
             }
 
             var selectGratnOnSystemView = new DataTable();

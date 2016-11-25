@@ -41,6 +41,20 @@ namespace TableDependency.SqlClient.Enumerations
         [Description("CREATE SERVICE")]
         CreateService,
         [Description("CREATE PROCEDURE")]
-        CreateProcedure
+        CreateProcedure,
+        [Description("SUBSCRIBE QUERY NOTIFICATIONS")]
+        SubscribeForQueryNotifications,
+        [Description("VIEW DATABASE STATE")]
+        ViewDatabaseState,
+        [Description("VIEW DEFINITION")]
+        ViewDefinition,
+        [Description("CONTROL")]
+        Control,
+        [Description("EXECUTE")]
+        Execute,
+        [Description("ALTER")]
+        Alter,
+        [Description("SELECT")]
+        Select,
     }
 }

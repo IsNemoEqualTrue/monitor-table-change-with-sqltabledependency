@@ -158,6 +158,24 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SELECT  
+        ///    [UserName] = CASE princ.[type] WHEN &apos;S&apos; THEN princ.[name] WHEN &apos;U&apos; THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
+        ///    [UserType] = CASE princ.[type] WHEN &apos;S&apos; THEN &apos;SQL User&apos; WHEN &apos;U&apos; THEN &apos;Windows User&apos; END,  
+        ///    [DatabaseUserName] = princ.[name],       
+        ///    [Role] = null,      
+        ///    [PermissionType] = perm.[permission_name],       
+        ///    [PermissionState] = perm.[state_desc],       
+        ///    [ObjectType] = obj.type_desc,    
+        ///    [ObjectName] = OBJECT_NAME(perm.major_id),
+        ///    [ColumnNam [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string SelectUserGrants {
+            get {
+                return ResourceManager.GetString("SelectUserGrants", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IF ({0}) BEGIN
         ///    SET @dmlType = &apos;{3}&apos;
         ///    INSERT INTO @modifiedRecordsTable SELECT {2} FROM
