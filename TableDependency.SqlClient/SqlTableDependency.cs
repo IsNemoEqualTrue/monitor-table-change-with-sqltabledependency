@@ -443,14 +443,21 @@ namespace TableDependency.SqlClient
             }
         }
 
+#if !DEBUG
         [DebuggerStepThrough]
+#endif
+        /// <remarks>
+        /// Transaction time out 1 minutes. If you are debugging, get out of this method before this time out!!!
+        /// </remarks>        
         private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
 
-            var transactionOptions = new TransactionOptions();
-            transactionOptions.IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted;
-            transactionOptions.Timeout = new TimeSpan(0, 0, 1, 0, 0);
+            var transactionOptions = new TransactionOptions
+            {
+                IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted,
+                Timeout = new TimeSpan(0, 0, 1, 0, 0)
+            };
 
             using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, transactionOptions))
             {
@@ -499,8 +506,8 @@ namespace TableDependency.SqlClient
                         this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
                         sqlCommand.CommandText = _sqlVersion == SqlServerVersion.SqlServer2005
-                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)"
-                            : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS OWNER)";
+                            ? $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS SELF)"
+                            : $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS SELF)";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
 
@@ -547,9 +554,9 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                         sqlCommand.ExecuteNonQuery();
 
-                        transactionScope.Complete();
-                    }
+                    transactionScope.Complete();
                 }
+            }
             }
 
             this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");

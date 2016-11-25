@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("Christian Del Bianco")]
 [assembly: AssemblyProduct("TableDependency.SqlClient")]
 [assembly: AssemblyTrademark("Christian Del Bianco")]
-[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015-2016")]
+[assembly: AssemblyCopyright("Copyright Christian Del Bianco © 2015-2017")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

@@ -22,7 +22,7 @@ namespace TableDependency.IntegrationTest
     {
         private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "Customers";
-        private const string SchemaName = "test";
+        private const string SchemaName = "test_schema";
         private static int _counter;
         private static Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>>();
 
@@ -40,12 +40,7 @@ namespace TableDependency.IntegrationTest
                     {
                         sqlCommand.CommandText = $"DROP TABLE {SchemaName}.{TableName}";
                         sqlCommand.ExecuteNonQuery();
-                    }
-                    else
-                    { 
-                        sqlCommand.CommandText = $"CREATE SCHEMA {SchemaName} AUTHORIZATION [dbo]";
-                        sqlCommand.ExecuteNonQuery();
-                    }
+                    }                   
 
                     sqlCommand.CommandText = $"CREATE TABLE {SchemaName}.{TableName} ([Name] [nvarchar](50) NULL)";
                     sqlCommand.ExecuteNonQuery();
@@ -66,9 +61,6 @@ namespace TableDependency.IntegrationTest
                     if (exists > 0)
                     {
                         sqlCommand.CommandText = $"DROP TABLE {SchemaName}.{TableName}";
-                        sqlCommand.ExecuteNonQuery();
-
-                        sqlCommand.CommandText = $"DROP SCHEMA {SchemaName}";
                         sqlCommand.ExecuteNonQuery();
                     }
                 }
