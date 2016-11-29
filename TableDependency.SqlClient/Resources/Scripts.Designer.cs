@@ -158,16 +158,15 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT  
-        ///    [UserName] = CASE princ.[type] WHEN &apos;S&apos; THEN princ.[name] WHEN &apos;U&apos; THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
-        ///    [UserType] = CASE princ.[type] WHEN &apos;S&apos; THEN &apos;SQL User&apos; WHEN &apos;U&apos; THEN &apos;Windows User&apos; END,  
-        ///    [DatabaseUserName] = princ.[name],       
-        ///    [Role] = null,      
-        ///    [PermissionType] = perm.[permission_name],       
-        ///    [PermissionState] = perm.[state_desc],       
-        ///    [ObjectType] = obj.type_desc,    
-        ///    [ObjectName] = OBJECT_NAME(perm.major_id),
-        ///    [ColumnNam [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to /*
+        ///Security Audit Report
+        ///1) List all access provisioned to a sql user or windows user/group directly 
+        ///2) List all access provisioned to a sql user or windows user/group through a database or application role
+        ///3) List all access provisioned to the public role
+        ///
+        ///Columns Returned:
+        ///UserName        : SQL or Windows/Active Directory user cccount.  This could also be an Active Directory group.
+        ///UserType        : Value will be either &apos;SQL User&apos; or &apos;Windows User&apos;.  This reflects the type of user defined for the [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string SelectUserGrants {
             get {

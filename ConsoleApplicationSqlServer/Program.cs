@@ -42,9 +42,9 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"Name: " + changedEntity.Name);
-                Console.WriteLine(@"Surame: " + changedEntity.Surname);
-                Console.WriteLine(@"Id: " + changedEntity.Id);
+                Console.WriteLine(@"CompanyName: " + changedEntity.CompanyName);
+                Console.WriteLine(@"ContactName: " + changedEntity.ContactName);
+                Console.WriteLine(@"CustomerID: " + changedEntity.CustomerID);
             }
         }
     }

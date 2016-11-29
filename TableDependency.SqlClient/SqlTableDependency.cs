@@ -67,7 +67,6 @@ namespace TableDependency.SqlClient
         private const string Space = " ";
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
         private Guid _dialogHandle;
-        private string _userID;
 
         #endregion
 
@@ -949,7 +948,6 @@ namespace TableDependency.SqlClient
             try
             {
                 var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-                _userID = sqlConnectionStringBuilder.UserID;
             }
             catch (Exception exception)
             {
@@ -980,22 +978,35 @@ namespace TableDependency.SqlClient
                 throw new UserWithNoPermissionException(exception);
             }
 
+
             var privilegesTable = new DataTable();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = string.Format(Scripts.SelectUserGrants, _userID);
+                    // sqlCommand.CommandText = "SELECT [permission_name] FROM fn_my_permissions(NULL, 'DATABASE')";
+                    sqlCommand.CommandText = Scripts.SelectUserGrants;
                     privilegesTable.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
                 }
             }
 
             if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
-            foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
+
+            if (privilegesTable.AsEnumerable().Any(r => string.Equals(r.Field<string>("Role"), "db_owner", StringComparison.OrdinalIgnoreCase)))
             {
-                var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
-                if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("PermissionType"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))) throw new UserWithNoPermissionException(permissionToCkeck);
+                // Ok
+            }
+            else
+            {
+                foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
+                {
+                    var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
+                    if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("permissionType"), permissionToCkeck, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        throw new UserWithNoPermissionException(permissionToCkeck);
+                    }
+                }
             }
 
             var selectGratnOnSystemView = new DataTable();

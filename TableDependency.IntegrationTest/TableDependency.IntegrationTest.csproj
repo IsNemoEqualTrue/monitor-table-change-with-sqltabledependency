@@ -65,6 +65,7 @@
     <Compile Include="DataAnnotationTestSqlServer.cs" />
     <Compile Include="EnumTestSqlServer.cs" />
     <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="EventForAllColumnsTestSqlServerUsingWIA.cs" />
     <Compile Include="Issues\Issue27.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
