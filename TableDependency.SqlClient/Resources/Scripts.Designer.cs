@@ -65,6 +65,10 @@ namespace TableDependency.SqlClient.Resources {
         ///BEGIN 
         ///	SET NOCOUNT ON;
         ///
+        ///	BEGIN TRANSACTION;
+        ///	RECEIVE TOP(0) [conversation_handle]
+        ///	FROM {2}.[{0}]
+        ///
         ///	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N&apos;{0}&apos;)
         ///	BEGIN
         ///		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N&apos;http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer&apos;) &gt; 0)
@@ -72,6 +76,8 @@ namespace TableDependency.SqlClient.Resources {
         ///			{1}
         ///		END 
         ///	END
+        ///
+        ///	COMMIT TRANSACTION;
         ///END.
         /// </summary>
         internal static string CreateProcedureQueueActivation {

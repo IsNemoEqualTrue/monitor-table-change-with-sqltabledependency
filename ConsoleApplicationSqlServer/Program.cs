@@ -12,7 +12,7 @@ namespace ConsoleApplicationSqlServer
         private static void Main()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-            
+
             using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "Customers"))
             {
                 tableDependency.OnChanged += TableDependency_Changed;

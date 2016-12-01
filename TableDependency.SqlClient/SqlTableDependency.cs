@@ -443,9 +443,6 @@ namespace TableDependency.SqlClient
             }
         }
 
-#if !DEBUG
-        [DebuggerStepThrough]
-#endif
         // <remarks>
         // Transaction time out 1 minutes. If you are debugging, get out of this method before this time out!!!
         // </remarks>        
