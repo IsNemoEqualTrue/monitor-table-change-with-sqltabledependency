@@ -391,7 +391,7 @@ namespace TableDependency.SqlClient
             return $"{name}_{Guid.NewGuid()}";
         }
 
-        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming, int commandTimeOut)
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
         {
             var dropMessageStartEnd = new List<string>
             {
@@ -412,7 +412,7 @@ namespace TableDependency.SqlClient
                 {
                     sqlCommand.CommandType = CommandType.Text;
                     sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts), _schemaName, _tableName);
-                    sqlCommand.CommandTimeout = commandTimeOut;
+                    sqlCommand.CommandTimeout = 0;
                     sqlCommand.ExecuteNonQuery();
                 }
             }

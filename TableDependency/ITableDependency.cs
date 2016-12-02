@@ -44,7 +44,7 @@ namespace TableDependency
         #region Methods
 
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
-        void Stop(int timeOut = 300);
+        void Stop();
 
         #endregion
 

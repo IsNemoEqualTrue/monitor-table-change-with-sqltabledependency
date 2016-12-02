@@ -8,6 +8,7 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+#if DEBUG
     [TestClass]
     public class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer
     {
@@ -102,4 +103,5 @@ namespace TableDependency.IntegrationTest
         {
         }
     }
+#endif
 }

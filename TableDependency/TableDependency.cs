@@ -187,7 +187,7 @@ namespace TableDependency
         /// <summary>
         /// Stops monitoring table's content changes.
         /// </summary>
-        public virtual void Stop(int timeOut = 300)
+        public virtual void Stop()
         {
             if (_task != null)
             {
@@ -197,7 +197,7 @@ namespace TableDependency
 
             _task = null;
 
-            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, timeOut);
+            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -294,7 +294,7 @@ namespace TableDependency
 
         protected abstract void PreliminaryChecks(string connectionString, string candidateTableName);
 
-        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention, int commandTimeOut);
+        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
         protected virtual string GetCandidateTableName(string tableName)
         {
