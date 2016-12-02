@@ -65,7 +65,6 @@ namespace TableDependency.SqlClient.Resources {
         ///BEGIN 
         ///	SET NOCOUNT ON;
         ///
-        ///	BEGIN TRANSACTION;
         ///	RECEIVE TOP(0) [conversation_handle]
         ///	FROM {2}.[{0}]
         ///
@@ -76,8 +75,6 @@ namespace TableDependency.SqlClient.Resources {
         ///			{1}
         ///		END 
         ///	END
-        ///
-        ///	COMMIT TRANSACTION;
         ///END.
         /// </summary>
         internal static string CreateProcedureQueueActivation {
@@ -143,19 +140,18 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DECLARE @schema_id INT
+        ///   Looks up a localized string similar to EXEC (N&apos;DISABLE TRIGGER [{2}].[tr_{0}] ON [{2}].[{3}];&apos;);
+        ///
+        ///DECLARE @schema_id INT
         ///DECLARE @conversation_handle UNIQUEIDENTIFIER
         ///DECLARE @rows INT
         ///
         ///SET @rows = 1;
         ///SELECT @schema_id = schema_id FROM sys.schemas WHERE name = N&apos;{2}&apos;;
         ///
-        ///IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) EXEC (N&apos;ALTER QUEUE {2}.[{0}] WITH ACTIVATION (STATUS = OFF)&apos;);
+        ///IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) EXEC (N&apos;ALTER QUEUE [{2}].[{0}] WITH ACTIVATION (STATUS = OFF)&apos;);
         ///
-        ///WHILE (@rows &gt; 0)
-        ///BEGIN
-        ///	SELECT TOP 1 @conversation_handle = conversation_handle FROM sys.conversation_endpoints WITH(NOLOCK) WHERE far_service = N&apos;{0}&apos;;
-        ///	SET [rest of string was truncated]&quot;;.
+        ///    SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) W [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ScriptDropAll {
             get {

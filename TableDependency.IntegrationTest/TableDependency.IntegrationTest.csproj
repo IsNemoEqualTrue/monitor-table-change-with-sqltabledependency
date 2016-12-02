@@ -63,8 +63,12 @@
   </Choose>
   <ItemGroup>
     <Compile Include="DataAnnotationTestSqlServer.cs" />
+    <Compile Include="DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer.cs" />
+    <Compile Include="DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer.cs" />
+    <Compile Include="DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServer.cs" />
     <Compile Include="EnumTestSqlServer.cs" />
-    <Compile Include="DatabaseObjectCleanUpTestSqlServer.cs" />
+    <Compile Include="DatabaseObjectAutoCleanUpTestSqlServer.cs" />
+    <Compile Include="TransactionTestSqlServer.cs" />
     <Compile Include="EventForAllColumnsTestSqlServerUsingRoleDbOwner.cs" />
     <Compile Include="EventForAllColumnsTestSqlServerUsingWIA.cs" />
     <Compile Include="Issues\Issue27.cs" />

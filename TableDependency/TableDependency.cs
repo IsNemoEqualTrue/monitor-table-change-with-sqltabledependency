@@ -46,17 +46,17 @@ namespace TableDependency
     public abstract class TableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
         #region Protected variables
-        
+
         protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
 
         protected CancellationTokenSource _cancellationTokenSource;
-        protected string _dataBaseObjectsNamingConvention;        
+        protected string _dataBaseObjectsNamingConvention;
         protected ModelToTableMapper<T> _mapper;
         protected string _connectionString;
         protected string _tableName;
         protected string _schemaName;
         protected Task _task;
-        protected IList<string> _processableMessages;        
+        protected IList<string> _processableMessages;
         protected IEnumerable<ColumnInfo> _userInterestedColumns;
         protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
@@ -187,7 +187,7 @@ namespace TableDependency
         /// <summary>
         /// Stops monitoring table's content changes.
         /// </summary>
-        public virtual void Stop()
+        public virtual void Stop(int timeOut = 300)
         {
             if (_task != null)
             {
@@ -197,12 +197,29 @@ namespace TableDependency
 
             _task = null;
 
-            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention, timeOut);
 
             _disposed = true;
 
             this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
         }
+
+#if DEBUG
+        public virtual void StopWithoutDisposing()
+        {
+            if (_task != null)
+            {
+                _cancellationTokenSource.Cancel(true);
+                _task?.Wait();
+            }
+
+            _task = null;
+           
+            _disposed = true;
+
+            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
+        }
+#endif
 
         #endregion
 
@@ -218,7 +235,7 @@ namespace TableDependency
             {
                 try
                 {
-                    dlg.Method.Invoke(dlg.Target, new object[] {null, new StatusChangedEventArgs(status)});
+                    dlg.Method.Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status) });
                 }
                 catch
                 {
@@ -277,7 +294,7 @@ namespace TableDependency
 
         protected abstract void PreliminaryChecks(string connectionString, string candidateTableName);
 
-        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
+        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention, int commandTimeOut);
 
         protected virtual string GetCandidateTableName(string tableName)
         {
@@ -416,10 +433,10 @@ namespace TableDependency
                 break;
             }
         }
-       
+
         protected void TableDependencyCommonSettings(string connectionString, string tableName)
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));            
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             this.Check451FromRegistry();
 
             _tableName = this.GetCandidateTableName(tableName);

@@ -391,7 +391,7 @@ namespace TableDependency.SqlClient
             return $"{name}_{Guid.NewGuid()}";
         }
 
-        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming, int commandTimeOut)
         {
             var dropMessageStartEnd = new List<string>
             {
@@ -411,7 +411,8 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts), _schemaName);
+                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts), _schemaName, _tableName);
+                    sqlCommand.CommandTimeout = commandTimeOut;
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -452,7 +453,6 @@ namespace TableDependency.SqlClient
 
             var transactionOptions = new TransactionOptions
             {
-                IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted,
                 Timeout = new TimeSpan(0, 0, 1, 0, 0)
             };
 
@@ -497,7 +497,7 @@ namespace TableDependency.SqlClient
                         this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName);
+                        var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName, _tableName);
                         sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName);
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
@@ -940,7 +940,7 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, colonne);
         }
 
-        private void CheckIfConnectionStringIsValid(string connectionString)
+        private static void CheckIfConnectionStringIsValid(string connectionString)
         {
             try
             {
@@ -964,7 +964,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private void CheckIfUserHasPermissions(string connectionString)
+        private static void CheckIfUserHasPermissions(string connectionString)
         {
             try
             {
@@ -974,7 +974,6 @@ namespace TableDependency.SqlClient
             {
                 throw new UserWithNoPermissionException(exception);
             }
-
 
             var privilegesTable = new DataTable();
             using (var sqlConnection = new SqlConnection(connectionString))

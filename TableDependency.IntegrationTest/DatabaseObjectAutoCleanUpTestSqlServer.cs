@@ -3,7 +3,6 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
@@ -20,7 +19,7 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DatabaseObjectCleanUpTestSqlServer
+    public class DatabaseObjectAutoCleanUpTestSqlServer
     {
         private static string _dbObjectsNaming;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
