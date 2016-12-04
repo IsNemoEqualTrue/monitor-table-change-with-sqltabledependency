@@ -303,32 +303,27 @@ WHERE o.type IN ('U') and SCHEMA_NAME(o.schema_id) = '{0}' and o.name = '{1}'</v
     <value>SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'</value>
   </data>
   <data name="ScriptDropAll" xml:space="preserve">
-    <value>EXEC (N'DISABLE TRIGGER [{2}].[tr_{0}] ON [{2}].[{3}];');
-
-DECLARE @schema_id INT
+    <value>DECLARE @schema_id INT
 DECLARE @conversation_handle UNIQUEIDENTIFIER
-DECLARE @rows INT
 
-SET @rows = 1;
 SELECT @schema_id = schema_id FROM sys.schemas WHERE name = N'{2}';
 
+IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER [{2}].[tr_{0}];
 IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') EXEC (N'ALTER QUEUE [{2}].[{0}] WITH ACTIVATION (STATUS = OFF)');
 
-    SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service = N'{0}';
-    DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations
-    OPEN conversation_cursor
+SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service = N'{0}';
+DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations
+OPEN conversation_cursor
+FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
+WHILE @@FETCH_STATUS = 0 
+BEGIN
+	END CONVERSATION @conversation_handle WITH CLEANUP;
     FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
-    WHILE @@FETCH_STATUS = 0 
-    BEGIN
-        END CONVERSATION @conversation_handle WITH CLEANUP;
-        FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
-    END
-    CLOSE conversation_cursor;
-    DEALLOCATE conversation_cursor;
-    DROP TABLE #Conversations;
+END
+CLOSE conversation_cursor;
+DEALLOCATE conversation_cursor;
+DROP TABLE #Conversations;
 
-
-IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER [{2}].[tr_{0}];
 IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
 IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE {2}.[{0}];
 IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N'{0}') DROP CONTRACT [{0}];

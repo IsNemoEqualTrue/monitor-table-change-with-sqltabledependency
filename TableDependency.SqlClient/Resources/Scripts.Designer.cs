@@ -140,18 +140,15 @@ namespace TableDependency.SqlClient.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to EXEC (N&apos;DISABLE TRIGGER [{2}].[tr_{0}] ON [{2}].[{3}];&apos;);
-        ///
-        ///DECLARE @schema_id INT
+        ///   Looks up a localized string similar to DECLARE @schema_id INT
         ///DECLARE @conversation_handle UNIQUEIDENTIFIER
-        ///DECLARE @rows INT
         ///
-        ///SET @rows = 1;
         ///SELECT @schema_id = schema_id FROM sys.schemas WHERE name = N&apos;{2}&apos;;
         ///
+        ///IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N&apos;tr_{0}&apos;) DROP TRIGGER [{2}].[tr_{0}];
         ///IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N&apos;{0}&apos;) EXEC (N&apos;ALTER QUEUE [{2}].[{0}] WITH ACTIVATION (STATUS = OFF)&apos;);
         ///
-        ///    SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) W [rest of string was truncated]&quot;;.
+        ///SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoin [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ScriptDropAll {
             get {
