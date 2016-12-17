@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Threading;
 
 namespace TableDependency.IntegrationTest.Helpers.SqlServer
 {
@@ -7,6 +8,9 @@ namespace TableDependency.IntegrationTest.Helpers.SqlServer
     {
         internal static bool AreAllDbObjectDisposed(string connectionString, string naming)
         {
+            // 10 seconds
+            Thread.Sleep(10000);
+
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();

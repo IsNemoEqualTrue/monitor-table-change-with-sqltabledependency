@@ -14,6 +14,7 @@ namespace TableDependency.IntegrationTest
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static string TableName = "DisposeMe";
+        public static string _dbObjectsNaming;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -46,6 +47,12 @@ namespace TableDependency.IntegrationTest
             }
         }
 
+        [AssemblyCleanup()]
+        public static void AssemblyCleanup()
+        {
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+        }
+
         [TestCategory("SqlServer")]
         [TestMethod]
         public void DatabaseObjectCleanUpTest2()
@@ -56,7 +63,7 @@ namespace TableDependency.IntegrationTest
             var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName, mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
-            var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
+            _dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
             Thread.Sleep(500);
 
@@ -66,8 +73,6 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000 * 60 * 1);
             tableDependency.Stop();
-
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
         }
 
         private static void ModifyTableContent()

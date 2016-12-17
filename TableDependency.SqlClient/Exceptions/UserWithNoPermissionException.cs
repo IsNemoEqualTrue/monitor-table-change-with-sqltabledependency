@@ -31,12 +31,8 @@ namespace TableDependency.SqlClient.Exceptions
     [Serializable]
     public class UserWithNoPermissionException : TableDependencyException
     {
-        protected internal UserWithNoPermissionException(string missingPermission)
-            : base($"User with no {missingPermission} permission.")
-        { }
-
         protected internal UserWithNoPermissionException(Exception innerException = null)
-            : base("User with no permission.", innerException)
+            : base("User without permissions.", innerException)
         { }
     }
 }

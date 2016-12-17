@@ -68,6 +68,9 @@ namespace TableDependency.SqlClient
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
         private Guid _dialogHandle;
 
+        protected const string DisposeMessageTemplate = "{0}/Dispose";
+        protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
+
         #endregion
 
         #region Properties
@@ -392,32 +395,24 @@ namespace TableDependency.SqlClient
         }
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
-        {
-            var dropMessageStartEnd = new List<string>
-            {
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert)}];",
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update)}];",
-                $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)}') DROP MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)}];"
-            };
-
-            var dropContracts = _userInterestedColumns
-                .Select(c => $"IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{databaseObjectsNaming}/{c.Name}') DROP MESSAGE TYPE [{databaseObjectsNaming}/{c.Name}];" + Environment.NewLine)
-                .Concat(dropMessageStartEnd)
-                .ToList();
-
+        {  
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
+                    var disposeMessage = string.Format(DisposeMessageTemplate, databaseObjectsNaming);
+
+                    // Dialog timer messages are empty messages. 
+                    // A receive operation receives the dialog timer message before any other message for that dialog, 
+                    // regardless of the order in which the time-out message arrived on the queue.
                     sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, string.Join(Environment.NewLine, dropContracts), _schemaName, _tableName);
-                    sqlCommand.CommandTimeout = 0;
+                    sqlCommand.CommandText = string.Format(Scripts.DisposeMessage, databaseObjectsNaming, disposeMessage, this.SchemaName);
                     sqlCommand.ExecuteNonQuery();
                 }
             }
 
-            this.WriteTraceMessage(TraceLevel.Info, "Database objects destroyed.");
+            this.WriteTraceMessage(TraceLevel.Info, "DropDatabaseObjects ended.");
         }
 
         protected override void PreliminaryChecks(string connectionString, string tableName)
@@ -443,20 +438,12 @@ namespace TableDependency.SqlClient
                 throw new ModelWithoutParameterlessConstructor();
             }
         }
-
-        // <remarks>
-        // Transaction time out 1 minutes. If you are debugging, get out of this method before this time out!!!
-        // </remarks>        
+    
         private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
 
-            var transactionOptions = new TransactionOptions
-            {
-                Timeout = new TimeSpan(0, 0, 1, 0, 0)
-            };
-
-            using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, transactionOptions))
+            using (var transactionScope = new TransactionScope(TransactionScopeOption.RequiresNew, new TransactionOptions { Timeout = new TimeSpan(0, 0, 2, 0, 0) }))
             {
                 using (var sqlConnection = new SqlConnection(connectionString))
                 {
@@ -481,6 +468,11 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
                         processableMessages.Add(startMessageDelete);
 
+                        var disposeMessage = string.Format(DisposeMessageTemplate, databaseObjectsNaming);
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{disposeMessage}] VALIDATION = NONE;";
+                        sqlCommand.ExecuteNonQuery();
+                        processableMessages.Add(disposeMessage);
+
                         var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
                         foreach (var userInterestedColumn in interestedColumns)
                         {
@@ -498,7 +490,7 @@ namespace TableDependency.SqlClient
 
                         var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
                         var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName, _tableName);
-                        sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName);
+                        sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName, disposeMessage);
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
@@ -967,27 +959,16 @@ namespace TableDependency.SqlClient
 
         private static void CheckIfUserHasPermissions(string connectionString)
         {
-            try
-            {
-                new SqlClientPermission(PermissionState.Unrestricted).Demand();
-            }
-            catch (Exception exception)
-            {
-                throw new UserWithNoPermissionException(exception);
-            }
-
             var privilegesTable = new DataTable();
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    // sqlCommand.CommandText = "SELECT [permission_name] FROM fn_my_permissions(NULL, 'DATABASE')";
                     sqlCommand.CommandText = Scripts.SelectUserGrants;
                     privilegesTable.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
                 }
             }
-
             if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
 
             if (privilegesTable.AsEnumerable().Any(r => string.Equals(r.Field<string>("Role"), "db_owner", StringComparison.OrdinalIgnoreCase)))
@@ -1001,30 +982,9 @@ namespace TableDependency.SqlClient
                     var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
                     if (privilegesTable.AsEnumerable().All(r => !string.Equals(r.Field<string>("permissionType"), permissionToCkeck, StringComparison.OrdinalIgnoreCase)))
                     {
-                        throw new UserWithNoPermissionException(permissionToCkeck);
+                        throw new UserWithMissingPermissionException(permissionToCkeck);
                     }
                 }
-            }
-
-            var selectGratnOnSystemView = new DataTable();
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandType = CommandType.StoredProcedure;
-                    sqlCommand.CommandText = "sp_helprotect";
-                    selectGratnOnSystemView.Load(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
-                }
-            }
-
-            if (selectGratnOnSystemView.Rows.Count == 0) throw new UserWithNoPermissionException();
-            foreach (var permissionToCkeck in Enum.GetValues(typeof(SqlServerSelectGrantOnSysView))
-                .Cast<object>()
-                .Select(view => EnumUtil.GetDescriptionFromEnumValue((SqlServerSelectGrantOnSysView)view))
-                .Where(permissionToCkeck => selectGratnOnSystemView.AsEnumerable().All(r => !string.Equals(r.Field<string>("Object"), permissionToCkeck, StringComparison.OrdinalIgnoreCase))))
-            {
-                throw new UserWithNoPermissionException("SELECT on SYS." + permissionToCkeck + " view ");
             }
         }
 

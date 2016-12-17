@@ -47,8 +47,6 @@ namespace TableDependency
     {
         #region Protected variables
 
-        protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
-
         protected CancellationTokenSource _cancellationTokenSource;
         protected string _dataBaseObjectsNamingConvention;
         protected ModelToTableMapper<T> _mapper;

@@ -65,12 +65,11 @@ namespace TableDependency.SqlClient.Resources {
         ///BEGIN 
         ///	SET NOCOUNT ON;
         ///
-        ///	RECEIVE TOP(0) [conversation_handle]
-        ///	FROM {2}.[{0}]
+        ///	RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
         ///
         ///	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N&apos;{0}&apos;)
         ///	BEGIN
-        ///		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N&apos;http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer&apos;) &gt; 0)
+        ///		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N&apos;http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer&apos; OR message_type_name = N&apos;{3}&apos;) &gt; 0)
         ///		BEGIN 
         ///			{1}
         ///		END 
@@ -109,6 +108,21 @@ namespace TableDependency.SqlClient.Resources {
         internal static string CreateTrigger {
             get {
                 return ResourceManager.GetString("CreateTrigger", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BEGIN TRANSACTION;
+        ///DECLARE @conversation uniqueidentifier;
+        ///RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
+        ///BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE &apos;{0}&apos; ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
+        ///SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);
+        ///END CONVERSATION @conversation;
+        ///COMMIT TRANSACTION;.
+        /// </summary>
+        internal static string DisposeMessage {
+            get {
+                return ResourceManager.GetString("DisposeMessage", resourceCulture);
             }
         }
         

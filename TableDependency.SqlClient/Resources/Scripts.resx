@@ -122,12 +122,11 @@
 BEGIN 
 	SET NOCOUNT ON;
 
-	RECEIVE TOP(0) [conversation_handle]
-	FROM {2}.[{0}]
+	RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
 
 	IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N'{0}')
 	BEGIN
-		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer') &gt; 0)
+		IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer' OR message_type_name = N'{3}') &gt; 0)
 		BEGIN 
 			{1}
 		END 
@@ -259,6 +258,15 @@ BEGIN
 		RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState)
 	END CATCH
 END</value>
+  </data>
+  <data name="DisposeMessage" xml:space="preserve">
+    <value>BEGIN TRANSACTION;
+DECLARE @conversation uniqueidentifier;
+RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
+BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE '{0}' ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
+SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);
+END CONVERSATION @conversation;
+COMMIT TRANSACTION;</value>
   </data>
   <data name="InformationSchemaColumns" xml:space="preserve">
     <value>SELECT DB_NAME() AS TABLE_CATALOG,

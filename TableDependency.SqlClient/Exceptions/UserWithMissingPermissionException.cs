@@ -23,40 +23,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System.ComponentModel;
+using System;
+using TableDependency.Exceptions;
 
-namespace TableDependency.SqlClient.Enumerations
+namespace TableDependency.SqlClient.Exceptions
 {
-    /// <summary>
-    /// https://msdn.microsoft.com/en-us/library/ms178569.aspx
-    /// </summary>
-    internal enum SqlServerRequiredPermission
+    [Serializable]
+    public class UserWithMissingPermissionException : TableDependencyException
     {
-        [Description("ALTER")]
-        Alter,
-        [Description("CONNECT")]
-        Connect,
-        [Description("CONTROL")]
-        Control,
-        [Description("CREATE CONTRACT")]
-        CreateContract,
-        [Description("CREATE MESSAGE TYPE")]
-        CreateMessageType,
-        [Description("CREATE PROCEDURE")]
-        CreateProcedure,
-        [Description("CREATE QUEUE")]
-        CreateQueue,
-        [Description("CREATE SERVICE")]
-        CreateService,
-        [Description("EXECUTE")]
-        Execute,
-        [Description("SELECT")]
-        Select,
-        [Description("SUBSCRIBE QUERY NOTIFICATIONS")]
-        SubscribeForQueryNotifications,
-        [Description("VIEW DATABASE STATE")]
-        ViewDatabaseState,
-        [Description("VIEW DEFINITION")]
-        ViewDefinition
+        protected internal UserWithMissingPermissionException(string missingPermission)
+            : base($"User with no '{missingPermission.ToUpper()}' permission.")
+        { }
     }
 }

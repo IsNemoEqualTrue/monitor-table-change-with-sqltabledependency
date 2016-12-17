@@ -257,38 +257,30 @@ namespace TableDependency.SqlClient.Where
 
             #endregion
 
-            else if (m.Method.Name == "Take")
-            {
-                if (this.ParseTakeExpression(m))
-                {
-                    var nextExpression = m.Arguments[0];
-                    return this.Visit(nextExpression);
-                }
-            }
-            else if (m.Method.Name == "Skip")
-            {
-                if (this.ParseSkipExpression(m))
-                {
-                    var nextExpression = m.Arguments[0];
-                    return this.Visit(nextExpression);
-                }
-            }
-            else if (m.Method.Name == "OrderBy")
-            {
-                if (this.ParseOrderByExpression(m, "ASC"))
-                {
-                    var nextExpression = m.Arguments[0];
-                    return this.Visit(nextExpression);
-                }
-            }
-            else if (m.Method.Name == "OrderByDescending")
-            {
-                if (this.ParseOrderByExpression(m, "DESC"))
-                {
-                    var nextExpression = m.Arguments[0];
-                    return this.Visit(nextExpression);
-                }
-            }
+            //else if (m.Method.Name == "Take")
+            //{
+            //    if (this.ParseTakeExpression(m))
+            //    {
+            //        var nextExpression = m.Arguments[0];
+            //        return this.Visit(nextExpression);
+            //    }
+            //}
+            //else if (m.Method.Name == "OrderBy")
+            //{
+            //    if (this.ParseOrderByExpression(m, "ASC"))
+            //    {
+            //        var nextExpression = m.Arguments[0];
+            //        return this.Visit(nextExpression);
+            //    }
+            //}
+            //else if (m.Method.Name == "OrderByDescending")
+            //{
+            //    if (this.ParseOrderByExpression(m, "DESC"))
+            //    {
+            //        var nextExpression = m.Arguments[0];
+            //        return this.Visit(nextExpression);
+            //    }
+            //}
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
@@ -454,16 +446,6 @@ namespace TableDependency.SqlClient.Where
             int size;
             if (!int.TryParse(sizeExpression.Value.ToString(), out size)) return false;
             this.Take = size;
-            return true;
-        }
-
-        private bool ParseSkipExpression(MethodCallExpression expression)
-        {
-            var sizeExpression = (ConstantExpression)expression.Arguments[1];
-
-            int size;
-            if (!int.TryParse(sizeExpression.Value.ToString(), out size)) return false;
-            this.Skip = size;
             return true;
         }
     }
