@@ -1,6 +1,6 @@
 ﻿namespace ConsoleApplicationSqlServer
 {
-    public class Customer
+    public class Customers
     {
         public string CustomerID { get; set; }
         public string CompanyName { get; set; }
