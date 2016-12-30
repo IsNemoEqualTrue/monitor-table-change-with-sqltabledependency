@@ -22,10 +22,9 @@ namespace ConsoleApplicationSqlServer
             using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
             {
                 dep.OnChanged += Changed;
-                dep.OnStatusChanged += OnStatusChanged;
-                dep.OnError += OnError;
-                dep.TraceLevel = TraceLevel.Verbose;
-                dep.TraceListener = new TextWriterTraceListener(Console.Out);
+                //dep.OnError += OnError;
+                //dep.TraceLevel = TraceLevel.Verbose;
+                //dep.TraceListener = new TextWriterTraceListener(Console.Out);
                 dep.Start();
 
                 Console.WriteLine(@"Waiting for receiving notifications...");
@@ -36,11 +35,6 @@ namespace ConsoleApplicationSqlServer
             }
 
             Console.WriteLine(@"I ended withour error.");
-        }
-
-        static void OnStatusChanged(object sender, StatusChangedEventArgs e)
-        {
-            Console.WriteLine(e.ToString());
         }
 
         private static void OnError(object sender, ErrorEventArgs e)

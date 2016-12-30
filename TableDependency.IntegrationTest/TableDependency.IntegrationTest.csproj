@@ -72,6 +72,7 @@
     <Compile Include="EventForAllColumnsTestSqlServerUsingRoleDbOwner.cs" />
     <Compile Include="EventForAllColumnsTestSqlServerUsingWIA.cs" />
     <Compile Include="Issues\Issue27.cs" />
+    <Compile Include="TypeChecks\SqlServer\RowVersionType.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />

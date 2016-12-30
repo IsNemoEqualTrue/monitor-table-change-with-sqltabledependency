@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency, OracleTableDependency
-// Copyright (c) 2015-2106 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -451,7 +451,7 @@ namespace TableDependency.SqlClient
                     using (var sqlCommand = sqlConnection.CreateCommand())
                     {
                         sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{databaseObjectsNaming}'";
-                        if (((int)sqlCommand.ExecuteScalar()) > 0) throw new QueueAlreadyUsedException(databaseObjectsNaming);
+                        if ((int)sqlCommand.ExecuteScalar() > 0) throw new QueueAlreadyUsedException(databaseObjectsNaming);
 
                         var startMessageInsert = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert);
                         sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageInsert}] VALIDATION = NONE;";
@@ -560,7 +560,7 @@ namespace TableDependency.SqlClient
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
             if (interestedColumns.Any(tableColumn =>
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return string.Empty;
+                string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return "INSERTED";
 
             var separatorNewColumns = new Separator(2, Comma);
             var sBuilderNewColumns = new StringBuilder();
