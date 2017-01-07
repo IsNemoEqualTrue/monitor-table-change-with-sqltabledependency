@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
+﻿using System.Configuration;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,7 +7,7 @@ using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
+namespace TableDependency.IntegrationTest.TypeChecks
 {
     public class RowVersioneModel
     {

@@ -555,9 +555,8 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        private static string PrepareExceptStatement(IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareExceptStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
         {
-            var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
             if (interestedColumns.Any(tableColumn =>
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return "INSERTED";
@@ -901,20 +900,20 @@ namespace TableDependency.SqlClient
             return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
         }
 
-        private static string ConvertValueByType(ColumnInfo userInterestedColumn)
+        private static string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn)
         {
             if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
             {
-                return $"@{userInterestedColumn.Name.Replace(Space, string.Empty)}";
+                return SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name);
             }
 
-            return $"convert(nvarchar(max), @{userInterestedColumn.Name.Replace(Space, string.Empty)}{ConvertFormat(userInterestedColumn)})";
+            return $"convert(nvarchar(max), {SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{ConvertFormat(userInterestedColumn)})";
         }
 
-        private static string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF @{insterestedColumn.Name.Replace(Space, string.Empty)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
                 .ToList();
 
             sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
@@ -922,15 +921,32 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, sendList);
         }
 
-        private static string PrepareSelectForSetVarialbes(IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareSelectForSetVarialbes(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
-            return string.Join(Comma, userInterestedColumns.Select(insterestedColumn => $"@{insterestedColumn.Name.Replace(Space, string.Empty)} = [{insterestedColumn.Name}]"));
+            return string.Join(Comma, userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
         }
 
-        private static string PrepareDeclareVariableStatement(IEnumerable<ColumnInfo> userInterestedColumns)
+        private static string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
         {
-            var colonne = (from insterestedColumn in userInterestedColumns let variableName = insterestedColumn.Name.Replace(Space, string.Empty) let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size) ? string.Empty : $"({insterestedColumn.Size})") select $"DECLARE @{variableName} {variableType.ToLowerInvariant()}").ToList();
+            var colonne = (from insterestedColumn in interestedColumns
+                           let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size) 
+                           ? string.Empty 
+                           : $"({insterestedColumn.Size})") select $"DECLARE {SanitizeVariableName(interestedColumns, insterestedColumn.Name)} {variableType.ToLowerInvariant()}").ToList();
+
             return string.Join(Environment.NewLine, colonne);
+        }
+
+        private static string SanitizeVariableName(IReadOnlyCollection<ColumnInfo> userInterestedColumns, string tableColumnName)
+        {
+            for(var i = 0; i < userInterestedColumns.Count; i++)
+            {
+                if (userInterestedColumns.ElementAt(i).Name == tableColumnName)
+                {
+                    return "@var" + (i + 1);
+                }
+            }
+
+            throw new SanitizeVariableNameException(tableColumnName);
         }
 
         private static void CheckIfConnectionStringIsValid(string connectionString)

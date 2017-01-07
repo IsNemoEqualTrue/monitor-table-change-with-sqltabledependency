@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.IO;
@@ -14,7 +13,7 @@ using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
+namespace TableDependency.IntegrationTest.TypeChecks
 {
     public class XmlNVarcharMaxAndVarcharMaxModel
     {

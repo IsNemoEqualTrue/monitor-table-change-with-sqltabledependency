@@ -13,7 +13,7 @@ using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.TypeChecks.SqlServer
+namespace TableDependency.IntegrationTest.TypeChecks
 {
     public class NVarcharMaxAndVarcharMaxModel2
     {

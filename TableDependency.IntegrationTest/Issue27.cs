@@ -7,7 +7,7 @@ using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.Issues
+namespace TableDependency.IntegrationTest
 {
     internal class Issue27Model
     {

@@ -49,6 +49,7 @@
     <Compile Include="Enumerations\SqlServerSelectGrantOnSysView.cs" />
     <Compile Include="Enumerations\SqlServerVersion.cs" />
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />
+    <Compile Include="Exceptions\SanitizeVariableNameException.cs" />
     <Compile Include="Exceptions\ServiceBrokerWithTriggerOrTableNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerEndDialogException.cs" />
