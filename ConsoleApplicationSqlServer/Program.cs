@@ -16,15 +16,12 @@ namespace ConsoleApplicationSqlServer
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();
-
-            mapper.AddMapping(c => c.CustomerID, "CustomerID");
+            mapper.AddMapping(c => c.Id, "CustomerID");
 
             using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
             {
                 dep.OnChanged += Changed;
-                //dep.OnError += OnError;
-                //dep.TraceLevel = TraceLevel.Verbose;
-                //dep.TraceListener = new TextWriterTraceListener(Console.Out);
+                dep.OnError += OnError;
                 dep.Start();
 
                 Console.WriteLine(@"Waiting for receiving notifications...");
@@ -33,8 +30,6 @@ namespace ConsoleApplicationSqlServer
 
                 dep.Stop();
             }
-
-            Console.WriteLine(@"I ended withour error.");
         }
 
         private static void OnError(object sender, ErrorEventArgs e)
@@ -52,7 +47,7 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
                 Console.WriteLine(@"CompanyName: " + changedEntity.CompanyName);
                 Console.WriteLine(@"ContactName: " + changedEntity.ContactName);
-                Console.WriteLine(@"CustomerID: " + changedEntity.CustomerID);
+                Console.WriteLine(@"CustomerID: " + changedEntity.Id);
             }
         }
     }
