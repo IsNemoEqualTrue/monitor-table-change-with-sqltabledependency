@@ -21,8 +21,7 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
-Documents/
-NuPkg/
+
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -212,3 +211,6 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+Documents/**
+NuPkg/**
