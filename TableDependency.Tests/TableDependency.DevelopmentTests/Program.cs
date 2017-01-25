@@ -14,8 +14,7 @@ namespace ConsoleApplicationSqlServer
         {
             TestWhere();
             return;
-
-
+            
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();

@@ -1,5 +1,0 @@
-http://sqlsunday.com/2013/04/14/using-service-broker-to-send-messages/
-
-https://www.simple-talk.com/sql/learn-sql-server/service-broker-advanced-basics-workbench/
-
-http://www.c-sharpcorner.com/UploadFile/ff2f08/asynchronous-triggers-using-sql-broker/
