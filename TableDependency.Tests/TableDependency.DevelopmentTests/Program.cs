@@ -29,8 +29,6 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"Waiting for receiving notifications...");
                 Console.WriteLine(@"Press a key to stop");
                 Console.ReadKey();
-
-                dep.Stop();
             }
         }
 
