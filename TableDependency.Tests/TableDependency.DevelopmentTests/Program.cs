@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Diagnostics;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Mappers;
@@ -9,10 +8,14 @@ using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationSqlServer
 {
-    class Program
+    public partial class Program
     {
         private static void Main()
         {
+            TestWhere();
+            return;
+
+
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();

@@ -35,12 +35,6 @@ namespace TableDependency.SqlClient.Where
     {
         private readonly StringBuilder _whereConditionBuilder = new StringBuilder();
 
-        public int? Skip { get; private set; } = null;
-
-        public int? Take { get; private set; } = null;
-
-        public string OrderBy { get; private set; } = string.Empty;
-
         public string Translate(Expression expression)
         {
             this.Visit(expression);
@@ -257,31 +251,6 @@ namespace TableDependency.SqlClient.Where
 
             #endregion
 
-            //else if (m.Method.Name == "Take")
-            //{
-            //    if (this.ParseTakeExpression(m))
-            //    {
-            //        var nextExpression = m.Arguments[0];
-            //        return this.Visit(nextExpression);
-            //    }
-            //}
-            //else if (m.Method.Name == "OrderBy")
-            //{
-            //    if (this.ParseOrderByExpression(m, "ASC"))
-            //    {
-            //        var nextExpression = m.Arguments[0];
-            //        return this.Visit(nextExpression);
-            //    }
-            //}
-            //else if (m.Method.Name == "OrderByDescending")
-            //{
-            //    if (this.ParseOrderByExpression(m, "DESC"))
-            //    {
-            //        var nextExpression = m.Arguments[0];
-            //        return this.Visit(nextExpression);
-            //    }
-            //}
-
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
 
@@ -401,13 +370,20 @@ namespace TableDependency.SqlClient.Where
 
         protected override Expression VisitMember(MemberExpression m)
         {
-            if (m.Member.Name == "Length" && m.Expression.NodeType == ExpressionType.MemberAccess)
+            if (m.Member.Name == "Length")
             {
-                var memberExpression = m.Expression as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
+                if (m.Expression.NodeType == ExpressionType.MemberAccess)
+                {
+                    var memberExpression = m.Expression as MemberExpression;
+                    if (memberExpression == null) return Expression.Empty();
 
-                _whereConditionBuilder.Append("LEN(" + memberExpression.Member.Name + ")");
-                return m;
+                    _whereConditionBuilder.Append("LEN(" + memberExpression.Member.Name + ")");
+                    return m;
+                }
+                else if (m.Expression.NodeType == ExpressionType.Call)
+                {
+                    
+                }
             }
 
             if (m.Expression == null || m.Expression.NodeType != ExpressionType.Parameter)
@@ -425,28 +401,28 @@ namespace TableDependency.SqlClient.Where
             return (exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null);
         }
 
-        private bool ParseOrderByExpression(MethodCallExpression expression, string order)
-        {
-            var unary = (UnaryExpression)expression.Arguments[1];
-            var lambdaExpression = (LambdaExpression)unary.Operand;
+        //private bool ParseOrderByExpression(MethodCallExpression expression, string order)
+        //{
+        //    var unary = (UnaryExpression)expression.Arguments[1];
+        //    var lambdaExpression = (LambdaExpression)unary.Operand;
 
-            lambdaExpression = (LambdaExpression)Evaluator.PartialEval(lambdaExpression);
+        //    lambdaExpression = (LambdaExpression)Evaluator.PartialEval(lambdaExpression);
 
-            var body = lambdaExpression.Body as MemberExpression;
-            if (body == null) return false;
+        //    var body = lambdaExpression.Body as MemberExpression;
+        //    if (body == null) return false;
 
-            this.OrderBy = string.IsNullOrEmpty(OrderBy) ? $"{body.Member.Name} {order}" : $"{OrderBy}, {body.Member.Name} {order}";
-            return true;
-        }
+        //    this.OrderBy = string.IsNullOrEmpty(OrderBy) ? $"{body.Member.Name} {order}" : $"{OrderBy}, {body.Member.Name} {order}";
+        //    return true;
+        //}
 
-        private bool ParseTakeExpression(MethodCallExpression expression)
-        {
-            var sizeExpression = (ConstantExpression)expression.Arguments[1];
+        //private bool ParseTakeExpression(MethodCallExpression expression)
+        //{
+        //    var sizeExpression = (ConstantExpression)expression.Arguments[1];
 
-            int size;
-            if (!int.TryParse(sizeExpression.Value.ToString(), out size)) return false;
-            this.Take = size;
-            return true;
-        }
+        //    int size;
+        //    if (!int.TryParse(sizeExpression.Value.ToString(), out size)) return false;
+        //    this.Take = size;
+        //    return true;
+        //}
     }
 }
