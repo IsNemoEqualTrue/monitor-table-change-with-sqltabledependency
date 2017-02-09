@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Exceptions;
 using TableDependency.Mappers;
 using TableDependency.SqlClient;
+using TableDependency.SqlClient.Exceptions;
 
 namespace TableDependency.IntegrationTest
 {
@@ -78,7 +79,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        [ExpectedException(typeof(InvalidConnectionStringException))]
+        [ExpectedException(typeof(ImpossibleOpenSqlConnectionException))]
         public void InvalidConnectionStringTest()
         {
             using (new SqlTableDependency<PreliminaryTestSqlServerModel>(InvalidValidConnectionString, TableName))
