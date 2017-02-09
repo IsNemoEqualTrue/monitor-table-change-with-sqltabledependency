@@ -31,14 +31,14 @@ using TableDependency.SqlClient.Enumerations;
 namespace TableDependency.SqlClient.Exceptions
 {
     [Serializable]
-    public class SqlServerVersionNotSupported : TableDependencyException
+    public class SqlServerVersionNotSupportedException : TableDependencyException
     {
-        protected internal SqlServerVersionNotSupported() 
+        protected internal SqlServerVersionNotSupportedException() 
             : base("SQL Server version not supported from SqlTableDependency.")
         {
         }
 
-        protected internal SqlServerVersionNotSupported(SqlServerVersion sqlVersion) 
+        protected internal SqlServerVersionNotSupportedException(SqlServerVersion sqlVersion) 
             : base($"SQL Server {sqlVersion.GetHashCode()} is not supported from SqlTableDependency.")
         {
         }

@@ -24,14 +24,15 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 using System;
+using TableDependency.Exceptions;
 
-namespace TableDependency.Exceptions
+namespace TableDependency.SqlClient.Exceptions
 {
     [Serializable]
-    public class InvalidConnectionStringException : TableDependencyException
+    public class ImpossibleOpenSqlConnectionException : TableDependencyException
     {
-        public InvalidConnectionStringException(string connectionString, Exception innerException = null)
-            : base($"Invalid connection string ({connectionString})", innerException)
+        protected internal ImpossibleOpenSqlConnectionException(string connectionString, Exception exception)
+            : base($"Impossible open db connection usin the following connection string '{connectionString}'.", exception)
         { }
     }
 }

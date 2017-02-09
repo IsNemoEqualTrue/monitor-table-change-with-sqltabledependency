@@ -25,8 +25,11 @@
 #endregion
 
 using System;
+using System.CodeDom;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace TableDependency.SqlClient.Where
@@ -41,33 +44,32 @@ namespace TableDependency.SqlClient.Where
             return _whereConditionBuilder.ToString();
         }
 
-        private static Expression StripQuotes(Expression e)
-        {
-            while (e.NodeType == ExpressionType.Quote)
-            {
-                e = ((UnaryExpression)e).Operand;
-            }
 
-            return e;
+        #region Protected Methods 
+
+        protected override Expression VisitInvocation(InvocationExpression e)
+        {
+            return null;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Where")
-            {
-                this.Visit(m.Arguments[0]);
-                var lambda = (LambdaExpression)StripQuotes(m.Arguments[1]);
-                this.Visit(lambda.Body);
-                return m;
-            }
 
-            #region StartsWith
+            //if (this.IsLinqOperator(m.Method))
+            //{
+            //    throw new ArgumentException();
+            //}
+
+            //if (m.Method.DeclaringType == typeof(Queryable) && m.Method.Name == "Where")
+            //{
+            //    throw new ArgumentException("Cosa fai? ridefinisci una where per la seconda volta ?");
+            //}
+
+            //var methodCallExpression = m.Object as MethodCallExpression;
+            //if (methodCallExpression != null) this.Visit(methodCallExpression);
 
             if (m.Method.Name == "StartsWith")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(" LIKE ");
 
@@ -79,18 +81,11 @@ namespace TableDependency.SqlClient.Where
                 var nextExpression = Expression.Constant(likeParameter, typeof(string));
                 var expression = this.Visit(nextExpression);
 
-                return expression;
+                return m;
             }
-
-            #endregion
-
-            #region EndsWith
 
             if (m.Method.Name == "EndsWith")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(" LIKE ");
 
@@ -102,18 +97,11 @@ namespace TableDependency.SqlClient.Where
                 var nextExpression = Expression.Constant(likeParameter, typeof(string));
                 var expression = this.Visit(nextExpression);
 
-                return expression;
+                return m;
             }
-
-            #endregion
-
-            #region Contains
 
             if (m.Method.Name == "Contains")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(" LIKE ");
 
@@ -125,99 +113,58 @@ namespace TableDependency.SqlClient.Where
                 var nextExpression = Expression.Constant(likeParameter, typeof(string));
                 var expression = this.Visit(nextExpression);
 
-                return expression;
+                return m;
             }
-
-            #endregion
-
-            #region Trim
 
             if (m.Method.Name == "Trim")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 _whereConditionBuilder.Append("LTRIM(RTRIM(");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append("))");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region TrimStart
 
             if (m.Method.Name == "TrimStart")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
+                _whereConditionBuilder.Insert(0, "LTRIM(");
 
-                _whereConditionBuilder.Append("LTRIM(");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region TrimEnd
 
             if (m.Method.Name == "TrimEnd")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 _whereConditionBuilder.Append("RTRIM(");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region ToUpper
 
             if (m.Method.Name == "ToUpper")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 _whereConditionBuilder.Append("UPPER(");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region ToLower
 
             if (m.Method.Name == "ToLower")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 _whereConditionBuilder.Append("LOWER(");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region Substring
 
             if (m.Method.Name == "Substring")
             {
                 int intResult;
-
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
 
                 _whereConditionBuilder.Append("SUBSTRING (");
                 this.VisitMember((MemberExpression)m.Object);
@@ -230,26 +177,17 @@ namespace TableDependency.SqlClient.Where
                 if (!int.TryParse(lenParameter?.Value.ToString(), out intResult)) Expression.Empty();
                 _whereConditionBuilder.Append(", " + intResult + ")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
-
-            #region ToString
 
             if (m.Method.Name == "ToString")
             {
-                var memberExpression = m.Object as MemberExpression;
-                if (memberExpression == null) return Expression.Empty();
-
                 _whereConditionBuilder.Append("CONVERT(varchar(MAX), ");
                 this.VisitMember((MemberExpression)m.Object);
                 _whereConditionBuilder.Append(")");
 
-                return Expression.Empty();
+                return m;
             }
-
-            #endregion
 
             throw new NotSupportedException($"The method '{m.Method.Name}' is not supported");
         }
@@ -370,59 +308,44 @@ namespace TableDependency.SqlClient.Where
 
         protected override Expression VisitMember(MemberExpression m)
         {
-            if (m.Member.Name == "Length")
+            if (m.Expression.NodeType == ExpressionType.Call)
             {
-                if (m.Expression.NodeType == ExpressionType.MemberAccess)
-                {
-                    var memberExpression = m.Expression as MemberExpression;
-                    if (memberExpression == null) return Expression.Empty();
-
-                    _whereConditionBuilder.Append("LEN(" + memberExpression.Member.Name + ")");
-                    return m;
-                }
-                else if (m.Expression.NodeType == ExpressionType.Call)
-                {
-                    
-                }
+                this.Visit(m.Expression);
             }
 
-            if (m.Expression == null || m.Expression.NodeType != ExpressionType.Parameter)
-            {
-                throw new NotSupportedException($"The member '{m.Member.Name}' is not supported");
-            }
+            
+            //methodCallExpressionif
 
             _whereConditionBuilder.Append(m.Member.Name);
 
             return m;
         }
 
-        protected bool IsNullConstant(Expression exp)
+        #endregion
+
+        #region Private Methods
+
+        private bool IsLinqOperator(MethodInfo method)
         {
-            return (exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null);
+            if (method.DeclaringType != typeof(Queryable) && method.DeclaringType != typeof(Enumerable)) return false;
+            return Attribute.GetCustomAttribute(method, typeof(ExtensionAttribute)) != null;
         }
 
-        //private bool ParseOrderByExpression(MethodCallExpression expression, string order)
-        //{
-        //    var unary = (UnaryExpression)expression.Arguments[1];
-        //    var lambdaExpression = (LambdaExpression)unary.Operand;
+        private Expression StripQuotes(Expression e)
+        {
+            while (e.NodeType == ExpressionType.Quote)
+            {
+                e = ((UnaryExpression)e).Operand;
+            }
 
-        //    lambdaExpression = (LambdaExpression)Evaluator.PartialEval(lambdaExpression);
+            return e;
+        }
 
-        //    var body = lambdaExpression.Body as MemberExpression;
-        //    if (body == null) return false;
+        private bool IsNullConstant(Expression exp)
+        {
+            return exp.NodeType == ExpressionType.Constant && ((ConstantExpression)exp).Value == null;
+        }
 
-        //    this.OrderBy = string.IsNullOrEmpty(OrderBy) ? $"{body.Member.Name} {order}" : $"{OrderBy}, {body.Member.Name} {order}";
-        //    return true;
-        //}
-
-        //private bool ParseTakeExpression(MethodCallExpression expression)
-        //{
-        //    var sizeExpression = (ConstantExpression)expression.Arguments[1];
-
-        //    int size;
-        //    if (!int.TryParse(sizeExpression.Value.ToString(), out size)) return false;
-        //    this.Take = size;
-        //    return true;
-        //}
+        #endregion
     }
 }

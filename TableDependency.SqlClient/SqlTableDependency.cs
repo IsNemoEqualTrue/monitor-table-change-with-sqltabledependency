@@ -32,7 +32,6 @@ using System.Data.SqlClient;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,9 +61,6 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
-        private const string Max = "MAX";
-        private const string Comma = ",";
-        private const string Space = " ";
         private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
         private Guid _dialogHandle;
 
@@ -339,7 +335,7 @@ namespace TableDependency.SqlClient
             }
             catch
             {
-                throw new SqlServerVersionNotSupported();
+                throw new SqlServerVersionNotSupportedException();
             }
             finally
             {
@@ -368,7 +364,7 @@ namespace TableDependency.SqlClient
         {
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
             var columnsForTableVariable = PrepareColumnListForTableVariable(interestedColumns);
-            var columnsForSelect = string.Join(Comma, interestedColumns.Select(c => $"[{c.Name}]").ToList());
+            var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
             var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
 
             return CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
@@ -424,7 +420,7 @@ namespace TableDependency.SqlClient
             CheckIfTableExists(connectionString, tableName);
 
             _sqlVersion = this.GetSqlServerVersion(connectionString);
-            if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupported(SqlServerVersion.SqlServer2000);
+            if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupportedException(SqlServerVersion.SqlServer2000);
         }
 
         #endregion
@@ -483,7 +479,7 @@ namespace TableDependency.SqlClient
                         }
                         this.WriteTraceMessage(TraceLevel.Verbose, "Messages type created.");
 
-                        var contractBody = string.Join(Comma + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
+                        var contractBody = string.Join("," + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                         sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
@@ -529,7 +525,7 @@ namespace TableDependency.SqlClient
                             ChangeType.Insert,
                             ChangeType.Update,
                             ChangeType.Delete,
-                            string.Join(Comma, GetDmlTriggerType(_dmlTriggerType)));
+                            string.Join(",", GetDmlTriggerType(_dmlTriggerType)));
 
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
@@ -561,9 +557,9 @@ namespace TableDependency.SqlClient
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return "INSERTED";
 
-            var separatorNewColumns = new Separator(2, Comma);
+            var separatorNewColumns = new Separator(2, ",");
             var sBuilderNewColumns = new StringBuilder();
-            var separatorOldColumns = new Separator(2, Comma);
+            var separatorOldColumns = new Separator(2, ",");
             var sBuilderOldColumns = new StringBuilder();
 
             foreach (var column in interestedColumns)
@@ -761,7 +757,7 @@ namespace TableDependency.SqlClient
                 return $"[{tableColumn.Name}] {tableColumn.Type}";
             });
 
-            return string.Join(Comma, columns.ToList());
+            return string.Join(",", columns.ToList());
         }
 
         private static void ThrowIfSqlClientCancellationRequested(CancellationToken cancellationToken, Exception exception)
@@ -810,7 +806,7 @@ namespace TableDependency.SqlClient
                 string.Equals(dataType.ToUpperInvariant(), "VARCHAR", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "NVARCHAR", StringComparison.OrdinalIgnoreCase))
             {
-                return characterMaximumLength == "-1" ? Max : characterMaximumLength;
+                return characterMaximumLength == "-1" ? "MAX" : characterMaximumLength;
             }
 
             if (string.Equals(dataType.ToUpperInvariant(), "DECIMAL", StringComparison.OrdinalIgnoreCase))
@@ -923,7 +919,7 @@ namespace TableDependency.SqlClient
 
         private static string PrepareSelectForSetVarialbes(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
-            return string.Join(Comma, userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
+            return string.Join(",", userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
         }
 
         private static string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
@@ -951,16 +947,18 @@ namespace TableDependency.SqlClient
 
         private static void CheckIfConnectionStringIsValid(string connectionString)
         {
+            SqlConnectionStringBuilder sqlConnectionStringBuilder = null;
+
             try
             {
-                var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+                sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
             }
             catch (Exception exception)
             {
-                throw new InvalidConnectionStringException(exception);
+                throw new InvalidConnectionStringException(connectionString, exception);
             }
 
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
             {
                 try
                 {
@@ -968,7 +966,7 @@ namespace TableDependency.SqlClient
                 }
                 catch (SqlException exception)
                 {
-                    throw new InvalidConnectionStringException(exception);
+                    throw new ImpossibleOpenSqlConnectionException(sqlConnectionStringBuilder.ConnectionString, exception);
                 }
             }
         }

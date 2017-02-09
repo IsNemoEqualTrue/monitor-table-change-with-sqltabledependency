@@ -48,6 +48,7 @@
     <Compile Include="Enumerations\SqlServerSelectGrantOnSysView.cs" />
     <Compile Include="Enumerations\SqlServerVersion.cs" />
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />
+    <Compile Include="Exceptions\ImpossibleOpenSqlConnectionException.cs" />
     <Compile Include="Exceptions\SanitizeVariableNameException.cs" />
     <Compile Include="Exceptions\ServiceBrokerWithTriggerOrTableNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotExistingException.cs" />
@@ -55,7 +56,7 @@
     <Compile Include="Exceptions\QueueAlreadyUsedException.cs" />
     <Compile Include="Exceptions\ServiceBrokerErrorMessageException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotEnabledException.cs" />
-    <Compile Include="Exceptions\SqlServerVersionNotSupported.cs" />
+    <Compile Include="Exceptions\SqlServerVersionNotSupportedException.cs" />
     <Compile Include="Exceptions\UserWithMissingPermissionException.cs" />
     <Compile Include="Exceptions\UserWithNoPermissionException.cs" />
     <Compile Include="Extensions\SqlDataReaderExtension.cs" />

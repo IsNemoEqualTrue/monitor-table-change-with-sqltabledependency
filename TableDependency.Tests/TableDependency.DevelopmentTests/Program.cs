@@ -12,10 +12,10 @@ namespace ConsoleApplicationSqlServer
     {
         private static void Main()
         {
-            TestWhere();
-            return;
+            //TestWhere();
+            //return;
             
-            var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+            var connectionString = ConfigurationManager.ConnectionStrings["WIASqlServerConnectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();
             mapper.AddMapping(c => c.Id, "CustomerID");
