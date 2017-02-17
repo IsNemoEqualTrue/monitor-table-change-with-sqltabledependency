@@ -15,8 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{48852C1F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevelopmentTests", "DevelopmentTests", "{BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationListener1", "TableDependency.Tests\TableDependency.LoadTests\ApplicationListener1\ApplicationListener1.csproj", "{6046B310-27AA-43A8-9B44-59EF2A45C7DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationWriter1", "TableDependency.Tests\TableDependency.LoadTests\ApplicationWriter1\ApplicationWriter1.csproj", "{FD1BB916-453D-4D39-B7B1-B675801C3ED3}"
@@ -41,10 +39,6 @@ Global
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Release|Any CPU.ActiveCfg = Release|Any CPU

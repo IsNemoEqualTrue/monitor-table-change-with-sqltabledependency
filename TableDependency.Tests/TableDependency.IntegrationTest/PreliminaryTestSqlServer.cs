@@ -22,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class PreliminaryTestSqlServer
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private const string TableName = "PreliminaryCheckTest";
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";
@@ -30,7 +30,7 @@ namespace TableDependency.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -52,7 +52,7 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -66,7 +66,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -92,7 +92,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void InvalidTableNameTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, InvalidTableName))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, InvalidTableName))
             {
             }
         }
@@ -104,7 +104,7 @@ namespace TableDependency.IntegrationTest
         {
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -117,7 +117,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, null);
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -130,7 +130,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, string.Empty);
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -143,7 +143,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Not Exist");
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, mapper))
             {
             }
         }
@@ -153,7 +153,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfListTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, updateOf: new List<string>()))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>()))
             {
             }
         }
@@ -163,7 +163,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfModelListTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, updateOf: new UpdateOfModel<PreliminaryTestSqlServerModel>()))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new UpdateOfModel<PreliminaryTestSqlServerModel>()))
             {
             }
         }
@@ -173,7 +173,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithNullTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, updateOf: new List<string>() { "Second Name", null }))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Second Name", null }))
             {
             }
         }
@@ -183,7 +183,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void UpdateOfListWithEmptyTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, updateOf: new List<string>() { "Second Name", string.Empty }))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Second Name", string.Empty }))
             {
             }
         }
@@ -193,7 +193,7 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(UpdateOfException))]
         public void InvalidUpdateOfListTest()
         {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(_connectionString, TableName, updateOf: new List<string>() { "Not exists" }))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Not exists" }))
             {
             }                             
         }

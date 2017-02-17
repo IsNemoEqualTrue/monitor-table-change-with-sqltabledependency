@@ -404,7 +404,7 @@ LEFT JOIN
 LEFT JOIN
     sys.objects obj ON perm.[major_id] = obj.[object_id]
 WHERE 
-    princ.[type] in ('S','U') AND ulogin.sid = SUSER_SID(SUSER_SNAME())
+    (princ.[type] in ('S','U') AND ulogin.sid = SUSER_SID(SUSER_SNAME())) OR (ulogin.sid in((select [sid] from [sys].[database_principals] where [type] in ('R','G'))))
 UNION
 --List all access provisioned to a sql user or windows user/group through a database or application role
 SELECT  
@@ -444,7 +444,7 @@ LEFT JOIN
                     AND col.[column_id] = perm.[minor_id]
 LEFT JOIN
     sys.objects obj ON perm.[major_id] = obj.[object_id]
-WHERE ulogin.sid = SUSER_SID(SUSER_SNAME())
+WHERE ulogin.sid = SUSER_SID(SUSER_SNAME()) OR ulogin.sid in((select [sid] from [sys].[database_principals] where [type] in ('R','G')))
 UNION
 --List all access provisioned to the public role, which everyone gets by default
 SELECT  
