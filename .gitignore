@@ -212,6 +212,7 @@ GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
 
+# Exclude files or folders
 TableDependency.SqlClient.Where/**
 Documents/**
 NuPkg/**
