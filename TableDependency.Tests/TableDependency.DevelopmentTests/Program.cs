@@ -11,10 +11,7 @@ namespace ConsoleApplicationSqlServer
     public partial class Program
     {
         private static void Main()
-        {
-            //TestWhere();
-            //return;
-            
+        {          
             var connectionString = ConfigurationManager.ConnectionStrings["WIASqlServerConnectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();
