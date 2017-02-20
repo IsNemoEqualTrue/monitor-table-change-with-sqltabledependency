@@ -171,7 +171,7 @@ namespace TableDependency
         public virtual void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
-            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new ArgumentException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
+            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new WatchDogTimeOutException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
 
             if (_task != null)
             {
@@ -301,7 +301,7 @@ namespace TableDependency
 
         protected virtual string GetCandidateSchemaName(string tableName)
         {
-            return (!string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : string.Empty);
+            return !string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : string.Empty;
         }
 
         protected virtual string GetTableNameFromTableDataAnnotation()
@@ -428,6 +428,7 @@ namespace TableDependency
                     exception = innerException;
                     continue;
                 }
+
                 break;
             }
         }

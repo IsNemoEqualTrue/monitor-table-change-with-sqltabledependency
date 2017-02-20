@@ -70,7 +70,7 @@ namespace TableDependency.Messages
         {
             if (_startMessagesSignature.Contains(rawMessageType))
             {
-                if (this.Status != MessagesBagStatus.None) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}");
+                if (this.Status != MessagesBagStatus.None) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}.");
 
                 this.MessageType = GetMessageType(rawMessageType);
                 this.MessageSheets.Clear();
@@ -80,13 +80,13 @@ namespace TableDependency.Messages
 
             if (rawMessageType == _endMessageSignature)
             {
-                if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}");
+                if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}.");
                 return (this.Status = MessagesBagStatus.Closed);
             }
 
             if (this.Status == MessagesBagStatus.Closed)
             {
-                throw new MessageMisalignedException($"Received {rawMessageType} while current status is {MessagesBagStatus.Closed}");
+                throw new MessageMisalignedException($"Received {rawMessageType} while current status is {MessagesBagStatus.Closed}.");
             }
 
             this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));

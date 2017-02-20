@@ -61,14 +61,14 @@ namespace TableDependency.Mappers
                         }
                         else
                         {
-                            throw new TableDependencyException("'expression' parameter should be a member expression");
+                            throw new TableDependencyException("'expression' parameter should be a member expression.");
                         }
                     }
                 }
             }
             else
             {
-                throw new TableDependencyException("UpdateOfModel cannot be empty");
+                throw new TableDependencyException("UpdateOfModel cannot be empty.");
             }
         }
 

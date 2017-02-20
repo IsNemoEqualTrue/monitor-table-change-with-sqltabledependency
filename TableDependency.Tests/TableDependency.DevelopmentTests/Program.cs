@@ -11,8 +11,31 @@ namespace ConsoleApplicationSqlServer
     public partial class Program
     {
         private static void Main()
-        {          
-            var connectionString = ConfigurationManager.ConnectionStrings["WIASqlServerConnectionString"].ConnectionString;
+        {
+            var connectionString = string.Empty;
+            ConsoleKeyInfo consoleKeyInfo;
+
+            do
+            {
+                Console.Clear();
+
+                Console.WriteLine(@"**************************************************");
+                Console.WriteLine(@"Please select a connection code:");
+                Console.WriteLine(@" F1: DBO with Integrated security=SSPI ");
+                Console.WriteLine(@" F2: DB Owner Role");
+                Console.WriteLine(@" F3: not DBO");
+                Console.WriteLine(@" ESC:Exit");
+                Console.WriteLine(@"**************************************************");
+
+                consoleKeyInfo = Console.ReadKey();
+                if (consoleKeyInfo.Key == ConsoleKey.Escape) Environment.Exit(0);
+
+            } while (consoleKeyInfo.Key != ConsoleKey.F1 && consoleKeyInfo.Key != ConsoleKey.F2 && consoleKeyInfo.Key != ConsoleKey.F3);
+
+            
+            if (consoleKeyInfo.Key != ConsoleKey.F1) connectionString = ConfigurationManager.ConnectionStrings["DboWithIntegratedSecurityConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key != ConsoleKey.F2) connectionString = ConfigurationManager.ConnectionStrings["DbOwnerSqlServerConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key != ConsoleKey.F3) connectionString = ConfigurationManager.ConnectionStrings["UserNotDboConnectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();
             mapper.AddMapping(c => c.Id, "CustomerID");
@@ -23,6 +46,7 @@ namespace ConsoleApplicationSqlServer
                 dep.OnError += OnError;
                 dep.Start();
 
+                Console.WriteLine(Environment.NewLine);
                 Console.WriteLine(@"Waiting for receiving notifications...");
                 Console.WriteLine(@"Press a key to stop");
                 Console.ReadKey();

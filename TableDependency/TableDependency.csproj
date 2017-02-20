@@ -63,7 +63,7 @@
     <Compile Include="Exceptions\NoSubscriberException.cs" />
     <Compile Include="Exceptions\NotExistingTableException.cs" />
     <Compile Include="Exceptions\TableDependencyException.cs" />
-    <Compile Include="Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Exceptions\WatchDogTimeOutException.cs" />
     <Compile Include="EventArgs\RecordChangedEventArgs.cs" />
     <Compile Include="ITableDependency.cs" />
     <Compile Include="Enums\ChangeType.cs" />

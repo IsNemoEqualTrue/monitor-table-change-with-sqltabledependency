@@ -71,6 +71,25 @@ namespace TableDependency.SqlClient
 
         #region Properties
 
+        /// <summary>
+        /// Specifies the owner of the service to the specified database user.
+        /// When a new service is created it is owned by the principal specified in the AUTHORIZATION clause. Server, database, and schema names cannot be specified. The service_name must be a valid sysname.
+        /// When the current user is dbo or sa, owner_name may be the name of any valid user or role.
+        /// Otherwise, owner_name must be the name of the current user, the name of a user that the current user has IMPERSONATE permission for, or the name of a role to which the current user belongs.
+        /// </summary>
+        public string ServiceAuthorization { get; set; }
+
+        /// <summary>
+        /// Specifies the SQL Server database user account under which the activation stored procedure runs.
+        /// SQL Server must be able to check the permissions for this user at the time that the queue activates the stored procedure. For aWindows domain user, the server must be connected to the domain
+        /// when the procedure is activated or when activation fails.For a SQL Server user, Service Broker always checks the permissions.EXECUTE AS SELF means that the stored procedure executes as the current user.
+        /// </summary>
+        public string QueueExecuteAs { get; set; } = "SELF";
+
+
+        /// <summary>
+        /// Gets or sets the encoding use to convert database strings.
+        /// </summary>
         public override Encoding Encoding { get; set; } = Encoding.Unicode;
 
         #endregion
@@ -431,7 +450,7 @@ namespace TableDependency.SqlClient
         {
             if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
             {
-                throw new ModelWithoutParameterlessConstructor();
+                throw new ModelWithoutParameterlessConstructor("You model needs a constructor without parameter.");
             }
         }
     
@@ -496,7 +515,9 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
 
-                        sqlCommand.CommandText = $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
+                        sqlCommand.CommandText = string.IsNullOrWhiteSpace(this.ServiceAuthorization)
+                            ? $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])"
+                            : $"CREATE SERVICE [{databaseObjectsNaming}] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Service created.");
 
@@ -858,13 +879,13 @@ namespace TableDependency.SqlClient
         {
             if (_mapper == null) return;
 
-            if (_mapper.Count() < 1) throw new ModelToTableMapperException();
+            if (_mapper.Count() < 1) throw new ModelToTableMapperException("Seems that your ModelToTableMapper object has not column defined.");
 
             var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
 
             if (this._mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
             {
-                throw new ModelToTableMapperException();
+                throw new ModelToTableMapperException("I cannot find any correspondence between defined ModelToTableMapper properties and database Table columns.");
             }
         }
 
@@ -884,7 +905,7 @@ namespace TableDependency.SqlClient
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "HIERARCHYID", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "SQL_VARIANT", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new ColumnTypeNotSupportedException($"{tableColumn.Type} type is not an admitted for SqlTableDependency.");
+                    throw new ColumnTypeNotSupportedException($"{tableColumn.Type} column type is not an supported by SqlTableDependency.");
                 }
             }
 

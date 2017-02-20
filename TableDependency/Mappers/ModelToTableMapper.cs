@@ -66,7 +66,7 @@ namespace TableDependency.Mappers
                 return this;
             }
 
-            throw new TableDependencyException("'expression' parameter should be a member expression");
+            throw new TableDependencyException("The 'expression' parameter should be a member expression.");
         }
 
         /// <summary>
