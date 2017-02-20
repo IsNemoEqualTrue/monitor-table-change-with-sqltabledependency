@@ -19,13 +19,13 @@ namespace ConsoleApplicationSqlServer
             {
                 Console.Clear();
 
-                Console.WriteLine(@"**************************************************");
+                Console.WriteLine(@"************************************************************");
                 Console.WriteLine(@"Please select a connection code:");
                 Console.WriteLine(@" F1: Integrated security");
                 Console.WriteLine(@" F2: SQL Server authentication using user with DB Owner Role");
                 Console.WriteLine(@" F3: SQL Server authentication using user not DBO");
                 Console.WriteLine(@" ESC to exit");
-                Console.WriteLine(@"**************************************************");
+                Console.WriteLine(@"************************************************************");
 
                 consoleKeyInfo = Console.ReadKey();
                 if (consoleKeyInfo.Key == ConsoleKey.Escape) Environment.Exit(0);
@@ -66,9 +66,14 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"CompanyName: " + changedEntity.CompanyName);
-                Console.WriteLine(@"ContactName: " + changedEntity.ContactName);
-                Console.WriteLine(@"CustomerID: " + changedEntity.Id);
+                Console.WriteLine(@"CustomerID:    " + changedEntity.Id);
+                Console.WriteLine(@"ContactTitle:  " + changedEntity.ContactTitle);
+                Console.WriteLine(@"CompanyName:   " + changedEntity.CompanyName);
+                Console.WriteLine(@"ContactName:   " + changedEntity.ContactName);
+                Console.WriteLine(@"Address:       " + changedEntity.Address);
+                Console.WriteLine(@"City:          " + changedEntity.City);
+                Console.WriteLine(@"PostalCode:    " + changedEntity.PostalCode);
+                Console.WriteLine(@"Country:       " + changedEntity.Country);
             }
         }
     }
