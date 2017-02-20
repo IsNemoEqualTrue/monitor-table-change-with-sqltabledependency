@@ -33,9 +33,9 @@ namespace ConsoleApplicationSqlServer
             } while (consoleKeyInfo.Key != ConsoleKey.F1 && consoleKeyInfo.Key != ConsoleKey.F2 && consoleKeyInfo.Key != ConsoleKey.F3);
 
             
-            if (consoleKeyInfo.Key != ConsoleKey.F1) connectionString = ConfigurationManager.ConnectionStrings["DboWithIntegratedSecurityConnectionString"].ConnectionString;
-            if (consoleKeyInfo.Key != ConsoleKey.F2) connectionString = ConfigurationManager.ConnectionStrings["DbOwnerSqlServerConnectionString"].ConnectionString;
-            if (consoleKeyInfo.Key != ConsoleKey.F3) connectionString = ConfigurationManager.ConnectionStrings["UserNotDboConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F1) connectionString = ConfigurationManager.ConnectionStrings["IntegratedSecurityConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F2) connectionString = ConfigurationManager.ConnectionStrings["DbOwnerSqlServerConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F3) connectionString = ConfigurationManager.ConnectionStrings["UserNotDboConnectionString"].ConnectionString;
 
             var mapper = new ModelToTableMapper<Customers>();
             mapper.AddMapping(c => c.Id, "CustomerID");
