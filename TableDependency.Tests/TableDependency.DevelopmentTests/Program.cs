@@ -8,7 +8,7 @@ using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationSqlServer
 {
-    public partial class Program
+    public class Program
     {
         private static void Main()
         {
@@ -21,10 +21,10 @@ namespace ConsoleApplicationSqlServer
 
                 Console.WriteLine(@"**************************************************");
                 Console.WriteLine(@"Please select a connection code:");
-                Console.WriteLine(@" F1: DBO with Integrated security=SSPI ");
-                Console.WriteLine(@" F2: DB Owner Role");
-                Console.WriteLine(@" F3: not DBO");
-                Console.WriteLine(@" ESC:Exit");
+                Console.WriteLine(@" F1: Integrated security");
+                Console.WriteLine(@" F2: SQL Server authentication using user with DB Owner Role");
+                Console.WriteLine(@" F3: SQL Server authentication using user not DBO");
+                Console.WriteLine(@" ESC to exit");
                 Console.WriteLine(@"**************************************************");
 
                 consoleKeyInfo = Console.ReadKey();
