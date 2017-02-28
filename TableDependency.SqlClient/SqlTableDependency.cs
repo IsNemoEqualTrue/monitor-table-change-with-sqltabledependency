@@ -802,11 +802,15 @@ namespace TableDependency.SqlClient
             }
         }
 
-        private void NotifyListenersAboutChange(IEnumerable<Delegate> delegates, ModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
+        private void NotifyListenersAboutChange(
+            Delegate[] changeSubscribedList,
+            ModelToTableMapper<T> modelMapper, 
+            MessagesBag messagesBag, 
+            IEnumerable<ColumnInfo> userInterestedColumns)
         {
-            if (delegates == null) return;
+            if (changeSubscribedList == null) return;
 
-            foreach (var dlg in delegates.Where(d => d != null))
+            foreach (var dlg in changeSubscribedList.Where(d => d != null))
             {
                 try
                 {
@@ -818,9 +822,9 @@ namespace TableDependency.SqlClient
                         _database, 
                         _dataBaseObjectsNamingConvention) });
                 }
-                catch
+                catch (Exception exception)
                 {
-                    // ignored
+                    this.WriteTraceMessage(TraceLevel.Error, "Exception", exception);
                 }
             }
         }

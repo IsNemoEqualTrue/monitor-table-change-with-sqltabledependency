@@ -137,9 +137,19 @@ namespace TableDependency.EventArgs
 
                 case TypeCode.DateTime:
                     return DateTime.Parse(value);
+                    //return DateTime.ParseExact("yyyy-MM-dd", value, CultureInfo.InvariantCulture);
 
                 case TypeCode.String:
                     return value as string;
+
+                case TypeCode.Object:
+                    Guid guid;
+                    if (Guid.TryParse(value, out guid)) return guid;
+
+                    TimeSpan timeSpan;
+                    if (TimeSpan.TryParse(value, out timeSpan)) return timeSpan;
+
+                    break;
             }
 
             throw new ArgumentOutOfRangeException();
