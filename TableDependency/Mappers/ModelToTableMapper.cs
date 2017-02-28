@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency, OracleTableDependency
+// TableDependency, SqlTableDependency
 // Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person

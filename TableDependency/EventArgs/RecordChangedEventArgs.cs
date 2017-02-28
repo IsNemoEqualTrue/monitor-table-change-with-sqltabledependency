@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency, OracleTableDependency
+// TableDependency, SqlTableDependency
 // Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -148,6 +148,9 @@ namespace TableDependency.EventArgs
 
                     TimeSpan timeSpan;
                     if (TimeSpan.TryParse(value, out timeSpan)) return timeSpan;
+
+                    DateTimeOffset dateTimeOffset;
+                    if (DateTimeOffset.TryParse(value, out dateTimeOffset)) return dateTimeOffset;
 
                     break;
             }

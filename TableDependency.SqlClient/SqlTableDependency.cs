@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency, OracleTableDependency
+// TableDependency, SqlTableDependency
 // Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -804,28 +804,21 @@ namespace TableDependency.SqlClient
 
         private void NotifyListenersAboutChange(
             Delegate[] changeSubscribedList,
-            ModelToTableMapper<T> modelMapper, 
-            MessagesBag messagesBag, 
+            ModelToTableMapper<T> modelMapper,
+            MessagesBag messagesBag,
             IEnumerable<ColumnInfo> userInterestedColumns)
         {
             if (changeSubscribedList == null) return;
 
             foreach (var dlg in changeSubscribedList.Where(d => d != null))
             {
-                try
-                {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(
-                        messagesBag, 
-                        modelMapper, 
-                        userInterestedColumns, 
-                        _server, 
-                        _database, 
-                        _dataBaseObjectsNamingConvention) });
-                }
-                catch (Exception exception)
-                {
-                    this.WriteTraceMessage(TraceLevel.Error, "Exception", exception);
-                }
+                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(
+                    messagesBag,
+                    modelMapper,
+                    userInterestedColumns,
+                    _server,
+                    _database,
+                    _dataBaseObjectsNamingConvention) });
             }
         }
 

@@ -19,8 +19,12 @@ namespace ConsoleApplicationSqlServer
             {
                 Console.Clear();
 
+                Console.WriteLine(@"TableDependency, SqlTableDependency");
+                Console.WriteLine(@"Copyright (c) 2015-2017 Christian Del Bianco.");
+                Console.WriteLine(@"All rights reserved.");
+                Console.WriteLine();
                 Console.WriteLine(@"************************************************************");
-                Console.WriteLine(@"Please select a connection code:");
+                Console.WriteLine(@"Application used for development [connection string to use]:");
                 Console.WriteLine(@" F1: Integrated security");
                 Console.WriteLine(@" F2: SQL Server authentication using user with DB Owner Role");
                 Console.WriteLine(@" F3: SQL Server authentication using user not DBO");
