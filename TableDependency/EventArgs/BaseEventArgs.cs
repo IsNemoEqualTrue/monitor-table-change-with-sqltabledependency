@@ -24,16 +24,32 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
-using TableDependency.Enums;
+using System.Globalization;
 
-namespace TableDependency.Exceptions
+namespace TableDependency.EventArgs
 {
-    [Serializable]
-    public class InvalidMessageTypeException : TableDependencyException
+    public abstract class BaseEventArgs : System.EventArgs
     {
-        public InvalidMessageTypeException(string rawMessageType, ChangeType expectedMessageType)
-            : base($"Received message type: {rawMessageType}. Expected message type: {expectedMessageType}.")
-        { }
+        #region Properties
+
+        public CultureInfo Culture { get; protected set; }
+        public string Server { get; protected set; }
+        public string Database { get; protected set; }
+        public string Sender { get; protected set; }
+
+        #endregion
+
+        #region Constructors
+
+        protected BaseEventArgs(string server, string database, string sender, string cultureInfoFiveLettersCode = "en-US")
+        {
+            this.Server = server;
+            this.Database = database;
+            this.Sender = sender;
+
+            this.Culture = new CultureInfo(cultureInfoFiveLettersCode);
+        }
+
+        #endregion
     }
 }

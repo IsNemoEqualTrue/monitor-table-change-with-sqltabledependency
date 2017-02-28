@@ -23,17 +23,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 
 namespace TableDependency.Exceptions
 {
-    [Serializable]
-    public class TableDependencyException : Exception
+    public abstract class TableDependencyException : Exception
     {
-        public TableDependencyException()
-        { }
-
-        public TableDependencyException(string message, Exception innerException = null)
+        protected TableDependencyException(string message, Exception innerException = null)
             : base(message, innerException)
         { }
     }

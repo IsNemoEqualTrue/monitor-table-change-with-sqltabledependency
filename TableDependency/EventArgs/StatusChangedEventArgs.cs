@@ -28,7 +28,7 @@ using TableDependency.Enums;
 
 namespace TableDependency.EventArgs
 {
-    public class StatusChangedEventArgs : System.EventArgs
+    public class StatusChangedEventArgs : BaseEventArgs
     {
         #region Properties
 
@@ -38,7 +38,8 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal StatusChangedEventArgs(TableDependencyStatus status)
+        internal StatusChangedEventArgs(TableDependencyStatus status, string server, string database, string sender) 
+            : base(server, database, sender)
         {
             this.Status = status;
         }

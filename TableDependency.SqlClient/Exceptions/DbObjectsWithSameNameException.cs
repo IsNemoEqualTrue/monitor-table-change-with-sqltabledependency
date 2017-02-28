@@ -23,16 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
+
 using TableDependency.Exceptions;
 
 namespace TableDependency.SqlClient.Exceptions
 {
-    [Serializable]
-    public class ServiceBrokerWithTriggerOrTableNotExistingException : TableDependencyException
+    public class DbObjectsWithSameNameException : TableDependencyException
     {
-        protected internal ServiceBrokerWithTriggerOrTableNotExistingException(string naming)
-            : base($"No trigger or table associated to Service broker with name '{naming}'.")
+        protected internal DbObjectsWithSameNameException(string naming)
+            : base($"Already existing database objects (queue, trigger, stored procedure or service broker) with name '{naming}'.")
         { }
     }
 }

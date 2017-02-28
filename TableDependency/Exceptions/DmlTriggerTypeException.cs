@@ -24,11 +24,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
-
 namespace TableDependency.Exceptions
 {
-    [Serializable]
     public class DmlTriggerTypeException : TableDependencyException
     {
         public DmlTriggerTypeException(string message = null)

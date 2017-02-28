@@ -23,16 +23,15 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
+
 using TableDependency.Exceptions;
 
 namespace TableDependency.SqlClient.Exceptions
 {
-    [Serializable]
     public class ServiceBrokerErrorMessageException : TableDependencyException
     {
         protected internal ServiceBrokerErrorMessageException(string naming)
-            : base($"Service broker {naming} send an error message.")
+            : base($"Service broker '{naming}' send an error message.")
         { }
     }
 }

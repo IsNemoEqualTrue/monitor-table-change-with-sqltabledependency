@@ -38,22 +38,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enumerations\SqlServerRequiredPermission.cs" />
-    <Compile Include="Enumerations\SqlServerSelectGrantOnSysView.cs" />
     <Compile Include="Enumerations\SqlServerVersion.cs" />
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />
     <Compile Include="Exceptions\ImpossibleOpenSqlConnectionException.cs" />
     <Compile Include="Exceptions\SanitizeVariableNameException.cs" />
-    <Compile Include="Exceptions\ServiceBrokerWithTriggerOrTableNotExistingException.cs" />
-    <Compile Include="Exceptions\ServiceBrokerNotExistingException.cs" />
     <Compile Include="Exceptions\ServiceBrokerEndDialogException.cs" />
-    <Compile Include="Exceptions\QueueAlreadyUsedException.cs" />
+    <Compile Include="Exceptions\DbObjectsWithSameNameException.cs" />
     <Compile Include="Exceptions\ServiceBrokerErrorMessageException.cs" />
     <Compile Include="Exceptions\ServiceBrokerNotEnabledException.cs" />
     <Compile Include="Exceptions\SqlServerVersionNotSupportedException.cs" />
@@ -70,6 +65,8 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="SqlTableDependency.cs" />
+    <Compile Include="Utilities\PrivilegesTable.cs" />
+    <Compile Include="Utilities\SerializeSqlDataReader.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency\TableDependency.csproj">

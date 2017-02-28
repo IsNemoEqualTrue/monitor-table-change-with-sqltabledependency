@@ -60,13 +60,11 @@ namespace TableDependency.Mappers
 
             var unarUnaryExpressionyExp = expression.Body as UnaryExpression;
             var memberExpressionByOperator = unarUnaryExpressionyExp?.Operand as MemberExpression;
-            if (memberExpressionByOperator != null)
-            {
-                _mappings[(PropertyInfo)memberExpressionByOperator.Member] = columnName;
-                return this;
-            }
+            if (memberExpressionByOperator == null) throw new UpdateOfModelException("The 'expression' parameter should be a member expression.");
 
-            throw new TableDependencyException("The 'expression' parameter should be a member expression.");
+            _mappings[(PropertyInfo)memberExpressionByOperator.Member] = columnName;
+
+            return this;
         }
 
         /// <summary>
@@ -89,7 +87,7 @@ namespace TableDependency.Mappers
         {
             if (GetMappings().Any(kvp => kvp.Value != null && string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0))
             {
-                var mapping = GetMappings().First(kvp => string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0);
+                var mapping = this.GetMappings().First(kvp => string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0);
                 return mapping.Value;
             }
 

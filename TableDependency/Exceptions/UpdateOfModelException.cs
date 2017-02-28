@@ -23,26 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TableDependency.Exceptions
 {
-    [Serializable]
-    public class SomeDatabaseObjectsNotPresentException : TableDependencyException
+    public class UpdateOfModelException : TableDependencyException
     {
-        public SomeDatabaseObjectsNotPresentException(Dictionary<string, bool> missingObjects)
-            : base()
-        {
-            var errorMessage = new StringBuilder("Having specified a naming convention for Database objects all of them must be absents or be presents. The following object are missing:");
-            foreach (var missingObject in missingObjects)
-            {
-                if (missingObject.Value == false)
-                {
-                    errorMessage.AppendLine(missingObject.Key + " ");
-                }
-            }            
-        }
+        public UpdateOfModelException(string message)
+            : base(message)
+        { }
     }
 }

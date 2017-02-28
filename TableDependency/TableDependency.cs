@@ -33,7 +33,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using TableDependency.Classes;
 using TableDependency.Delegates;
 using TableDependency.Enums;
@@ -45,7 +44,7 @@ namespace TableDependency
 {
     public abstract class TableDependency<T> : ITableDependency<T>, IDisposable where T : class
     {
-        #region Protected variables
+        #region Instance Variables
 
         protected CancellationTokenSource _cancellationTokenSource;
         protected string _dataBaseObjectsNamingConvention;
@@ -53,6 +52,8 @@ namespace TableDependency
         protected string _connectionString;
         protected string _tableName;
         protected string _schemaName;
+        protected string _server;
+        protected string _database;
         protected Task _task;
         protected IList<string> _processableMessages;
         protected IEnumerable<ColumnInfo> _userInterestedColumns;
@@ -114,7 +115,7 @@ namespace TableDependency
         /// <value>
         /// The data base objects naming.
         /// </value>
-        public string DataBaseObjectsNamingConvention => string.Copy(_dataBaseObjectsNamingConvention);
+        public string DataBaseObjectsNamingConvention => new string(_dataBaseObjectsNamingConvention.ToCharArray());
 
         /// <summary>
         /// Gets the SqlTableDependency status.
@@ -146,14 +147,22 @@ namespace TableDependency
 
         protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
         {
+            this.OnInitializing();
+
             this.TableDependencyCommonSettings(connectionString, tableName);
-            this.Initializer(connectionString, tableName, mapper, updateOf, dmlTriggerType);
+            this.Initialize(connectionString, tableName, mapper, updateOf, dmlTriggerType);
+
+            this.OnInitialized();
         }
 
         protected TableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
         {
+            this.OnInitializing();
+
             this.TableDependencyCommonSettings(connectionString, tableName);
-            this.Initializer(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType);
+            this.Initialize(connectionString, tableName, mapper, this.GetColumnNameListFromUpdateOfModel(updateOf), dmlTriggerType);
+
+            this.OnInitialized();
         }
 
         #endregion
@@ -195,7 +204,7 @@ namespace TableDependency
 
             _task = null;
 
-            DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -223,6 +232,10 @@ namespace TableDependency
 
         #region Protected methods
 
+        protected virtual void OnInitializing() { }
+
+        protected virtual void OnInitialized() { }
+
         protected void NotifyListenersAboutStatus(Delegate[] onStatusChangedSubscribedList, TableDependencyStatus status)
         {
             _status = status;
@@ -233,7 +246,7 @@ namespace TableDependency
             {
                 try
                 {
-                    dlg.Method.Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status) });
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status, _server, _database, _dataBaseObjectsNamingConvention) });
                 }
                 catch
                 {
@@ -244,18 +257,17 @@ namespace TableDependency
 
         protected void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
         {
-            if (onErrorSubscribedList != null)
+            if (onErrorSubscribedList == null) return;
+
+            foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
             {
-                foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
+                try
                 {
-                    try
-                    {
-                        dlg.Method.Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception) });
-                    }
-                    catch
-                    {
-                        // ignored
-                    }
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception, _server, _database, _dataBaseObjectsNamingConvention) });
+                }
+                catch
+                {
+                    // ignored
                 }
             }
         }
@@ -264,7 +276,7 @@ namespace TableDependency
 
         protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
-        protected virtual void Initializer(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
+        protected virtual void Initialize(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
         {
             if (mapper != null && mapper.Count() == 0) throw new ModelToTableMapperException("Empty mapper");
 
@@ -306,7 +318,7 @@ namespace TableDependency
 
         protected virtual string GetTableNameFromTableDataAnnotation()
         {
-            var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
+            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Name;
         }
 
@@ -320,7 +332,7 @@ namespace TableDependency
         {
             var propertyInfos = typeof(T)
                 .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => Attribute.IsDefined(x, typeof(ColumnAttribute), false))
+                .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
                 .ToArray();
 
             if (!propertyInfos.Any()) return null;
@@ -340,39 +352,23 @@ namespace TableDependency
         {
             var updateOfList = new List<string>();
 
-            if (updateOf != null && updateOf.Count() > 0)
+            if (updateOf == null || updateOf.Count() <= 0) return updateOfList;
+
+            foreach (var propertyInfo in updateOf.GetPropertiesInfos())
             {
-                foreach (var propertyInfo in updateOf.GetPropertiesInfos())
+                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
+                if (attribute != null)
                 {
-                    var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
-                    if (attribute != null)
-                    {
-                        var dbColumnName = ((ColumnAttribute)attribute).Name;
-                        updateOfList.Add(dbColumnName);
-                    }
-                    else
-                    {
-                        updateOfList.Add(propertyInfo.Name);
-                    }
+                    var dbColumnName = ((ColumnAttribute)attribute).Name;
+                    updateOfList.Add(dbColumnName);
+                }
+                else
+                {
+                    updateOfList.Add(propertyInfo.Name);
                 }
             }
 
             return updateOfList;
-        }
-
-        protected virtual void Check451FromRegistry()
-        {
-            // http://msdn.microsoft.com/en-us/library/hh925568(v=vs.110).aspx
-            using (var ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
-            {
-                if (ndpKey?.GetValue("Release") != null)
-                {
-                    var releaseKey = (int)ndpKey.GetValue("Release");
-                    if ((releaseKey >= 378675)) return;
-                }
-            }
-
-            throw new Net451Exception();
         }
 
         protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
@@ -386,7 +382,7 @@ namespace TableDependency
                 {
                     var messageToWrite = new StringBuilder(message);
                     if (exception != null) messageToWrite.Append(this.DumpException(exception));
-                    this.TraceListener.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + messageToWrite);
+                    this.TraceListener.WriteLine($"{this.MessageHeader()}{messageToWrite}");
                     this.TraceListener.Flush();
                 }
             }
@@ -394,6 +390,11 @@ namespace TableDependency
             {
                 // ignored
             }
+        }
+
+        protected virtual string MessageHeader()
+        {
+            return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [Server: {_server} Database: {_database}]";
         }
 
         protected string DumpException(Exception exception)
@@ -436,7 +437,6 @@ namespace TableDependency
         protected void TableDependencyCommonSettings(string connectionString, string tableName)
         {
             if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
-            this.Check451FromRegistry();
 
             _tableName = this.GetCandidateTableName(tableName);
             _schemaName = this.GetCandidateSchemaName(tableName);
@@ -450,7 +450,7 @@ namespace TableDependency
 
         public void Dispose()
         {
-            Dispose(true);
+            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
@@ -463,7 +463,7 @@ namespace TableDependency
 
             if (disposing)
             {
-                Stop();
+                this.Stop();
 
                 if (this.TraceListener != null)
                 {
@@ -477,7 +477,7 @@ namespace TableDependency
 
         ~TableDependency()
         {
-            Dispose(false);
+            this.Dispose(false);
         }
 
         #endregion

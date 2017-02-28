@@ -36,7 +36,7 @@ namespace TableDependency.Utilities
         private static readonly IList<Type> ProcessableModelTypes = new List<Type>
         {
             typeof (string),
-            typeof (char),            
+            typeof (char),
             typeof (short), typeof (short?),
             typeof (int), typeof (int?),
             typeof (long), typeof (long?),
@@ -59,7 +59,7 @@ namespace TableDependency.Utilities
         {
             return typeof(T)
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetField)
-                .Where(propertyInfo => ProcessableModelTypes.Contains(propertyInfo.PropertyType) || propertyInfo.PropertyType.IsEnum || (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                .Where(propertyInfo => ModelUtil.ProcessableModelTypes.Contains(propertyInfo.PropertyType) || propertyInfo.PropertyType.GetTypeInfo().IsEnum || (propertyInfo.PropertyType.GetTypeInfo().IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 .ToArray();
         }
     }

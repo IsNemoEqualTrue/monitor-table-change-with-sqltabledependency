@@ -26,8 +26,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using TableDependency.Classes;
@@ -38,10 +36,14 @@ using TableDependency.Utilities;
 
 namespace TableDependency.EventArgs
 {
-    public class RecordChangedEventArgs<T> : System.EventArgs where T : class
+    public class RecordChangedEventArgs<T> : BaseEventArgs where T : class
     {
+        #region Instance variables
+
         protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
         protected IEnumerable<ColumnInfo> UserInterestedColumns;
+
+        #endregion
 
         #region Properties
 
@@ -54,19 +56,99 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        protected RecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns)
+        public RecordChangedEventArgs(
+            MessagesBag messagesBag,
+            ModelToTableMapper<T> mapper,
+            IEnumerable<ColumnInfo> userInterestedColumns,
+            string server,
+            string database,
+            string sender) : base(server, database, sender)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
             this.UserInterestedColumns = userInterestedColumns;
 
-            ChangeType = messagesBag.MessageType;
-            Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
+            this.ChangeType = messagesBag.MessageType;
+            this.Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
         }
 
         #endregion
 
-        #region Internal methods
+        #region public methods
+
+        public virtual object GetValue(PropertyInfo propertyInfo, ColumnInfo columnInfo, byte[] message)
+        {
+            var stringValue = Convert.ToString(this.MessagesBag.Encoding.GetString(message), base.Culture);
+            return this.GetValueObject(propertyInfo, stringValue);
+        }
+
+        #endregion
+
+        #region Protected Methods
+
+        protected virtual object GetValueObject(PropertyInfo propertyInfo, string value)
+        {
+            var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
+            var typeCode = Type.GetTypeCode(propertyType);
+
+            switch (typeCode)
+            {
+                case TypeCode.DBNull:
+                    return null;
+
+                case TypeCode.Boolean:
+                    return Boolean.Parse(value);
+
+                case TypeCode.Char:
+                    return Char.Parse(value);
+
+                case TypeCode.SByte:
+                    return SByte.Parse(value);
+
+                case TypeCode.Byte:
+                    return Byte.Parse(value);
+
+                case TypeCode.Int16:
+                    return Int16.Parse(value);
+
+                case TypeCode.UInt16:
+                    return UInt16.Parse(value);
+
+                case TypeCode.Int32:
+                    return Int32.Parse(value);
+
+                case TypeCode.UInt32:
+                    return UInt32.Parse(value);
+
+                case TypeCode.Int64:
+                    return Int64.Parse(value);
+
+                case TypeCode.UInt64:
+                    return UInt64.Parse(value);
+
+                case TypeCode.Single:
+                    return Single.Parse(value);
+
+                case TypeCode.Double:
+                    return Double.Parse(value);
+
+                case TypeCode.Decimal:
+                    return Decimal.Parse(value);
+
+                case TypeCode.DateTime:
+                    return DateTime.Parse(value);
+
+                case TypeCode.String:
+                    return value as string;
+            }
+
+            throw new ArgumentOutOfRangeException();
+        }
+
+        protected virtual ColumnInfo GetColumnInfo(string columnName)
+        {
+            return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
+        }
 
         protected virtual T MaterializeEntity(List<Message> messages, ModelToTableMapper<T> mapper)
         {
@@ -87,20 +169,6 @@ namespace TableDependency.EventArgs
             }
 
             return entity;
-        }
-
-        public virtual ColumnInfo GetColumnInfo(string columnName)
-        {
-            return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        public virtual object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
-        {
-            var formatCulture = new CultureInfo("en-US", false);
-            var stringValue = this.MessagesBag.Encoding.GetString(message).ToString(formatCulture);
-            var typeDescriptor = TypeDescriptor.GetConverter(entityPropertyInfo.PropertyType);
-            var result = typeDescriptor.ConvertFromString(null, formatCulture, stringValue);
-            return result;
         }
 
         #endregion

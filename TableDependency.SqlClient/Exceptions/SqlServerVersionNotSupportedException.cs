@@ -24,13 +24,11 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System;
 using TableDependency.Exceptions;
 using TableDependency.SqlClient.Enumerations;
 
 namespace TableDependency.SqlClient.Exceptions
 {
-    [Serializable]
     public class SqlServerVersionNotSupportedException : TableDependencyException
     {
         protected internal SqlServerVersionNotSupportedException() 

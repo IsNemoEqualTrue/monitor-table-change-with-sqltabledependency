@@ -23,11 +23,12 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 
 namespace TableDependency.EventArgs
 {
-    public class ErrorEventArgs : System.EventArgs
+    public class ErrorEventArgs : BaseEventArgs
     {
         #region Properties
 
@@ -39,14 +40,17 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal ErrorEventArgs(Exception e) : this("TableDependency stopped working", e)
+        internal ErrorEventArgs(Exception e, string server, string database, string sender) 
+            : this("TableDependency stopped working", e, server, database, sender)
         {
+
         }
 
-        internal ErrorEventArgs(string message, Exception e)
+        internal ErrorEventArgs(string message, Exception e, string server, string database, string sender) 
+            : base(server, database, sender)
         {
-            Message = message;
-            Error = e;
+            this.Message = message;
+            this.Error = e;
         }
 
         #endregion

@@ -86,10 +86,11 @@ namespace TableDependency.Messages
 
             if (this.Status == MessagesBagStatus.Closed)
             {
-                throw new MessageMisalignedException($"Received {rawMessageType} while current status is {MessagesBagStatus.Closed}.");
+                throw new MessageMisalignedException($"Received {rawMessageType} message while current status is {MessagesBagStatus.Closed}.");
             }
 
             this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
+
             return (this.Status = MessagesBagStatus.Collecting);
         }
 

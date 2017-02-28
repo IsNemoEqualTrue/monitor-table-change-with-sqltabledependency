@@ -23,15 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
 namespace TableDependency.Exceptions
 {
-    [Serializable]
     public class ColumnTypeNotSupportedException : TableDependencyException
     {
-        public ColumnTypeNotSupportedException(string message = null, Exception exception = null)
-            : base(message, exception)
+        public ColumnTypeNotSupportedException(string message = null)
+            : base(message)
         { }
     }
 }

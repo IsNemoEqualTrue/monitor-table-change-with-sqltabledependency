@@ -38,8 +38,15 @@ namespace TableDependency.SqlClient.EventArgs
 {
     public sealed class SqlRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
     {
-        public SqlRecordChangedEventArgs(MessagesBag messagesBag, ModelToTableMapper<T> mapper, IEnumerable<ColumnInfo> userInterestedColumns) : base(messagesBag, mapper, userInterestedColumns)
+        public SqlRecordChangedEventArgs(
+            MessagesBag messagesBag,
+            ModelToTableMapper<T> mapper,
+            IEnumerable<ColumnInfo> userInterestedColumns,
+            string server,
+            string database,
+            string sender) : base(messagesBag, mapper, userInterestedColumns, server, database, sender)
         {
+
         }
 
         public override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)

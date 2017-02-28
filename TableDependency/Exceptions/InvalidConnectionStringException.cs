@@ -23,11 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
+
 using System;
 
 namespace TableDependency.Exceptions
 {
-    [Serializable]
     public class InvalidConnectionStringException : TableDependencyException
     {
         public InvalidConnectionStringException(string connectionString, Exception innerException = null)
