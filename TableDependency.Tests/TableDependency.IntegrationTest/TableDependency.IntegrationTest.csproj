@@ -74,7 +74,7 @@
     <Compile Include="EventForAllColumnsTestSqlServerUsingRoleDbOwner.cs" />
     <Compile Include="EventForAllColumnsTestSqlServerUsingWIA.cs" />
     <Compile Include="Issue27.cs" />
-    <Compile Include="TypeChecks\RowVersionType.cs" />
+    <Compile Include="RowVersionType.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />
@@ -93,13 +93,13 @@
     <Compile Include="TableNameFromModelClassNameAndUpdateOfTestSqlServer.cs" />
     <Compile Include="TaskCancellationTestSqlServer.cs" />
     <Compile Include="TriggerTypeTestSqlServer.cs" />
-    <Compile Include="TypeChecks\BigIntDecimalAndFloatTypes.cs" />
-    <Compile Include="TypeChecks\BinaryBitCharVarbinaryTypes.cs" />
-    <Compile Include="TypeChecks\DateTypeTestSqlServer.cs" />
-    <Compile Include="TypeChecks\RealTypesTest.cs" />
-    <Compile Include="TypeChecks\GuidSmallMoneyTypes.cs" />
-    <Compile Include="TypeChecks\XmlNVarcharMaxAndVarcharMaxType2.cs" />
-    <Compile Include="TypeChecks\XmlNVarcharMaxAndVarcharMaxType.cs" />
+    <Compile Include="BigIntDecimalAndFloatTypes.cs" />
+    <Compile Include="BinaryBitCharVarbinaryTypes.cs" />
+    <Compile Include="DateTypeTestSqlServer.cs" />
+    <Compile Include="RealTypesTest.cs" />
+    <Compile Include="GuidSmallMoneyTypes.cs" />
+    <Compile Include="XmlNVarcharMaxAndVarcharMaxType2.cs" />
+    <Compile Include="XmlNVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
   </ItemGroup>
   <ItemGroup>

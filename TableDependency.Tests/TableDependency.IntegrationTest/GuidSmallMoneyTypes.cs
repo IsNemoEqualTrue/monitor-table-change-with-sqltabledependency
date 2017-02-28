@@ -11,7 +11,7 @@ using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.TypeChecks
+namespace TableDependency.IntegrationTest
 {
     public class ModelGuidSmallMoneyTypes
     {
