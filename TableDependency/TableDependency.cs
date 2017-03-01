@@ -324,7 +324,7 @@ namespace TableDependency
 
         protected virtual string GetSchemaNameFromTableDataAnnotation()
         {
-            var attribute = typeof(T).GetCustomAttribute(typeof(TableAttribute));
+            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Schema;
         }
 
@@ -465,11 +465,7 @@ namespace TableDependency
             {
                 this.Stop();
 
-                if (this.TraceListener != null)
-                {
-                    this.TraceListener.Close();
-                    this.TraceListener.Dispose();
-                }
+                TraceListener?.Dispose();
             }
 
             _disposed = true;

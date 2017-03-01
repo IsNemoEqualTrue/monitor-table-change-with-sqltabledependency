@@ -426,7 +426,7 @@ namespace TableDependency.SqlClient
                     // A receive operation receives the dialog timer message before any other message for that dialog, 
                     // regardless of the order in which the time-out message arrived on the queue.
                     sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = string.Format(Scripts.DisposeMessage, databaseObjectsNaming, disposeMessage, this.SchemaName);
+                    sqlCommand.CommandText = string.Format(SqlScripts.DisposeMessage, databaseObjectsNaming, disposeMessage, this.SchemaName);
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -507,8 +507,8 @@ namespace TableDependency.SqlClient
                     this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
 
                     var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                    var dropAllScript = string.Format(Scripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName, _tableName);
-                    sqlCommand.CommandText = string.Format(Scripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName, disposeMessage);
+                    var dropAllScript = string.Format(SqlScripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName, _tableName);
+                    sqlCommand.CommandText = string.Format(SqlScripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName, disposeMessage);
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
@@ -531,11 +531,11 @@ namespace TableDependency.SqlClient
                     var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
                     var exceptStatement = PrepareExceptStatement(interestedColumns);
                     var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
-                        ? string.Format(Scripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement)
-                        : string.Format(Scripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement);
+                        ? string.Format(SqlScripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement)
+                        : string.Format(SqlScripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement);
 
                     sqlCommand.CommandText = string.Format(
-                        Scripts.CreateTrigger,
+                        SqlScripts.CreateTrigger,
                         databaseObjectsNaming,
                         $"[{_schemaName}].[{_tableName}]",
                         tableColumns,
@@ -859,7 +859,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = string.Format(Scripts.InformationSchemaColumns, _schemaName, _tableName);
+                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaColumns, _schemaName, _tableName);
                     var reader = sqlCommand.ExecuteReader();
                     while (reader.Read())
                     {
@@ -1007,7 +1007,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = Scripts.SelectUserGrants;
+                    sqlCommand.CommandText = SqlScripts.SelectUserGrants;
 
                     var rows = SerializeSqlDataReader.Serialize(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
                     privilegesTable = PrivilegesTable.FromEnumerable(rows);
@@ -1052,7 +1052,7 @@ namespace TableDependency.SqlClient
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = string.Format(Scripts.InformationSchemaTables, _tableName, _schemaName);
+                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaTables, _tableName, _schemaName);
                     if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
                 }
             }

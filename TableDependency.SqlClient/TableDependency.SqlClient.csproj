@@ -62,11 +62,7 @@
     <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="Messages\SqlMessageTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Scripts.Designer.cs">
-      <DependentUpon>Scripts.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
+    <Compile Include="Resources\SqlScripts.cs" />
     <Compile Include="SqlTableDependency.cs" />
     <Compile Include="Utilities\PrivilegesTable.cs" />
     <Compile Include="Utilities\SerializeSqlDataReader.cs" />
@@ -76,13 +72,6 @@
       <Project>{0a46a45a-be9b-455f-a6d1-183c07fef4bc}</Project>
       <Name>TableDependency</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Scripts.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Scripts.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="TableDependency.SqlClient.pfx" />

@@ -93,9 +93,6 @@ namespace TableDependency.EventArgs
 
             switch (typeCode)
             {
-                case TypeCode.DBNull:
-                    return null;
-
                 case TypeCode.Boolean:
                     return Boolean.Parse(value);
 
@@ -137,7 +134,6 @@ namespace TableDependency.EventArgs
 
                 case TypeCode.DateTime:
                     return DateTime.Parse(value);
-                    //return DateTime.ParseExact("yyyy-MM-dd", value, CultureInfo.InvariantCulture);
 
                 case TypeCode.String:
                     return value as string;
@@ -155,7 +151,7 @@ namespace TableDependency.EventArgs
                     break;
             }
 
-            throw new ArgumentOutOfRangeException();
+            return null;
         }
 
         protected virtual ColumnInfo GetColumnInfo(string columnName)

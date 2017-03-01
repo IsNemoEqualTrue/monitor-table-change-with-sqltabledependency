@@ -53,7 +53,7 @@ namespace TableDependency.SqlClient.EventArgs
         {
             if (message == null || message.Length == 0) return null;
 
-            if (entityPropertyInfo.PropertyType.IsEnum)
+            if (entityPropertyInfo.PropertyType.GetTypeInfo().IsEnum)
             {
                 foreach (var fInfo in entityPropertyInfo.PropertyType.GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
