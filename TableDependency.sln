@@ -25,6 +25,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "TableDependency.Tests\TableDependency.DevelopmentTests\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Filter", "Filter", "{670F512D-7283-40BC-A2B3-B4A27F9505D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.Tests", "TableDependency.Tests\TableDependency.SqlClient.Where.Tests\TableDependency.SqlClient.Where.Tests.csproj", "{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +65,14 @@ Global
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1392831-CAC1-4DC3-9F70-D23BE4E0EF62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +86,7 @@ Global
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
 		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3} = {BE3F6738-85D8-46D0-928F-87085E19E9C0}
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
+		{670F512D-7283-40BC-A2B3-B4A27F9505D8} = {48852C1F-6B3D-4A7B-8836-7D45B50DBD20}
+		{AC98B94D-0CD1-4FD4-92EC-EA0B9A94CA9A} = {670F512D-7283-40BC-A2B3-B4A27F9505D8}
 	EndGlobalSection
 EndGlobal

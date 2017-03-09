@@ -23,16 +23,41 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
-namespace TableDependency.Enums
+using System.Diagnostics;
+using System.Text;
+using TableDependency.Delegates;
+using TableDependency.Enums;
+
+namespace TableDependency.Abstracts
 {
-    [Flags]
-    public enum DmlTriggerType
-    {        
-        Delete = 1,
-        Insert = 2,
-        Update = 4,
-        All = 8
+    public interface ITableDependency<T> where T : class
+    {
+        #region Events
+
+        event ChangedEventHandler<T> OnChanged;
+        event ErrorEventHandler OnError;
+        event StatusEventHandler OnStatusChanged;
+
+        #endregion
+
+        #region Methods
+
+        void Start(int timeOut = 120, int watchDogTimeOut = 180);
+        void Stop();
+
+        #endregion
+
+        #region Properties
+
+        TraceLevel TraceLevel { get; set; }
+        TraceListener TraceListener { get; set; }
+        TableDependencyStatus Status { get; }
+        Encoding Encoding { get; set; }
+        string DataBaseObjectsNamingConvention { get; }        
+        string TableName { get; }
+        string SchemaName { get; }
+
+        #endregion
     }
 }

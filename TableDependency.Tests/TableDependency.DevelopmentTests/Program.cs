@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq.Expressions;
+using TableDependency;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
+using TableDependency.SqlClient.Where;
 using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationSqlServer
@@ -21,8 +23,7 @@ namespace ConsoleApplicationSqlServer
 
                 Console.WriteLine(@"TableDependency, SqlTableDependency");
                 Console.WriteLine(@"Copyright (c) 2015-2017 Christian Del Bianco.");
-                Console.WriteLine(@"All rights reserved.");
-                Console.WriteLine();
+                Console.WriteLine(@"All rights reserved." + Environment.NewLine);
                 Console.WriteLine(@"************************************************************");
                 Console.WriteLine(@"Application used for development [connection string to use]:");
                 Console.WriteLine(@" F1: Integrated security");
@@ -44,13 +45,19 @@ namespace ConsoleApplicationSqlServer
             var mapper = new ModelToTableMapper<Customers>();
             mapper.AddMapping(c => c.Id, "CustomerID");
 
-            using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
+            //Expression<Func<Customers, bool>> expression = p => p.ContactName.Trim() == "123";
+            //var filter = new SqlTableDependencyFilter(expression);
+
+            using (var dep = new SqlTableDependency<Customers>(
+                connectionString, 
+                tableName: "Customers", 
+                mapper: mapper))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
                 dep.Start();
 
-                Console.WriteLine(Environment.NewLine);
+                Console.WriteLine();
                 Console.WriteLine(@"Waiting for receiving notifications...");
                 Console.WriteLine(@"Press a key to stop");
                 Console.ReadKey();

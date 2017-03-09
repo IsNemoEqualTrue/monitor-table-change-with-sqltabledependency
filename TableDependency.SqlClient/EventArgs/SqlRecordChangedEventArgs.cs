@@ -28,11 +28,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using TableDependency.Classes;
+using TableDependency.Abstracts;
 using TableDependency.EventArgs;
-using TableDependency.Mappers;
 using TableDependency.Messages;
 using TableDependency.SqlClient.Extensions;
+using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
 {
@@ -40,7 +40,7 @@ namespace TableDependency.SqlClient.EventArgs
     {
         public SqlRecordChangedEventArgs(
             MessagesBag messagesBag,
-            ModelToTableMapper<T> mapper,
+            IModelToTableMapper<T> mapper,
             IEnumerable<ColumnInfo> userInterestedColumns,
             string server,
             string database,

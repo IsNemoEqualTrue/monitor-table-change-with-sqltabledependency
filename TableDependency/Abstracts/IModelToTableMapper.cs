@@ -23,16 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
-namespace TableDependency.Enums
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+
+namespace TableDependency.Abstracts
 {
-    [Flags]
-    public enum DmlTriggerType
-    {        
-        Delete = 1,
-        Insert = 2,
-        Update = 4,
-        All = 8
+    public interface IModelToTableMapper<T> where T : class
+    {
+        ModelToTableMapper<T> AddMapping(Expression<Func<T, object>> expression, string columnName);
+        int Count();
+        string GetMapping(PropertyInfo propertyInfo);
+        IDictionary<PropertyInfo, string> GetMappings();
+        string GetMapping(string tableColumnName);
     }
 }

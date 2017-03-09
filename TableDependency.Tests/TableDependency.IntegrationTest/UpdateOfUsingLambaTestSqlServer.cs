@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -82,7 +81,7 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<UpdateOfUsingLambaTestSqlServerModel>(ConnectionString, updateOfModel);
+                tableDependency = new SqlTableDependency<UpdateOfUsingLambaTestSqlServerModel>(ConnectionString, updateOf: updateOfModel);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;

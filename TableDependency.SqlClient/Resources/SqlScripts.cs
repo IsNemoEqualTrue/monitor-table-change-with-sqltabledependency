@@ -59,14 +59,14 @@ BEGIN
     IF NOT EXISTS(SELECT * FROM INSERTED)
     BEGIN
         SET @dmlType = '{12}'
-        INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED
+        INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED {14}
     END
     ELSE
     BEGIN
         IF NOT EXISTS(SELECT * FROM DELETED)
         BEGIN
             SET @dmlType = '{10}'
-            INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED
+            INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED {14}
         END
         ELSE
         BEGIN

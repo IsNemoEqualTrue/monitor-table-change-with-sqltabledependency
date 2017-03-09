@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -83,15 +82,20 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<EventForSpecificColumnsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
+                var updateOf = new UpdateOfModel<EventForSpecificColumnsTestSqlServerModel>();
+                updateOf.Add(i => i.Surname);
+
                 tableDependency = new SqlTableDependency<EventForSpecificColumnsTestSqlServerModel>(
                     _connectionString, 
-                    TableName, 
-                    mapper, new List<string>() { "second name" });
+                    tableName: TableName, 
+                    mapper: mapper, 
+                    updateOf: updateOf);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(5000);
+                Thread.Sleep (5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

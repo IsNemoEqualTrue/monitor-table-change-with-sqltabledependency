@@ -4,7 +4,6 @@ using System.Configuration;
 using System.Data.SqlClient;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Exceptions;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Exceptions;
 
@@ -100,18 +99,6 @@ namespace TableDependency.IntegrationTest
         [TestCategory("SqlServer")]
         [TestMethod]
         [ExpectedException(typeof(ModelToTableMapperException))]
-        public void EmptyMappertTest()
-        {
-            var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
-
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, mapper))
-            {
-            }
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        [ExpectedException(typeof(ModelToTableMapperException))]
         public void MappertWithNullTest()
         {
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
@@ -151,51 +138,11 @@ namespace TableDependency.IntegrationTest
         [TestCategory("SqlServer")]
         [TestMethod]
         [ExpectedException(typeof(UpdateOfException))]
-        public void EmptyUpdateOfListTest()
-        {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>()))
-            {
-            }
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        [ExpectedException(typeof(UpdateOfException))]
         public void EmptyUpdateOfModelListTest()
         {
             using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new UpdateOfModel<PreliminaryTestSqlServerModel>()))
             {
             }
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        [ExpectedException(typeof(UpdateOfException))]
-        public void UpdateOfListWithNullTest()
-        {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Second Name", null }))
-            {
-            }
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        [ExpectedException(typeof(UpdateOfException))]
-        public void UpdateOfListWithEmptyTest()
-        {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Second Name", string.Empty }))
-            {
-            }
-        }
-
-        [TestCategory("SqlServer")]
-        [TestMethod]
-        [ExpectedException(typeof(UpdateOfException))]
-        public void InvalidUpdateOfListTest()
-        {
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionString, TableName, updateOf: new List<string>() { "Not exists" }))
-            {
-            }                             
         }
     }
 }

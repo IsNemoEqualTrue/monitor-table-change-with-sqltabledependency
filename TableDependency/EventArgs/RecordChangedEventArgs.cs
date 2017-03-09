@@ -28,9 +28,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using TableDependency.Classes;
+using TableDependency.Abstracts;
 using TableDependency.Enums;
-using TableDependency.Mappers;
 using TableDependency.Messages;
 using TableDependency.Utilities;
 
@@ -58,7 +57,7 @@ namespace TableDependency.EventArgs
 
         public RecordChangedEventArgs(
             MessagesBag messagesBag,
-            ModelToTableMapper<T> mapper,
+            IModelToTableMapper<T> mapper,
             IEnumerable<ColumnInfo> userInterestedColumns,
             string server,
             string database,
@@ -159,7 +158,7 @@ namespace TableDependency.EventArgs
             return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        protected virtual T MaterializeEntity(List<Message> messages, ModelToTableMapper<T> mapper)
+        protected virtual T MaterializeEntity(List<Message> messages, IModelToTableMapper<T> mapper)
         {
             var entity = (T)Activator.CreateInstance(typeof(T));
 

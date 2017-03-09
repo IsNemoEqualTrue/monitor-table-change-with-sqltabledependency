@@ -23,16 +23,20 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
-namespace TableDependency.Enums
+namespace TableDependency.Utilities
 {
-    [Flags]
-    public enum DmlTriggerType
-    {        
-        Delete = 1,
-        Insert = 2,
-        Update = 4,
-        All = 8
+    public class ColumnInfo
+    {
+        public ColumnInfo(string name, string type, string size = null)
+        {
+            this.Name = name;
+            this.Type = type;
+            this.Size = size;
+        }
+
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public string Size { get; set; }
     }
 }

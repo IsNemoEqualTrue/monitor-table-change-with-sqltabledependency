@@ -23,16 +23,13 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
-namespace TableDependency.Enums
+namespace TableDependency.Exceptions
 {
-    [Flags]
-    public enum DmlTriggerType
-    {        
-        Delete = 1,
-        Insert = 2,
-        Update = 4,
-        All = 8
+    public class InitializingStoppedException : TableDependencyException
+    {
+        public InitializingStoppedException() : base("Initialization stopped.")
+        {
+        }
     }
 }

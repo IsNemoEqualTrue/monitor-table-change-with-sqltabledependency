@@ -29,17 +29,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using TableDependency.Abstracts;
 using TableDependency.Exceptions;
 
-namespace TableDependency.Mappers
+namespace TableDependency
 {
     /// <summary>
     /// Model to column database table mapper.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class ModelToTableMapper<T> where T : class
+    public class ModelToTableMapper<T> : IModelToTableMapper<T> where T : class
     {
+        #region Instance variables
+
         private readonly IDictionary<PropertyInfo, string> _mappings = new Dictionary<PropertyInfo, string>();
+
+        #endregion
+
+        #region Public methods
 
         /// <summary>
         /// Adds the mapping between a model property and a database table column, in order to decouple naming and to overcome the impossibility to map SQL columns name containing spaces.
@@ -76,13 +83,40 @@ namespace TableDependency.Mappers
             return _mappings.Count;
         }
 
-        #region Internal methods
-
+        /// <summary>
+        /// Gets the mapping.
+        /// </summary>
+        /// <param name="propertyInfo">The property information.</param>
+        /// <returns></returns>
         public string GetMapping(PropertyInfo propertyInfo)
         {
             return _mappings.ContainsKey(propertyInfo) ? _mappings[propertyInfo] : null;
         }
 
+        /// <summary>
+        /// Adds the mapping.
+        /// </summary>
+        /// <param name="pi">The pi.</param>
+        /// <param name="columnName">Name of the column.</param>
+        public void AddMapping(PropertyInfo pi, string columnName)
+        {
+            _mappings[pi] = columnName;
+        }
+
+        /// <summary>
+        /// Gets the mappings.
+        /// </summary>
+        /// <returns></returns>
+        public IDictionary<PropertyInfo, string> GetMappings()
+        {
+            return _mappings;
+        }
+
+        /// <summary>
+        /// Gets the mapping.
+        /// </summary>
+        /// <param name="tableColumnName">Name of the table column.</param>
+        /// <returns></returns>
         public string GetMapping(string tableColumnName)
         {
             if (GetMappings().Any(kvp => kvp.Value != null && string.Compare(kvp.Value, tableColumnName, StringComparison.OrdinalIgnoreCase) == 0))
@@ -92,16 +126,6 @@ namespace TableDependency.Mappers
             }
 
             return null;
-        }
-
-        public void AddMapping(PropertyInfo pi, string columnName)
-        {
-            _mappings[pi] = columnName;
-        }
-
-        public IDictionary<PropertyInfo, string> GetMappings()
-        {
-            return _mappings;
         }
 
         #endregion

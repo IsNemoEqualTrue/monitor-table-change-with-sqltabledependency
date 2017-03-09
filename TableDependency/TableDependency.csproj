@@ -37,14 +37,21 @@
     <AssemblyOriginatorKeyFile>TableDependency.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>rsz_notify.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\ColumnInfo.cs" />
+    <Compile Include="Abstracts\ITableDependencyFilter.cs" />
+    <Compile Include="Abstracts\IModelToTableMapper.cs" />
+    <Compile Include="Abstracts\IUpdateOfModel.cs" />
+    <Compile Include="Exceptions\InitializedStoppedException.cs" />
+    <Compile Include="Exceptions\InitializingStoppedException.cs" />
+    <Compile Include="Exceptions\TableWithNoColumnsException.cs" />
+    <Compile Include="Utilities\ColumnInfo.cs" />
     <Compile Include="Delegates\StatusEventHandler.cs" />
     <Compile Include="Delegates\ErrorEventHandler.cs" />
     <Compile Include="Enums\DmlTriggerType.cs" />
@@ -66,11 +73,11 @@
     <Compile Include="Exceptions\UpdateOfModelException.cs" />
     <Compile Include="Exceptions\WatchDogTimeOutException.cs" />
     <Compile Include="EventArgs\RecordChangedEventArgs.cs" />
-    <Compile Include="ITableDependency.cs" />
+    <Compile Include="Abstracts\ITableDependency.cs" />
     <Compile Include="Enums\ChangeType.cs" />
     <Compile Include="Delegates\ChangedEventHandler.cs" />
-    <Compile Include="Mappers\ModelToTableMapper.cs" />
-    <Compile Include="Mappers\UpdateOfModel.cs" />
+    <Compile Include="ModelToTableMapper.cs" />
+    <Compile Include="UpdateOfModel.cs" />
     <Compile Include="Messages\Message.cs" />
     <Compile Include="Messages\MessagesBag.cs" />
     <Compile Include="Messages\MessagesBagStatus.cs" />
@@ -82,9 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TableDependency.pfx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="rsz_notify.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

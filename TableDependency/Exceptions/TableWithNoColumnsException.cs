@@ -24,19 +24,12 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-namespace TableDependency.Classes
+namespace TableDependency.Exceptions
 {
-    public class ColumnInfo
+    public class TableWithNoColumnsException : TableDependencyException
     {
-        public ColumnInfo(string name, string type, string size = null)
-        {
-            this.Name = name;
-            this.Type = type;
-            this.Size = size;
-        }
-
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Size { get; set; }
+        public TableWithNoColumnsException(string tableName)
+            : base($"I cannot find any column for table named '{tableName}'.")
+        { }
     }
 }

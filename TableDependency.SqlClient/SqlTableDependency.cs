@@ -36,11 +36,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TableDependency.Classes;
+using TableDependency.Abstracts;
 using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
-using TableDependency.Mappers;
 using TableDependency.Messages;
 using TableDependency.SqlClient.Enumerations;
 using TableDependency.SqlClient.Extensions;
@@ -61,8 +60,9 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
-        private SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
-        private Guid _dialogHandle;
+        protected bool _databseObjectCreationConcluded;
+        protected SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
+        protected Guid _dialogHandle;
 
         protected const string DisposeMessageTemplate = "{0}/Dispose";
         protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
@@ -118,121 +118,22 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        public SqlTableDependency(string connectionString)
-            : base(connectionString, null, null, (IList<string>)null, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        public SqlTableDependency(string connectionString, string tableName)
-            : base(connectionString, tableName, null, (IList<string>)null, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">Model to columns table mapper.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper)
-            : base(connectionString, tableName, mapper, (IList<string>)null, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">Model to columns table mapper.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf)
-            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">The mapper.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        /// <param name="dmlTriggerType">Type of the DML trigger.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, IList<string> updateOf, DmlTriggerType dmlTriggerType)
-            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, IList<string> updateOf)
-            : base(connectionString, null, null, updateOf, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
         /// <param name="tableName">Name of the table.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, string tableName, IList<string> updateOf)
-            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">Model to columns table mapper.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf)
-            : base(connectionString, tableName, mapper, updateOf, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table to monitor.</param>
-        /// <param name="mapper">Model to columns table mapper.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        /// <param name="dmlTriggerType">Type of the DML trigger.</param>
-        public SqlTableDependency(string connectionString, string tableName, ModelToTableMapper<T> mapper, UpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
-            : base(connectionString, tableName, mapper, updateOf, dmlTriggerType)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="tableName">Name of the table.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, string tableName, UpdateOfModel<T> updateOf)
-            : base(connectionString, tableName, null, updateOf, DmlTriggerType.All)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
-        /// </summary>
-        /// <param name="connectionString">The connection string.</param>
-        /// <param name="updateOf">Column's names white list used to specify interested columns. Only when one of these columns is updated a notification is received.</param>
-        public SqlTableDependency(string connectionString, UpdateOfModel<T> updateOf)
-            : base(connectionString, null, null, updateOf, DmlTriggerType.All)
+        /// <param name="mapper">The model to database table column mapper.</param>
+        /// <param name="updateOf">List of columns that need to monitor for changing on order to receive notifications.</param>
+        /// <param name="filter">The filter condition translated in WHERE.</param>
+        /// <param name="notifyOn">The notify on Insert, Delete, Update operation.</param>
+        /// <param name="teardown">if set to <c>true</c> drop all database object on stopping.</param>
+        /// <param name="objectNaming">The object naming adopted (used to reconnect to not dropped queue).</param>
+        public SqlTableDependency(
+            string connectionString,
+            string tableName = null,
+            IModelToTableMapper<T> mapper = null,
+            IUpdateOfModel<T> updateOf = null,
+            ITableDependencyFilter filter = null,
+            DmlTriggerType notifyOn = DmlTriggerType.All,
+            bool teardown = true,
+            string objectNaming = null) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, teardown, objectNaming)
         {
         }
 
@@ -286,11 +187,16 @@ namespace TableDependency.SqlClient
 
         #region Protected methods
 
-        protected override void OnInitialized()
+        protected override string GetDataBaseName(string connectionString)
         {
-            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(_connectionString);
-            _server = sqlConnectionStringBuilder.DataSource;
-            _database = sqlConnectionStringBuilder.InitialCatalog;
+            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+            return sqlConnectionStringBuilder.InitialCatalog;
+        }
+
+        protected override string GetServerName(string connectionString)
+        {
+            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+            return sqlConnectionStringBuilder.DataSource;
         }
 
         protected override string GetCandidateTableName(string tableName)
@@ -306,7 +212,7 @@ namespace TableDependency.SqlClient
                 return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
 
-            return (!string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name);
+            return !string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name;
         }
 
         protected override string GetCandidateSchemaName(string tableName)
@@ -325,7 +231,7 @@ namespace TableDependency.SqlClient
             return !string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetSchemaNameFromTableDataAnnotation() : "dbo";
         }
 
-        internal int GetSchemaId(string schemaName, string connectionString)
+        protected int GetSchemaId(string schemaName, string connectionString)
         {
             using (var sqlConnection = new SqlConnection(connectionString))
             {
@@ -338,7 +244,7 @@ namespace TableDependency.SqlClient
             }
         }
 
-        internal SqlServerVersion GetSqlServerVersion(string connectionString)
+        protected SqlServerVersion GetSqlServerVersion(string connectionString)
         {
             var sqlConnection = new SqlConnection(connectionString);
 
@@ -368,6 +274,36 @@ namespace TableDependency.SqlClient
             return SqlServerVersion.SqlServerLatest;
         }
 
+        protected override IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString)
+        {
+            var columnsList = new List<ColumnInfo>();
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaColumns, _schemaName, _tableName);
+                    var reader = sqlCommand.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var name = reader["COLUMN_NAME"].ToString();
+                        var type = reader["DATA_TYPE"].ToString().ConvertNumericType();
+                        var size = ComputeSize(
+                            type,
+                            reader.GetSafeString(reader.GetOrdinal("CHARACTER_MAXIMUM_LENGTH")),
+                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_PRECISION")),
+                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_SCALE")),
+                            reader.GetSafeString(reader.GetOrdinal("DATETIME_PRECISION")));
+
+                        columnsList.Add(new ColumnInfo(name, type, size));
+                    }
+                }
+            }
+
+            return columnsList;
+        }
+
         protected override IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming)
         {
             var processableMessages = new List<string>
@@ -393,20 +329,6 @@ namespace TableDependency.SqlClient
             return CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
         }
 
-        protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<string> updateOf)
-        {
-            var tableColumns = GetTableColumnsList(_connectionString);
-            var tableColumnsList = tableColumns as ColumnInfo[] ?? tableColumns.ToArray();
-            if (!tableColumnsList.Any()) throw new NoColumnsException(_tableName);
-
-            CheckUpdateOfValidity(tableColumnsList, updateOf);
-            CheckMapperValidity(tableColumnsList);
-
-            var userIterestedColumns = PrivateGetUserInterestedColumns(tableColumnsList);
-
-            return CheckIfUserInterestedColumnsCanBeManaged(userIterestedColumns);
-        }
-
         protected override string GeneratedataBaseObjectsNamingConvention()
         {
             string name = $"{_schemaName}_{_tableName}";
@@ -415,6 +337,8 @@ namespace TableDependency.SqlClient
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
         {
+            if (_databseObjectCreationConcluded == false) return;
+
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -434,31 +358,25 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Info, "DropDatabaseObjects ended.");
         }
 
-        protected override void PreliminaryChecks(string connectionString, string tableName)
-        {
-            CheckIfParameterlessConstructorExists();
-            CheckIfConnectionStringIsValid(connectionString);
-            CheckIfUserHasPermissions(connectionString);
-            CheckIfServiceBrokerIsEnabled(connectionString);
-            CheckIfTableExists(connectionString, tableName);
-
+        protected override void CheckRdbmsDependentImplementation(string connectionString)
+        {            
+            CheckIfServiceBrokerIsEnabled(connectionString);      
+                 
             _sqlVersion = this.GetSqlServerVersion(connectionString);
             if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupportedException(SqlServerVersion.SqlServer2000);
         }
 
-        #endregion
-
-        #region Private methods
-
-        private static void CheckIfParameterlessConstructorExists()
+        protected string CreateWhereCondifition(bool prependSpace = false)
         {
-            if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
-            {
-                throw new ModelWithoutParameterlessConstructor("Your model needs a parameterless constructor.");
-            }
+            var where = string.Empty;
+
+            var filter = _filter?.Translate();
+            if (!string.IsNullOrWhiteSpace(filter)) where = (prependSpace ? " " : string.Empty) + "WHERE " + filter;
+
+            return where;
         }
 
-        private IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
+        protected IList<string> CreateDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
 
@@ -525,7 +443,7 @@ namespace TableDependency.SqlClient
                     this.WriteTraceMessage(TraceLevel.Verbose, "Service created.");
 
                     var declareVariableStatement = PrepareDeclareVariableStatement(interestedColumns);
-                    var selectForSetVariablesStatement = PrepareSelectForSetVarialbes(interestedColumns);
+                    var selectForSetVariablesStatement = PrepareSelectForSetVariables(interestedColumns);
                     var sendInsertConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
                     var sendUpdatedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
                     var sendDeletedConversationStatements = PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
@@ -549,7 +467,8 @@ namespace TableDependency.SqlClient
                         ChangeType.Insert,
                         ChangeType.Update,
                         ChangeType.Delete,
-                        string.Join(",", GetDmlTriggerType(_dmlTriggerType)));
+                        string.Join(",", GetDmlTriggerType(_dmlTriggerType)),
+                        CreateWhereCondifition());
 
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
@@ -563,18 +482,20 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                     sqlCommand.ExecuteNonQuery();
 
-                    transaction.Commit();
+                    transaction.Commit();                    
+
+                    processableMessages.Add(SqlMessageTypes.EndDialogType);
+
+                    _databseObjectCreationConcluded = true;
                 }
             }
 
-            this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");
-
-            processableMessages.Add(SqlMessageTypes.EndDialogType);
+            this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");            
 
             return processableMessages;
         }
 
-        private static string PrepareExceptStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
+        protected string PrepareExceptStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
         {
             if (interestedColumns.Any(tableColumn =>
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
@@ -591,10 +512,14 @@ namespace TableDependency.SqlClient
                 sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
             }
 
-            return $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
+            var exceptStatement = $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
+
+            exceptStatement += CreateWhereCondifition(true);
+
+            return exceptStatement;
         }
 
-        private static IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
+        protected static IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
         {
             var afters = new List<string>();
             if (dmlTriggerType.HasFlag(DmlTriggerType.All))
@@ -613,7 +538,336 @@ namespace TableDependency.SqlClient
             return afters;
         }
 
-        private async Task WaitForNotifications(
+        protected static MessagesBag CreateMessagesBag(string databaseObjectsNaming, Encoding encoding)
+        {
+            return new MessagesBag(
+                encoding ?? Encoding.Unicode,
+                new List<string>
+                {
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
+                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)
+                },
+                SqlMessageTypes.EndDialogType);
+        }
+
+        protected static void EndConversation(SqlConnection sqlConnection, SqlGuid handle)
+        {
+            using (var sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = "end conversation @handle";
+                sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
+                sqlCommand.Parameters["@handle"].Value = handle;
+                sqlCommand.ExecuteNonQuery();
+            }
+        }
+
+        protected static string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
+        {
+            var columns = tableColumns.Select(tableColumn =>
+            {
+                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
+                {
+                    return $"[{tableColumn.Name}] binary(8)";
+                }
+
+                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
+                {
+                    return $"[{tableColumn.Name}] varbinary(8)";
+                }
+
+                if (!string.IsNullOrWhiteSpace(tableColumn.Size))
+                {
+                    return $"[{tableColumn.Name}] {tableColumn.Type}({tableColumn.Size})";
+                }
+
+                return $"[{tableColumn.Name}] {tableColumn.Type}";
+            });
+
+            return string.Join(",", columns.ToList());
+        }
+
+        protected static void ThrowIfSqlClientCancellationRequested(CancellationToken cancellationToken, Exception exception)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                var sqlException = exception as SqlException;
+                if (null == sqlException)
+                {
+                    var aggregateException = exception as AggregateException;
+                    if (aggregateException != null) sqlException = aggregateException.InnerException as SqlException;
+                    if (sqlException == null) return;
+                }
+
+                // Assume that if it's a "real" problem (e.g. the query is malformed), then this will be a number != 0, typically from the "sysmessages" system table 
+                if (sqlException.Number != 0) return;
+
+                throw new OperationCanceledException();
+            }
+        }
+
+        protected void NotifyListenersAboutChange(Delegate[] changeSubscribedList, IModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
+        {
+            if (changeSubscribedList == null) return;
+
+            foreach (var dlg in changeSubscribedList.Where(d => d != null))
+            {
+                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(
+                    messagesBag,
+                    modelMapper,
+                    userInterestedColumns,
+                    _server,
+                    _database,
+                    _dataBaseObjectsNamingConvention) });
+            }
+        }
+
+        protected static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
+        {
+            if (
+                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "VARBINARY", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "CHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "NCHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "VARCHAR", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "NVARCHAR", StringComparison.OrdinalIgnoreCase))
+            {
+                return characterMaximumLength == "-1" ? "MAX" : characterMaximumLength;
+            }
+
+            if (string.Equals(dataType.ToUpperInvariant(), "DECIMAL", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{numericPrecision},{numericScale}";
+            }
+
+            if (string.Equals(dataType.ToUpperInvariant(), "DATETIME2", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(dataType.ToUpperInvariant(), "TIME", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{dateTimePrecisione}";
+            }
+
+            return null;
+        }
+
+        protected override void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse)
+        {
+            var checkIfUserInterestedColumnsCanBeManaged = tableColumnsToUse as ColumnInfo[] ?? tableColumnsToUse.ToArray();
+            foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
+            {
+                if (
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "IMAGE", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "TEXT", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "NTEXT", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "STRUCTURED", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOGRAPHY", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOMETRY", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "HIERARCHYID", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(tableColumn.Type.ToUpperInvariant(), "SQL_VARIANT", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ColumnTypeNotSupportedException($"{tableColumn.Type} column type is not an supported by SqlTableDependency.");
+                }
+            }
+        }
+
+        protected static string ConvertFormat(ColumnInfo userInterestedColumn)
+        {
+            return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
+        }
+
+        protected static string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn)
+        {
+            if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
+            {
+                return SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name);
+            }
+
+            return $"convert(nvarchar(max), {SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{ConvertFormat(userInterestedColumn)})";
+        }
+
+        protected static string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
+        {
+            var sendList = userInterestedColumns
+                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .ToList();
+
+            sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
+
+            return string.Join(Environment.NewLine, sendList);
+        }
+
+        protected static string PrepareSelectForSetVariables(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
+        {
+            return string.Join(",", userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
+        }
+
+        protected static string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
+        {
+            var colonne = (from insterestedColumn in interestedColumns
+                           let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size)
+                           ? string.Empty
+                           : $"({insterestedColumn.Size})")
+                           select $"DECLARE {SanitizeVariableName(interestedColumns, insterestedColumn.Name)} {variableType.ToLowerInvariant()}").ToList();
+
+            return string.Join(Environment.NewLine, colonne);
+        }
+
+        protected static string SanitizeVariableName(IReadOnlyCollection<ColumnInfo> userInterestedColumns, string tableColumnName)
+        {
+            for (var i = 0; i < userInterestedColumns.Count; i++)
+            {
+                if (userInterestedColumns.ElementAt(i).Name == tableColumnName)
+                {
+                    return "@var" + (i + 1);
+                }
+            }
+
+            throw new SanitizeVariableNameException(tableColumnName);
+        }
+
+        protected override void CheckIfConnectionStringIsValid(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+
+            SqlConnectionStringBuilder sqlConnectionStringBuilder = null;
+
+            try
+            {
+                sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidConnectionStringException(connectionString, exception);
+            }
+
+            using (var sqlConnection = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
+            {
+                try
+                {
+                    sqlConnection.Open();
+                }
+                catch (SqlException exception)
+                {
+                    throw new ImpossibleOpenSqlConnectionException(sqlConnectionStringBuilder.ConnectionString, exception);
+                }
+            }
+        }
+
+        protected override void CheckIfUserHasPermissions(string connectionString)
+        {
+            PrivilegesTable privilegesTable;
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = SqlScripts.SelectUserGrants;
+
+                    var rows = SerializeSqlDataReader.Serialize(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
+                    privilegesTable = PrivilegesTable.FromEnumerable(rows);
+                }
+            }
+            if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
+
+            if (privilegesTable.Rows.Any(r => string.Equals(r.Role, "db_owner", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Ok
+            }
+            else
+            {
+                foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
+                {
+                    var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
+                    if (privilegesTable.Rows.All(r => !string.Equals(r.PermissionType, permissionToCkeck, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        throw new UserWithMissingPermissionException(permissionToCkeck);
+                    }
+                }
+            }
+        }
+
+        protected static void CheckIfServiceBrokerIsEnabled(string connectionString)
+        {
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WHERE database_id = db_id()";
+                    if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
+                }
+            }
+        }
+
+        protected override void CheckIfTableExists(string connection)
+        {
+            using (var sqlConnection = new SqlConnection(connection))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaTables, _tableName, _schemaName);
+                    if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(_tableName);
+                }
+            }
+        }
+
+        protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
+        {
+            var tableColumnsListFiltered = new List<ColumnInfo>();
+
+            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
+            {
+                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
+
+                // If model property is mapped to table column keep it
+                foreach (var tableColumn in tableColumnsList)
+                {
+                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            throw new ModelToTableMapperException("Model with columns having same name.");
+                        }
+
+                        tableColumnsListFiltered.Add(tableColumn);
+                        break;
+                    }
+                }
+            }
+
+            return tableColumnsListFiltered;
+        }
+
+        protected override void CheckUpdateOfCongruenceWithTriggerType(IUpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
+        {
+            if (updateOf == null || updateOf.Count() == 0) return;
+
+            if (!dmlTriggerType.HasFlag(DmlTriggerType.Update) && !dmlTriggerType.HasFlag(DmlTriggerType.All))
+            {
+                if (updateOf.Count() > 0)
+                {
+                    throw new DmlTriggerTypeException("updateOf parameter can be specified only if DmlTriggerType parameter contains DmlTriggerType.Update too, not for DmlTriggerType.Delete or DmlTriggerType.Insert only.");
+                }
+            }
+        }
+
+        protected override void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
+        {
+            if (_mapper == null || _mapper.Count() < 1) return;
+
+            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
+
+            if (_mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
+            {
+                throw new ModelToTableMapperException("I cannot find any correspondence between defined ModelToTableMapper properties and database Table columns.");
+            }
+        }
+
+        protected async Task WaitForNotifications(
             CancellationToken cancellationToken,
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
@@ -625,7 +879,7 @@ namespace TableDependency.SqlClient
             int timeOut,
             int timeOutWatchDog,
             ICollection<string> processableMessages,
-            ModelToTableMapper<T> modelMapper,
+            IModelToTableMapper<T> modelMapper,
             IEnumerable<ColumnInfo> userInterestedColumns,
             Encoding encoding)
         {
@@ -732,377 +986,6 @@ namespace TableDependency.SqlClient
             }
 
             this.WriteTraceMessage(TraceLevel.Verbose, "Exiting from WaitForNotifications.");
-        }
-
-        private static MessagesBag CreateMessagesBag(string databaseObjectsNaming, Encoding encoding)
-        {
-            return new MessagesBag(
-                encoding ?? Encoding.Unicode,
-                new List<string>
-                {
-                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
-                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
-                    string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete)
-                },
-                SqlMessageTypes.EndDialogType);
-        }
-
-        private static void EndConversation(SqlConnection sqlConnection, SqlGuid handle)
-        {
-            using (var sqlCommand = sqlConnection.CreateCommand())
-            {
-                sqlCommand.CommandText = "end conversation @handle";
-                sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
-                sqlCommand.Parameters["@handle"].Value = handle;
-                sqlCommand.ExecuteNonQuery();
-            }
-        }
-
-        private static string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
-        {
-            var columns = tableColumns.Select(tableColumn =>
-            {
-                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
-                {
-                    return $"[{tableColumn.Name}] binary(8)";
-                }
-
-                if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
-                {
-                    return $"[{tableColumn.Name}] varbinary(8)";
-                }
-
-                if (!string.IsNullOrWhiteSpace(tableColumn.Size))
-                {
-                    return $"[{tableColumn.Name}] {tableColumn.Type}({tableColumn.Size})";
-                }
-
-                return $"[{tableColumn.Name}] {tableColumn.Type}";
-            });
-
-            return string.Join(",", columns.ToList());
-        }
-
-        private static void ThrowIfSqlClientCancellationRequested(CancellationToken cancellationToken, Exception exception)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                var sqlException = exception as SqlException;
-                if (null == sqlException)
-                {
-                    var aggregateException = exception as AggregateException;
-                    if (aggregateException != null) sqlException = aggregateException.InnerException as SqlException;
-                    if (sqlException == null) return;
-                }
-
-                // Assume that if it's a "real" problem (e.g. the query is malformed), then this will be a number != 0, typically from the "sysmessages" system table 
-                if (sqlException.Number != 0) return;
-
-                throw new OperationCanceledException();
-            }
-        }
-
-        private void NotifyListenersAboutChange(
-            Delegate[] changeSubscribedList,
-            ModelToTableMapper<T> modelMapper,
-            MessagesBag messagesBag,
-            IEnumerable<ColumnInfo> userInterestedColumns)
-        {
-            if (changeSubscribedList == null) return;
-
-            foreach (var dlg in changeSubscribedList.Where(d => d != null))
-            {
-                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(
-                    messagesBag,
-                    modelMapper,
-                    userInterestedColumns,
-                    _server,
-                    _database,
-                    _dataBaseObjectsNamingConvention) });
-            }
-        }
-
-        private static string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
-        {
-            if (
-                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "VARBINARY", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "CHAR", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "NCHAR", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "VARCHAR", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "NVARCHAR", StringComparison.OrdinalIgnoreCase))
-            {
-                return characterMaximumLength == "-1" ? "MAX" : characterMaximumLength;
-            }
-
-            if (string.Equals(dataType.ToUpperInvariant(), "DECIMAL", StringComparison.OrdinalIgnoreCase))
-            {
-                return $"{numericPrecision},{numericScale}";
-            }
-
-            if (string.Equals(dataType.ToUpperInvariant(), "DATETIME2", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "DATETIMEOFFSET", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dataType.ToUpperInvariant(), "TIME", StringComparison.OrdinalIgnoreCase))
-            {
-                return $"{dateTimePrecisione}";
-            }
-
-            return null;
-        }
-
-        private IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString)
-        {
-            var columnsList = new List<ColumnInfo>();
-
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaColumns, _schemaName, _tableName);
-                    var reader = sqlCommand.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        var name = reader["COLUMN_NAME"].ToString();
-                        var type = reader["DATA_TYPE"].ToString().ConvertNumericType();
-                        var size = ComputeSize(
-                            type,
-                            reader.GetSafeString(reader.GetOrdinal("CHARACTER_MAXIMUM_LENGTH")),
-                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_PRECISION")),
-                            reader.GetSafeString(reader.GetOrdinal("NUMERIC_SCALE")),
-                            reader.GetSafeString(reader.GetOrdinal("DATETIME_PRECISION")));
-
-                        columnsList.Add(new ColumnInfo(name, type, size));
-                    }
-                }
-            }
-
-            return columnsList;
-        }
-
-        private void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
-        {
-            if (_mapper == null) return;
-
-            if (_mapper.Count() < 1) throw new ModelToTableMapperException("Seems that your ModelToTableMapper object has no columns defined.");
-
-            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
-
-            if (this._mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
-            {
-                throw new ModelToTableMapperException("I cannot find any correspondence between defined ModelToTableMapper properties and database Table columns.");
-            }
-        }
-
-        private static IEnumerable<ColumnInfo> CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse)
-        {
-            var checkIfUserInterestedColumnsCanBeManaged = tableColumnsToUse as ColumnInfo[] ?? tableColumnsToUse.ToArray();
-            foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
-            {
-                if (
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "IMAGE", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "TEXT", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "NTEXT", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "STRUCTURED", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOGRAPHY", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "GEOMETRY", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "HIERARCHYID", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "SQL_VARIANT", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new ColumnTypeNotSupportedException($"{tableColumn.Type} column type is not an supported by SqlTableDependency.");
-                }
-            }
-
-            return checkIfUserInterestedColumnsCanBeManaged;
-        }
-
-        private static string ConvertFormat(ColumnInfo userInterestedColumn)
-        {
-            return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
-        }
-
-        private static string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn)
-        {
-            if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
-            {
-                return SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name);
-            }
-
-            return $"convert(nvarchar(max), {SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{ConvertFormat(userInterestedColumn)})";
-        }
-
-        private static string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
-        {
-            var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";send on conversation @h message type[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
-                .ToList();
-
-            sendList.Insert(0, $";send on conversation @h message type[{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (convert(nvarchar, @dmlType))" + Environment.NewLine);
-
-            return string.Join(Environment.NewLine, sendList);
-        }
-
-        private static string PrepareSelectForSetVarialbes(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
-        {
-            return string.Join(",", userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
-        }
-
-        private static string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
-        {
-            var colonne = (from insterestedColumn in interestedColumns
-                           let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size)
-                           ? string.Empty
-                           : $"({insterestedColumn.Size})")
-                           select $"DECLARE {SanitizeVariableName(interestedColumns, insterestedColumn.Name)} {variableType.ToLowerInvariant()}").ToList();
-
-            return string.Join(Environment.NewLine, colonne);
-        }
-
-        private static string SanitizeVariableName(IReadOnlyCollection<ColumnInfo> userInterestedColumns, string tableColumnName)
-        {
-            for (var i = 0; i < userInterestedColumns.Count; i++)
-            {
-                if (userInterestedColumns.ElementAt(i).Name == tableColumnName)
-                {
-                    return "@var" + (i + 1);
-                }
-            }
-
-            throw new SanitizeVariableNameException(tableColumnName);
-        }
-
-        private static void CheckIfConnectionStringIsValid(string connectionString)
-        {
-            SqlConnectionStringBuilder sqlConnectionStringBuilder = null;
-
-            try
-            {
-                sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-            }
-            catch (Exception exception)
-            {
-                throw new InvalidConnectionStringException(connectionString, exception);
-            }
-
-            using (var sqlConnection = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
-            {
-                try
-                {
-                    sqlConnection.Open();
-                }
-                catch (SqlException exception)
-                {
-                    throw new ImpossibleOpenSqlConnectionException(sqlConnectionStringBuilder.ConnectionString, exception);
-                }
-            }
-        }
-
-        private static void CheckIfUserHasPermissions(string connectionString)
-        {
-            PrivilegesTable privilegesTable;
-
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = SqlScripts.SelectUserGrants;
-
-                    var rows = SerializeSqlDataReader.Serialize(sqlCommand.ExecuteReader(CommandBehavior.CloseConnection));
-                    privilegesTable = PrivilegesTable.FromEnumerable(rows);
-                }
-            }
-            if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
-
-            if (privilegesTable.Rows.Any(r => string.Equals(r.Role, "db_owner", StringComparison.OrdinalIgnoreCase)))
-            {
-                // Ok
-            }
-            else
-            {
-                foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
-                {
-                    var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
-                    if (privilegesTable.Rows.All(r => !string.Equals(r.PermissionType, permissionToCkeck, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        throw new UserWithMissingPermissionException(permissionToCkeck);
-                    }
-                }
-            }
-        }
-
-        private static void CheckIfServiceBrokerIsEnabled(string connectionString)
-        {
-            using (var sqlConnection = new SqlConnection(connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WHERE database_id = db_id()";
-                    if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
-                }
-            }
-        }
-
-        private void CheckIfTableExists(string connection, string tableName)
-        {
-            using (var sqlConnection = new SqlConnection(connection))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaTables, _tableName, _schemaName);
-                    if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(tableName);
-                }
-            }
-        }
-
-        private IEnumerable<ColumnInfo> PrivateGetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
-        {
-            var tableColumnsListFiltered = new List<ColumnInfo>();
-
-            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
-            {
-                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
-                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
-
-                // If model property is mapped to table column keep it
-                foreach (var tableColumn in tableColumnsList)
-                {
-                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            throw new ModelToTableMapperException("Model with columns having same name.");
-                        }
-
-                        tableColumnsListFiltered.Add(tableColumn);
-                        break;
-                    }
-                }
-            }
-
-            return tableColumnsListFiltered;
-        }
-
-        private static void CheckUpdateOfValidity(IEnumerable<ColumnInfo> tableColumnsList, IEnumerable<string> updateOf)
-        {
-            if (updateOf == null) return;
-
-            var columnsToMonitorDuringUpdate = updateOf as string[] ?? updateOf.ToArray();
-            if (!columnsToMonitorDuringUpdate.Any()) throw new UpdateOfException("updateOf parameter is empty.");
-
-            if (columnsToMonitorDuringUpdate.Any(string.IsNullOrWhiteSpace))
-            {
-                throw new UpdateOfException("Parameter 'updateOf' contains a null or empty value.");
-            }
-
-            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
-            foreach (var columnToMonitorDuringUpdate in columnsToMonitorDuringUpdate.Where(columnToMonitor => !dbColumnNames.Contains(columnToMonitor.ToLowerInvariant())))
-            {
-                throw new UpdateOfException($"Column '{columnToMonitorDuringUpdate}' specified in updateOf list does not exists.");
-            }
         }
 
         #endregion

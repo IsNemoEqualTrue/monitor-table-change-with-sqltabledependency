@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency
+// TableDependency, SqlTableDependency, SqlTableDependencyFilter
 // Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -23,16 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-using System;
 
-namespace TableDependency.Enums
+namespace TableDependency.Abstracts
 {
-    [Flags]
-    public enum DmlTriggerType
-    {        
-        Delete = 1,
-        Insert = 2,
-        Update = 4,
-        All = 8
+    public interface ITableDependencyFilter
+    {
+        string Translate();
     }
 }

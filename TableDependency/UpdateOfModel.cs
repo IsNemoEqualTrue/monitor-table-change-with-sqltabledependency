@@ -28,11 +28,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using TableDependency.Abstracts;
 using TableDependency.Exceptions;
 
-namespace TableDependency.Mappers
+namespace TableDependency
 {
-    public class UpdateOfModel<T> where T : class
+    public class UpdateOfModel<T> : IUpdateOfModel<T> where T : class
     {
         private readonly List<PropertyInfo> _updateOfList = new List<PropertyInfo>();
 
@@ -72,18 +73,22 @@ namespace TableDependency.Mappers
             }
         }
 
-        #region Internal methods
-
-        internal int Count()
+        /// <summary>
+        /// Counts this instance.
+        /// </summary>
+        /// <returns></returns>
+        public int Count()
         {
             return _updateOfList.Count;
         }
 
-        internal IList<PropertyInfo> GetPropertiesInfos()
+        /// <summary>
+        /// Gets the properties infos.
+        /// </summary>
+        /// <returns></returns>
+        public IList<PropertyInfo> GetPropertiesInfos()
         {
             return _updateOfList;
         }
     }
-
-    #endregion
 }

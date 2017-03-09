@@ -8,13 +8,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [Table("AAWItemsTable")]
-    public class Item5
+    public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -28,8 +27,8 @@ namespace TableDependency.IntegrationTest
 
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static readonly string TableName = "AAAA";
-        private static int _counter = 0;
-        private static readonly Dictionary<string, Item5> CheckValues = new Dictionary<string, Item5>();
+        private static int _counter;
+        private static readonly Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> CheckValues = new Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -51,9 +50,9 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Item5());
-            CheckValues.Add(ChangeType.Update.ToString(), new Item5());
-            CheckValues.Add(ChangeType.Delete.ToString(), new Item5());
+            CheckValues.Add(ChangeType.Insert.ToString(), new ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel());
+            CheckValues.Add(ChangeType.Update.ToString(), new ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel());
+            CheckValues.Add(ChangeType.Delete.ToString(), new ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel());
         }
 
         [ClassCleanup()]
@@ -74,18 +73,18 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<Item5> tableDependency = null;
+            SqlTableDependency<ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> tableDependency = null;
             string naming = null;
 
-            var mapper = new ModelToTableMapper<Item5>();
+            var mapper = new ModelToTableMapper<ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();
             mapper.AddMapping(c => c.Infos, "More Info");
 
-            var updateOf = new List<string>();
-            updateOf.Add("More Info");
+            var updateOf = new UpdateOfModel<ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();
+            updateOf.Add(i => i.Infos);
 
             try
             {
-                tableDependency = new SqlTableDependency<Item5>(ConnectionString, TableName, mapper, updateOf);
+                tableDependency = new SqlTableDependency<ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>(ConnectionString, tableName: TableName, mapper: mapper, updateOf: updateOf);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -115,7 +114,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Item5> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> e)
         {
             switch (e.ChangeType)
             {

@@ -90,14 +90,16 @@ namespace TableDependency.IntegrationTest
             SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
+            var updateOf = new UpdateOfModel<TriggerTypeTestSqlServerModel>();
+            updateOf.Add(i => i.Surname);
+
             try
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    new List<string>() { "second name" }, 
-                    DmlTriggerType.Insert);
+                    tableName: TableName,
+                    updateOf: updateOf, 
+                    notifyOn: DmlTriggerType.Insert);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -114,6 +116,9 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException2()
         {
+            var updateOf = new UpdateOfModel<TriggerTypeTestSqlServerModel>();
+            updateOf.Add(t => t.Surname);
+
             SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
@@ -121,10 +126,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    new List<string>() { "second name" },
-                    DmlTriggerType.Delete);
+                    tableName: TableName,
+                    updateOf: updateOf,
+                    notifyOn: DmlTriggerType.Delete);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -141,6 +145,9 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(DmlTriggerTypeException))]
         public void RaiseException3()
         {
+            var updateOf = new UpdateOfModel<TriggerTypeTestSqlServerModel>();
+            updateOf.Add(t => t.Surname);
+
             SqlTableDependency<TriggerTypeTestSqlServerModel> tableDependency = null;
             string naming = null;
 
@@ -148,10 +155,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    new List<string>() { "second name" },
-                    DmlTriggerType.Delete | DmlTriggerType.Insert);
+                    tableName: TableName,
+                    updateOf: updateOf,
+                    notifyOn: DmlTriggerType.Delete | DmlTriggerType.Insert);
 
                 naming = tableDependency.DataBaseObjectsNamingConvention;
             }
@@ -174,10 +180,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Insert);
+                    tableName: TableName,
+                    notifyOn : DmlTriggerType.Insert);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -212,10 +217,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Delete);
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.Delete);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -250,10 +254,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Update);
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.Update);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -288,10 +291,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Insert | DmlTriggerType.Delete);
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.Insert | DmlTriggerType.Delete);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -329,11 +331,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Insert | DmlTriggerType.Update
-                    );
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.Insert | DmlTriggerType.Update);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -371,10 +371,8 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.Delete | DmlTriggerType.Insert | DmlTriggerType.Update);
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.Delete | DmlTriggerType.Insert | DmlTriggerType.Update);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -415,10 +413,9 @@ namespace TableDependency.IntegrationTest
             {
                 tableDependency = new SqlTableDependency<TriggerTypeTestSqlServerModel>(
                     ConnectionString,
-                    TableName,
-                    null,
-                    (IList<string>)null,
-                    DmlTriggerType.All);
+                    tableName: TableName,
+                    notifyOn: DmlTriggerType.All);
+
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;

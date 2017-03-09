@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
-using TableDependency.Mappers;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -84,7 +83,7 @@ namespace TableDependency.IntegrationTest
                 UpdateOfModel<AAA_Item3> updateOF = new UpdateOfModel<AAA_Item3>();
                 updateOF.Add(model => model.FamilyName);
 
-                tableDependency = new SqlTableDependency<AAA_Item3>(ConnectionString, updateOF);
+                tableDependency = new SqlTableDependency<AAA_Item3>(ConnectionString, updateOf: updateOF);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;

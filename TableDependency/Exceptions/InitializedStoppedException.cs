@@ -24,40 +24,12 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using System.Diagnostics;
-using System.Text;
-using TableDependency.Delegates;
-using TableDependency.Enums;
-
-namespace TableDependency
+namespace TableDependency.Exceptions
 {
-    public interface ITableDependency<T> where T : class
+    public class InitializedStoppedException : TableDependencyException
     {
-        #region Events
-
-        event ChangedEventHandler<T> OnChanged;
-        event ErrorEventHandler OnError;
-        event StatusEventHandler OnStatusChanged;
-
-        #endregion
-
-        #region Methods
-
-        void Start(int timeOut = 120, int watchDogTimeOut = 180);
-        void Stop();
-
-        #endregion
-
-        #region Properties
-
-        TraceLevel TraceLevel { get; set; }
-        TraceListener TraceListener { get; set; }
-        TableDependencyStatus Status { get; }
-        Encoding Encoding { get; set; }
-        string DataBaseObjectsNamingConvention { get; }        
-        string TableName { get; }
-        string SchemaName { get; }
-
-        #endregion
+        public InitializedStoppedException() : base("Initialization stopped.")
+        {
+        }
     }
 }
