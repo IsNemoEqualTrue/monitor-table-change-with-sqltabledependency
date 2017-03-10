@@ -321,12 +321,29 @@ namespace TableDependency.SqlClient
 
         protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut)
         {
-            var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
-            var columnsForTableVariable = PrepareColumnListForTableVariable(interestedColumns);
-            var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
-            var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
+            IList<string> processableMessages;
 
-            return this.CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
+            var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
+
+            if (string.IsNullOrWhiteSpace(_desiredObjectNaming))
+            {                
+                var columnsForTableVariable = PrepareColumnListForTableVariable(interestedColumns);
+                var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
+                var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
+                processableMessages = this.CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
+            }
+            else
+            {
+                processableMessages = new List<string>();
+                processableMessages.Add(string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Insert));
+                processableMessages.Add(string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Update));
+                processableMessages.Add(string.Format(StartMessageTemplate, dataBaseObjectsNamingConvention, ChangeType.Delete));
+                processableMessages.Add(string.Format(DisposeMessageTemplate, dataBaseObjectsNamingConvention));
+                foreach (var userInterestedColumn in interestedColumns) processableMessages.Add($"{dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}");
+                processableMessages.Add(SqlMessageTypes.EndDialogType);
+            }
+
+            return processableMessages;
         }
 
         protected override string GetBaseObjectsNamingConvention(string objectNaming)
@@ -361,9 +378,9 @@ namespace TableDependency.SqlClient
         }
 
         protected override void CheckRdbmsDependentImplementation(string connectionString)
-        {            
-            CheckIfServiceBrokerIsEnabled(connectionString);      
-                 
+        {
+            CheckIfServiceBrokerIsEnabled(connectionString);
+
             _sqlVersion = this.GetSqlServerVersion(connectionString);
             if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupportedException(SqlServerVersion.SqlServer2000);
         }
@@ -484,7 +501,7 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
                     sqlCommand.ExecuteNonQuery();
 
-                    transaction.Commit();                    
+                    transaction.Commit();
 
                     processableMessages.Add(SqlMessageTypes.EndDialogType);
 
@@ -492,7 +509,7 @@ namespace TableDependency.SqlClient
                 }
             }
 
-            this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");            
+            this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");
 
             return processableMessages;
         }
@@ -867,28 +884,22 @@ namespace TableDependency.SqlClient
                                         var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
                                         this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
 
-                                        if (messageType.Value == SqlMessageTypes.ErrorType)
+                                        if (processableMessages.Contains(messageType.Value) == false)
                                         {
-                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}].");
+                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}] in the queue.");
                                             if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
                                             throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
                                         }
 
-                                        if (processableMessages.Contains(messageType.Value))
+                                        var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
+                                        var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
+
+                                        if (messageStatus == MessagesBagStatus.Closed)
                                         {
-                                            var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
-                                            var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
-                                            if (messageStatus == MessagesBagStatus.Closed)
-                                            {
-                                                newMessageReadyToBeNotified = true;
-                                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
-                                                this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
-                                                break;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            this.WriteTraceMessage(TraceLevel.Warning, $"Message discarted [{messageType}].");
+                                            newMessageReadyToBeNotified = true;
+                                            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
+                                            this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
+                                            break;
                                         }
                                     }
                                 }

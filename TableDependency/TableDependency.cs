@@ -47,8 +47,7 @@ namespace TableDependency
         #region Instance Variables
 
         protected IModelToTableMapper<T> _mapper;
-        protected CancellationTokenSource _cancellationTokenSource;
-        protected string _dataBaseObjectsNamingConvention;
+        protected CancellationTokenSource _cancellationTokenSource;        
         protected string _connectionString;
         protected string _tableName;
         protected string _schemaName;
@@ -63,7 +62,8 @@ namespace TableDependency
         protected ITableDependencyFilter _filter;
         protected bool _disposed;
         protected bool _teardown;
-        protected string _objectNaming;
+        protected string _desiredObjectNaming;
+        protected string _dataBaseObjectsNamingConvention;
 
         #endregion
 
@@ -197,7 +197,7 @@ namespace TableDependency
             _filter = filter;
 
             _teardown = teardown;
-            _objectNaming = objectNaming;
+            _desiredObjectNaming = objectNaming;
         }
 
         #endregion
