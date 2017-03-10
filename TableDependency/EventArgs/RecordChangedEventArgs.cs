@@ -172,7 +172,7 @@ namespace TableDependency.EventArgs
 
                 var dbColumnInfo = this.GetColumnInfo(columnName);
 
-                var value = GetValue(entityPropertyInfo, dbColumnInfo, message.Body);
+                var value = this.GetValue(entityPropertyInfo, dbColumnInfo, message.Body);
                 entityPropertyInfo.SetValue(entity, value);
             }
 

@@ -13,8 +13,8 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    [Table("ANItemsTableSQL")]
-    public class DataAnnotationTestSelServerModel
+    [Table("ANItemsTableSQL5")]
+    public class DataAnnotationTestSelServerModel5
     {
         public long Id { get; set; }
 
@@ -25,12 +25,11 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer
+    public class DataAnnotationTestSqlServer5
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static readonly string TableName = "ANItemsTableSQL";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -40,10 +39,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL5', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL5];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [ANItemsTableSQL5]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -62,7 +61,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL5', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL5];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -72,13 +71,13 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<DataAnnotationTestSelServerModel> tableDependency = null;
+            SqlTableDependency<DataAnnotationTestSelServerModel5> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<DataAnnotationTestSelServerModel>(ConnectionString);
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency = new SqlTableDependency<DataAnnotationTestSelServerModel5>(ConnectionString);
+                tableDependency.OnChanged += TableDependency_Changed;                
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -107,7 +106,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel5> e)
         {
             _counter++;
 
@@ -130,24 +129,24 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSelServerModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSelServerModel, DataAnnotationTestSelServerModel>(new DataAnnotationTestSelServerModel { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>(new DataAnnotationTestSelServerModel5 { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSelServerModel5()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>(new DataAnnotationTestSelServerModel5 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel5()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>(new DataAnnotationTestSelServerModel5 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel5()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [ANItemsTableSQL5] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
+                    sqlCommand.CommandText = $"UPDATE [ANItemsTableSQL5] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.CommandText = $"DELETE FROM [ANItemsTableSQL5]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }

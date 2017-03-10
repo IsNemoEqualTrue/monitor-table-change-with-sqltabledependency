@@ -50,6 +50,7 @@
     <Compile Include="Abstracts\IUpdateOfModel.cs" />
     <Compile Include="Exceptions\InitializedStoppedException.cs" />
     <Compile Include="Exceptions\InitializingStoppedException.cs" />
+    <Compile Include="Exceptions\NoMatchBetweenModelAndTableColumns.cs" />
     <Compile Include="Exceptions\TableWithNoColumnsException.cs" />
     <Compile Include="Utilities\ColumnInfo.cs" />
     <Compile Include="Delegates\StatusEventHandler.cs" />

@@ -49,7 +49,17 @@ namespace TableDependency
         #region Public methods
 
         /// <summary>
-        /// Adds the mapping between a model property and a database table column, in order to decouple naming and to overcome the impossibility to map SQL columns name containing spaces.
+        /// Adds the mapping.
+        /// </summary>
+        /// <param name="pi">The pi.</param>
+        /// <param name="columnName">Name of the column.</param>
+        public void AddMapping(PropertyInfo pi, string columnName)
+        {
+            _mappings[pi] = columnName;
+        }
+
+        /// <summary>
+        /// Adds the mapping between a model property and a database table column.
         /// </summary>
         /// <param name="expression">The expression.</param>
         /// <param name="columnName">Name of the column.</param>
@@ -91,16 +101,6 @@ namespace TableDependency
         public string GetMapping(PropertyInfo propertyInfo)
         {
             return _mappings.ContainsKey(propertyInfo) ? _mappings[propertyInfo] : null;
-        }
-
-        /// <summary>
-        /// Adds the mapping.
-        /// </summary>
-        /// <param name="pi">The pi.</param>
-        /// <param name="columnName">Name of the column.</param>
-        public void AddMapping(PropertyInfo pi, string columnName)
-        {
-            _mappings[pi] = columnName;
         }
 
         /// <summary>

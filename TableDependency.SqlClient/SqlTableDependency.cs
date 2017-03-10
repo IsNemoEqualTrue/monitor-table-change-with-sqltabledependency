@@ -199,7 +199,7 @@ namespace TableDependency.SqlClient
             return sqlConnectionStringBuilder.DataSource;
         }
 
-        protected override string GetCandidateTableName(string tableName)
+        protected override string GetTableName(string tableName)
         {
             if (!string.IsNullOrWhiteSpace(tableName))
             {
@@ -215,7 +215,7 @@ namespace TableDependency.SqlClient
             return !string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name;
         }
 
-        protected override string GetCandidateSchemaName(string tableName)
+        protected override string GetSchemaName(string tableName)
         {
             // If no default schema is defined for a user account, SQL Server will assume dbo is the default schema. 
             // It is important note that if the user is authenticated by SQL Server via the Windows operating system, no default schema will be associated with the user. 
@@ -304,7 +304,7 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        protected override IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming)
+        protected IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming)
         {
             var processableMessages = new List<string>
             {
@@ -326,11 +326,13 @@ namespace TableDependency.SqlClient
             var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
             var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
 
-            return CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
+            return this.CreateDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
         }
 
-        protected override string GeneratedataBaseObjectsNamingConvention()
+        protected override string GetBaseObjectsNamingConvention(string objectNaming)
         {
+            if (!string.IsNullOrWhiteSpace(objectNaming)) return objectNaming;
+
             string name = $"{_schemaName}_{_tableName}";
             return $"{name}_{Guid.NewGuid()}";
         }
@@ -811,59 +813,6 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = string.Format(SqlScripts.InformationSchemaTables, _tableName, _schemaName);
                     if ((int)sqlCommand.ExecuteScalar() == 0) throw new NotExistingTableException(_tableName);
                 }
-            }
-        }
-
-        protected override IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
-        {
-            var tableColumnsListFiltered = new List<ColumnInfo>();
-
-            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
-            {
-                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
-                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
-
-                // If model property is mapped to table column keep it
-                foreach (var tableColumn in tableColumnsList)
-                {
-                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            throw new ModelToTableMapperException("Model with columns having same name.");
-                        }
-
-                        tableColumnsListFiltered.Add(tableColumn);
-                        break;
-                    }
-                }
-            }
-
-            return tableColumnsListFiltered;
-        }
-
-        protected override void CheckUpdateOfCongruenceWithTriggerType(IUpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
-        {
-            if (updateOf == null || updateOf.Count() == 0) return;
-
-            if (!dmlTriggerType.HasFlag(DmlTriggerType.Update) && !dmlTriggerType.HasFlag(DmlTriggerType.All))
-            {
-                if (updateOf.Count() > 0)
-                {
-                    throw new DmlTriggerTypeException("updateOf parameter can be specified only if DmlTriggerType parameter contains DmlTriggerType.Update too, not for DmlTriggerType.Delete or DmlTriggerType.Insert only.");
-                }
-            }
-        }
-
-        protected override void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
-        {
-            if (_mapper == null || _mapper.Count() < 1) return;
-
-            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
-
-            if (_mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
-            {
-                throw new ModelToTableMapperException("I cannot find any correspondence between defined ModelToTableMapper properties and database Table columns.");
             }
         }
 

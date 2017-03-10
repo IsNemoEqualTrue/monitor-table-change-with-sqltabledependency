@@ -62,6 +62,8 @@ namespace TableDependency
         protected DmlTriggerType _dmlTriggerType;
         protected ITableDependencyFilter _filter;
         protected bool _disposed;
+        protected bool _teardown;
+        protected string _objectNaming;
 
         #endregion
 
@@ -161,13 +163,16 @@ namespace TableDependency
             bool teardown = true,
             string objectNaming = null)
         {
+            if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
+            if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
+
             this.CheckIfConnectionStringIsValid(connectionString);
             this.CheckIfParameterlessConstructorExistsForModel();
             this.CheckIfUserHasPermissions(connectionString);
 
             _connectionString = connectionString;
-            _tableName = this.GetCandidateTableName(tableName);
-            _schemaName = this.GetCandidateSchemaName(tableName);
+            _tableName = this.GetTableName(tableName);
+            _schemaName = this.GetSchemaName(tableName);
             _server = this.GetServerName(connectionString);
             _database = this.GetDataBaseName(connectionString);
 
@@ -184,11 +189,15 @@ namespace TableDependency
             _updateOf = this.GetUpdateOfColumnNameList(updateOf, tableColumnList);
 
             _userInterestedColumns = this.GetUserInterestedColumns(tableColumnList);
+            if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GeneratedataBaseObjectsNamingConvention();
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(objectNaming);
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
+
+            _teardown = teardown;
+            _objectNaming = objectNaming;
         }
 
         #endregion
@@ -230,7 +239,7 @@ namespace TableDependency
 
             _task = null;
 
-            this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            if (_teardown) this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -256,141 +265,9 @@ namespace TableDependency
 
         #endregion
 
-        #region Protected methods
+        #region Logging
 
-        protected abstract void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList);
-
-        protected abstract void CheckUpdateOfCongruenceWithTriggerType(IUpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType);
-
-        protected abstract void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse);
-
-        protected abstract IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsLis);
-
-        protected virtual void CheckRdbmsDependentImplementation(string connectionString)
-        {
-            
-        }
-
-        protected abstract void CheckIfTableExists(string connectionString);
-
-        protected abstract void CheckIfUserHasPermissions(string connectionString);
-
-        protected virtual void CheckIfParameterlessConstructorExistsForModel()
-        {
-            if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
-            {
-                throw new ModelWithoutParameterlessConstructor("Your model needs a parameterless constructor.");
-            }
-        }
-
-        protected abstract void CheckIfConnectionStringIsValid(string connectionString);
-
-        protected abstract string GetDataBaseName(string connectionString);
-
-        protected abstract string GetServerName(string connectionString);
-
-        protected void NotifyListenersAboutStatus(Delegate[] onStatusChangedSubscribedList, TableDependencyStatus status)
-        {
-            _status = status;
-
-            if (onStatusChangedSubscribedList == null) return;
-
-            foreach (var dlg in onStatusChangedSubscribedList.Where(d => d != null))
-            {
-                try
-                {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status, _server, _database, _dataBaseObjectsNamingConvention) });
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
-
-        protected void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
-        {
-            if (onErrorSubscribedList == null) return;
-
-            foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
-            {
-                try
-                {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception, _server, _database, _dataBaseObjectsNamingConvention) });
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-        }
-
-        protected abstract IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming);
-
-        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
-
-        protected abstract string GeneratedataBaseObjectsNamingConvention();
-
-        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
-
-        protected abstract string GetCandidateTableName(string tableName);
-
-        protected abstract string GetCandidateSchemaName(string tableName);
-
-        protected virtual string GetTableNameFromTableDataAnnotation()
-        {
-            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
-            return ((TableAttribute)attribute)?.Name;
-        }
-
-        protected virtual string GetSchemaNameFromTableDataAnnotation()
-        {
-            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
-            return ((TableAttribute)attribute)?.Schema;
-        }
-
-        protected virtual IModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
-        {
-            var propertyInfos = typeof(T)
-                .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
-                .ToArray();
-
-            if (!propertyInfos.Any()) return null;
-
-            var mapper = new ModelToTableMapper<T>();
-            foreach (var propertyInfo in propertyInfos)
-            {
-                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
-                var dbColumnName = ((ColumnAttribute)attribute).Name;
-                if (attribute != null) mapper.AddMapping(propertyInfo, dbColumnName);
-            }
-
-            return mapper;
-        }
-
-        protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
-        {
-            try
-            {
-                if (this.TraceListener == null) return;
-                if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;
-
-                if (this.TraceLevel >= traceLevel)
-                {
-                    var messageToWrite = new StringBuilder(message);
-                    if (exception != null) messageToWrite.Append(this.DumpException(exception));
-                    this.TraceListener.WriteLine($"{this.MessageHeader()}{messageToWrite}");
-                    this.TraceListener.Flush();
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        protected virtual string MessageHeader()
+        protected virtual string FormatTraceMessageHeader()
         {
             return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [Server: {_server} Database: {_database}]";
         }
@@ -432,9 +309,131 @@ namespace TableDependency
             }
         }
 
-        protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
-        protected virtual string GetTableColumnName(IEnumerable<ColumnInfo> tableColumnsList, string modelPropertyName)
+        protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
+        {
+            try
+            {
+                if (this.TraceListener == null) return;
+                if (this.TraceLevel < TraceLevel.Off || this.TraceLevel > TraceLevel.Verbose) return;
+
+                if (this.TraceLevel >= traceLevel)
+                {
+                    var messageToWrite = new StringBuilder(message);
+                    if (exception != null) messageToWrite.Append(this.DumpException(exception));
+                    this.TraceListener.WriteLine($"{this.FormatTraceMessageHeader()}{messageToWrite}");
+                    this.TraceListener.Flush();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        #endregion
+
+        #region Checks
+
+        protected virtual void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
+        {
+            if (_mapper == null || _mapper.Count() < 1) return;
+
+            var dbColumnNames = tableColumnsList.Select(t => t.Name.ToLowerInvariant()).ToList();
+
+            if (_mapper.GetMappings().Select(t => t.Value).Any(mappingColumnName => !dbColumnNames.Contains(mappingColumnName.ToLowerInvariant())))
+            {
+                throw new ModelToTableMapperException("I cannot find any correspondence between defined ModelToTableMapper properties and database Table columns.");
+            }
+        }
+
+        protected virtual void CheckUpdateOfCongruenceWithTriggerType(IUpdateOfModel<T> updateOf, DmlTriggerType dmlTriggerType)
+        {
+            if (updateOf == null || updateOf.Count() == 0) return;
+
+            if (!dmlTriggerType.HasFlag(DmlTriggerType.Update) && !dmlTriggerType.HasFlag(DmlTriggerType.All))
+            {
+                if (updateOf.Count() > 0)
+                {
+                    throw new DmlTriggerTypeException("updateOf parameter can be specified only if DmlTriggerType parameter contains DmlTriggerType.Update too, not for DmlTriggerType.Delete or DmlTriggerType.Insert only.");
+                }
+            }
+        }
+
+        protected abstract void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse);
+
+        protected virtual void CheckRdbmsDependentImplementation(string connectionString)
+        {
+            
+        }
+
+        protected abstract void CheckIfTableExists(string connectionString);
+
+        protected abstract void CheckIfUserHasPermissions(string connectionString);
+
+        protected virtual void CheckIfParameterlessConstructorExistsForModel()
+        {
+            if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
+            {
+                throw new ModelWithoutParameterlessConstructor("Your model needs a parameterless constructor.");
+            }
+        }
+
+        protected abstract void CheckIfConnectionStringIsValid(string connectionString);
+
+        #endregion
+
+        #region Infos
+
+        protected virtual IModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
+        {
+            var modelPropertyInfosWithColumnAttribute = typeof(T)
+                .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
+                .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
+                .ToArray();
+
+            if (!modelPropertyInfosWithColumnAttribute.Any()) return null;
+
+            var mapper = new ModelToTableMapper<T>();
+            foreach (var propertyInfo in modelPropertyInfosWithColumnAttribute)
+            {
+                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
+                var dbColumnName = ((ColumnAttribute)attribute)?.Name;
+                if (dbColumnName != null && mapper.GetMapping(dbColumnName) == null) mapper.AddMapping(propertyInfo, dbColumnName);
+            }
+
+            return mapper;
+        }
+
+        protected virtual IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
+        {
+            var tableColumnsListFiltered = new List<ColumnInfo>();
+
+            foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
+            {
+                var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
+
+                // If model property is mapped to table column keep it
+                foreach (var tableColumn in tableColumnsList)
+                {
+                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            throw new ModelToTableMapperException("Model with columns having same name.");
+                        }
+
+                        tableColumnsListFiltered.Add(tableColumn);
+                        break;
+                    }
+                }
+            }
+
+            return tableColumnsListFiltered;
+        }
+
+        protected virtual string GetColumnNameFromModelProperty(IEnumerable<ColumnInfo> tableColumnsList, string modelPropertyName)
         {
             var entityPropertyInfo = ModelUtil.GetModelPropertiesInfo<T>().First(mpf => mpf.Name == modelPropertyName);
 
@@ -461,7 +460,7 @@ namespace TableDependency
 
             foreach (var propertyInfo in updateOf.GetPropertiesInfos())
             {
-                var existingMap = _mapper.GetMapping(propertyInfo);
+                var existingMap = _mapper?.GetMapping(propertyInfo);
                 if (existingMap != null)
                 {
                     updateOfList.Add(existingMap);
@@ -476,13 +475,86 @@ namespace TableDependency
                 }
                 else
                 {
-                    var dbColumnName = GetTableColumnName(tableColumns, propertyInfo.Name);
+                    var dbColumnName = GetColumnNameFromModelProperty(tableColumns, propertyInfo.Name);
                     updateOfList.Add(dbColumnName);
                 }
             }
 
             return updateOfList;
         }
+
+
+        protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
+
+        protected abstract string GetBaseObjectsNamingConvention(string objectNaming);
+
+        protected abstract string GetDataBaseName(string connectionString);
+
+        protected abstract string GetServerName(string connectionString);              
+
+        protected abstract string GetTableName(string tableName);
+
+        protected virtual string GetTableNameFromTableDataAnnotation()
+        {
+            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
+            return ((TableAttribute)attribute)?.Name;
+        }
+
+        protected abstract string GetSchemaName(string tableName);
+
+        protected virtual string GetSchemaNameFromTableDataAnnotation()
+        {
+            var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
+            return ((TableAttribute)attribute)?.Schema;
+        }
+
+        #endregion
+
+        #region Notifications
+
+        protected void NotifyListenersAboutStatus(Delegate[] onStatusChangedSubscribedList, TableDependencyStatus status)
+        {
+            _status = status;
+
+            if (onStatusChangedSubscribedList == null) return;
+
+            foreach (var dlg in onStatusChangedSubscribedList.Where(d => d != null))
+            {
+                try
+                {
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status, _server, _database, _dataBaseObjectsNamingConvention) });
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+
+        protected void NotifyListenersAboutError(Delegate[] onErrorSubscribedList, Exception exception)
+        {
+            if (onErrorSubscribedList == null) return;
+
+            foreach (var dlg in onErrorSubscribedList.Where(d => d != null))
+            {
+                try
+                {
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception, _server, _database, _dataBaseObjectsNamingConvention) });
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+
+        #endregion
+
+        #region Database object generation/disposition
+
+        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+
+        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
         #endregion
 
