@@ -38,6 +38,7 @@ using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
+using TableDependency.Messages;
 using TableDependency.Utilities;
 
 namespace TableDependency
@@ -47,7 +48,7 @@ namespace TableDependency
         #region Instance Variables
 
         protected IModelToTableMapper<T> _mapper;
-        protected CancellationTokenSource _cancellationTokenSource;        
+        protected CancellationTokenSource _cancellationTokenSource;
         protected string _connectionString;
         protected string _tableName;
         protected string _schemaName;
@@ -62,7 +63,6 @@ namespace TableDependency
         protected ITableDependencyFilter _filter;
         protected bool _disposed;
         protected bool _teardown;
-        protected string _desiredObjectNaming;
         protected string _dataBaseObjectsNamingConvention;
 
         #endregion
@@ -161,7 +161,7 @@ namespace TableDependency
             ITableDependencyFilter filter = null,
             DmlTriggerType dmlTriggerType = DmlTriggerType.All,
             bool teardown = true,
-            string objectNaming = null)
+            string namingForObjectsAlreadyExisting = null)
         {
             if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
@@ -192,12 +192,11 @@ namespace TableDependency
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(objectNaming);
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(namingForObjectsAlreadyExisting);
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
 
             _teardown = teardown;
-            _desiredObjectNaming = objectNaming;
         }
 
         #endregion
@@ -223,7 +222,8 @@ namespace TableDependency
                 return;
             }
 
-            _processableMessages = this.CreateDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
+            _disposed = false;
+            _processableMessages = this.CreateOrReuseDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
         }
 
         /// <summary>
@@ -309,7 +309,6 @@ namespace TableDependency
             }
         }
 
-
         protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
         {
             try
@@ -362,10 +361,7 @@ namespace TableDependency
 
         protected abstract void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse);
 
-        protected virtual void CheckRdbmsDependentImplementation(string connectionString)
-        {
-            
-        }
+        protected virtual void CheckRdbmsDependentImplementation(string connectionString) { }
 
         protected abstract void CheckIfTableExists(string connectionString);
 
@@ -383,7 +379,7 @@ namespace TableDependency
 
         #endregion
 
-        #region Infos
+        #region Get infos
 
         protected virtual IModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
         {
@@ -483,14 +479,13 @@ namespace TableDependency
             return updateOfList;
         }
 
-
         protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
         protected abstract string GetBaseObjectsNamingConvention(string objectNaming);
 
         protected abstract string GetDataBaseName(string connectionString);
 
-        protected abstract string GetServerName(string connectionString);              
+        protected abstract string GetServerName(string connectionString);
 
         protected abstract string GetTableName(string tableName);
 
@@ -506,6 +501,17 @@ namespace TableDependency
         {
             var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Schema;
+        }
+
+        protected virtual RecordChangedEventArgs<T> GetRecordChangedEventArgs(MessagesBag messagesBag)
+        {
+            return new RecordChangedEventArgs<T>(
+                messagesBag,
+                _mapper,
+                _userInterestedColumns,
+                _server,
+                _database,
+                _dataBaseObjectsNamingConvention);
         }
 
         #endregion
@@ -548,11 +554,21 @@ namespace TableDependency
             }
         }
 
+        protected void NotifyListenersAboutChange(Delegate[] changeSubscribedList, MessagesBag messagesBag)
+        {
+            if (changeSubscribedList == null) return;
+
+            foreach (var dlg in changeSubscribedList.Where(d => d != null))
+            {
+                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, this.GetRecordChangedEventArgs(messagesBag) });
+            }
+        }
+
         #endregion
 
         #region Database object generation/disposition
 
-        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+        protected abstract IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
         protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
@@ -577,7 +593,7 @@ namespace TableDependency
             {
                 this.Stop();
 
-                TraceListener?.Dispose();
+                this.TraceListener?.Dispose();
             }
 
             _disposed = true;

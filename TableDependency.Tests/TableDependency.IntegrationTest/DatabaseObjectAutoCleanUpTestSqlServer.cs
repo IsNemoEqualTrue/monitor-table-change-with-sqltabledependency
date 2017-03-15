@@ -87,8 +87,23 @@ namespace TableDependency.IntegrationTest
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
 
+            SmallModifyTableContent();
+
             Thread.Sleep(3 * 60 * 1000);
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+        }
+
+        private static void SmallModifyTableContent()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('allora', 'mah')";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
         }
     }
 

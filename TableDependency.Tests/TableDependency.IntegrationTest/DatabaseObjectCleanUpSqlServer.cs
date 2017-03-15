@@ -1,7 +1,6 @@
 ﻿using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
@@ -9,10 +8,10 @@ using TableDependency.SqlClient;
 namespace TableDependency.IntegrationTest
 {
     [TestClass]
-    public class DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer
+    public class DatabaseObjectCleanUpSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static string TableName = "DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer";
+        private static string TableName = "DatabaseObjectCleanUpSqlServer";
         public static string _dbObjectsNaming;
 
         [ClassInitialize]
@@ -46,66 +45,21 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        [AssemblyCleanup()]
-        public static void AssemblyCleanup()
-        {
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
-        }
-
         [TestCategory("SqlServer")]
         [TestMethod]
         public void DatabaseObjectCleanUpTest2()
         {
-            var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
-            mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
-
-            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             _dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
-            Thread.Sleep(50);
-
-            var t = new Task(BigModifyTableContent);
-            t.Start();
-            t.Wait(10000);
-
-            Thread.Sleep(1000 * 30 * 1);
-            tableDependency.Stop();
-
-            SmalModifyTableContent();
+            Thread.Sleep(5000);
+            
+            tableDependency.StopWithoutDisposing();
 
             Thread.Sleep(4 * 60 * 1000);
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
-        }
-
-        private static void BigModifyTableContent()
-        {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    for (var i = 0; i < 100000; i++)
-                    {
-                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{i}', '{i}')";
-                        sqlCommand.ExecuteNonQuery();
-                    }
-                }
-            }
-        }
-
-        private static void SmalModifyTableContent()
-        {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('allora', 'mah')";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
         }
 
         private void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)

@@ -74,7 +74,6 @@ namespace TableDependency.IntegrationTest
             SqlTableDependency<DataAnnotationTestSelServerModel2> tableDependency = null;
             string naming = null;
 
-
             var mapper = new ModelToTableMapper<DataAnnotationTestSelServerModel2>();
             mapper.AddMapping(c => c.Description, "Long Description");
 

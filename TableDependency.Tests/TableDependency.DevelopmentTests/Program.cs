@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Linq.Expressions;
 using TableDependency;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
@@ -48,10 +47,7 @@ namespace ConsoleApplicationSqlServer
             //Expression<Func<Customers, bool>> expression = p => p.ContactName.Trim() == "123";
             //var filter = new SqlTableDependencyFilter(expression);
 
-            using (var dep = new SqlTableDependency<Customers>(
-                connectionString, 
-                tableName: "Customers", 
-                mapper: mapper))
+            using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
@@ -75,6 +71,11 @@ namespace ConsoleApplicationSqlServer
 
             if (e.ChangeType != ChangeType.None)
             {
+                if (e.Sender.Contains("your table name"))
+                {
+                    
+                }
+
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
                 Console.WriteLine(@"CustomerID:    " + changedEntity.Id);

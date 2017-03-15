@@ -64,6 +64,11 @@
   <ItemGroup>
     <Compile Include="DataAnnotationTestSqlServe5.cs" />
     <Compile Include="DataAnnotationTestSqlServe3.cs" />
+    <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
+    <Compile Include="TeardownTestSqlserver4.cs" />
+    <Compile Include="TeardownTestSqlserver3.cs" />
+    <Compile Include="TeardownTestSqlserver2.cs" />
+    <Compile Include="TeardownTestSqlserver1.cs" />
     <Compile Include="DataAnnotationTestSqlServer8.cs" />
     <Compile Include="DataAnnotationTestSqlServer7.cs" />
     <Compile Include="DataAnnotationTestSqlServer6.cs" />

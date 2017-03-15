@@ -29,16 +29,15 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TableDependency.Abstracts;
 using TableDependency.Delegates;
 using TableDependency.Enums;
+using TableDependency.EventArgs;
 using TableDependency.Exceptions;
 using TableDependency.Messages;
 using TableDependency.SqlClient.Enumerations;
@@ -60,7 +59,6 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
-        protected bool _databseObjectCreationConcluded;
         protected SqlServerVersion _sqlVersion = SqlServerVersion.Unknown;
         protected Guid _dialogHandle;
 
@@ -124,7 +122,7 @@ namespace TableDependency.SqlClient
         /// <param name="filter">The filter condition translated in WHERE.</param>
         /// <param name="notifyOn">The notify on Insert, Delete, Update operation.</param>
         /// <param name="teardown">if set to <c>true</c> drop all database object on stopping.</param>
-        /// <param name="objectNaming">The object naming adopted (used to reconnect to not dropped queue).</param>
+        /// <param name="namingForObjectsAlreadyExisting">The object naming adopted (used to reconnect to not dropped queue).</param>
         public SqlTableDependency(
             string connectionString,
             string tableName = null,
@@ -133,7 +131,7 @@ namespace TableDependency.SqlClient
             ITableDependencyFilter filter = null,
             DmlTriggerType notifyOn = DmlTriggerType.All,
             bool teardown = true,
-            string objectNaming = null) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, teardown, objectNaming)
+            string namingForObjectsAlreadyExisting = null) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, teardown, namingForObjectsAlreadyExisting)
         {
         }
 
@@ -177,6 +175,7 @@ namespace TableDependency.SqlClient
                     _processableMessages,
                     _mapper,
                     _userInterestedColumns,
+                    _teardown,
                     this.Encoding),
                 _cancellationTokenSource.Token);
 
@@ -186,6 +185,17 @@ namespace TableDependency.SqlClient
         #endregion
 
         #region Protected methods
+
+        protected override RecordChangedEventArgs<T> GetRecordChangedEventArgs(MessagesBag messagesBag)
+        {
+            return new SqlRecordChangedEventArgs<T>(
+                messagesBag,
+                _mapper,
+                _userInterestedColumns,
+                _server,
+                _database,
+                _dataBaseObjectsNamingConvention);
+        }
 
         protected override string GetDataBaseName(string connectionString)
         {
@@ -319,14 +329,64 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut)
+        protected bool CheckIfDatabaseObjectExists(string connectionString)
+        {
+            var result = false;
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+                var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{_dataBaseObjectsNamingConvention}'", sqlConnection);
+                result = (int)sqlCommand.ExecuteScalar() > 0;
+                sqlConnection.Close();
+            }
+
+            return result;
+        }
+
+        protected virtual void RunBeginConversationTimer(int watchDogTimeOut)
+        {
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
+                    sqlCommand.ExecuteNonQuery();
+                }
+                sqlConnection.Close();
+            }
+        }
+
+        protected virtual Guid GetDialogConversationHanlde()
+        {
+            Guid dialog;
+
+            var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
+            using (var sqlConnection = new SqlConnection(_connectionString))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", _dataBaseObjectsNamingConvention);
+                    sqlCommand.Parameters.Add(sqlParameter);
+                    sqlCommand.ExecuteNonQuery();
+                    dialog = (Guid)sqlParameter.Value;
+                }
+                sqlConnection.Close();
+            }
+
+            return dialog;
+        }
+
+        protected override IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut)
         {
             IList<string> processableMessages;
 
             var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
 
-            if (string.IsNullOrWhiteSpace(_desiredObjectNaming))
-            {                
+            if (this.CheckIfDatabaseObjectExists(connectionString) == false)
+            {
                 var columnsForTableVariable = PrepareColumnListForTableVariable(interestedColumns);
                 var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
                 var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
@@ -343,6 +403,10 @@ namespace TableDependency.SqlClient
                 processableMessages.Add(SqlMessageTypes.EndDialogType);
             }
 
+            _dialogHandle = this.GetDialogConversationHanlde();
+
+            if (_teardown) this.RunBeginConversationTimer(watchDogTimeOut);
+
             return processableMessages;
         }
 
@@ -356,8 +420,6 @@ namespace TableDependency.SqlClient
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
         {
-            if (_databseObjectCreationConcluded == false) return;
-
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -365,9 +427,6 @@ namespace TableDependency.SqlClient
                 {
                     var disposeMessage = string.Format(DisposeMessageTemplate, databaseObjectsNaming);
 
-                    // Dialog timer messages are empty messages. 
-                    // A receive operation receives the dialog timer message before any other message for that dialog, 
-                    // regardless of the order in which the time-out message arrived on the queue.
                     sqlCommand.CommandType = CommandType.Text;
                     sqlCommand.CommandText = string.Format(SqlScripts.DisposeMessage, databaseObjectsNaming, disposeMessage, this.SchemaName);
                     sqlCommand.ExecuteNonQuery();
@@ -492,20 +551,9 @@ namespace TableDependency.SqlClient
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
 
-                    var sqlParameter = new SqlParameter { ParameterName = "@handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
-                    sqlCommand.CommandText = string.Format("begin dialog conversation @handle from service [{0}] to service '{0}', 'CURRENT DATABASE' on contract [{0}] with encryption = off;", databaseObjectsNaming);
-                    sqlCommand.Parameters.Add(sqlParameter);
-                    sqlCommand.ExecuteNonQuery();
-                    _dialogHandle = (Guid)sqlParameter.Value;
-
-                    sqlCommand.CommandText = $"begin conversation timer ('{_dialogHandle}') timeout = {watchDogTimeOut};";
-                    sqlCommand.ExecuteNonQuery();
-
                     transaction.Commit();
 
                     processableMessages.Add(SqlMessageTypes.EndDialogType);
-
-                    _databseObjectCreationConcluded = true;
                 }
             }
 
@@ -570,17 +618,6 @@ namespace TableDependency.SqlClient
                 SqlMessageTypes.EndDialogType);
         }
 
-        protected static void EndConversation(SqlConnection sqlConnection, SqlGuid handle)
-        {
-            using (var sqlCommand = sqlConnection.CreateCommand())
-            {
-                sqlCommand.CommandText = "end conversation @handle";
-                sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
-                sqlCommand.Parameters["@handle"].Value = handle;
-                sqlCommand.ExecuteNonQuery();
-            }
-        }
-
         protected static string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
         {
             var columns = tableColumns.Select(tableColumn =>
@@ -622,22 +659,6 @@ namespace TableDependency.SqlClient
                 if (sqlException.Number != 0) return;
 
                 throw new OperationCanceledException();
-            }
-        }
-
-        protected void NotifyListenersAboutChange(Delegate[] changeSubscribedList, IModelToTableMapper<T> modelMapper, MessagesBag messagesBag, IEnumerable<ColumnInfo> userInterestedColumns)
-        {
-            if (changeSubscribedList == null) return;
-
-            foreach (var dlg in changeSubscribedList.Where(d => d != null))
-            {
-                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new SqlRecordChangedEventArgs<T>(
-                    messagesBag,
-                    modelMapper,
-                    userInterestedColumns,
-                    _server,
-                    _database,
-                    _dataBaseObjectsNamingConvention) });
             }
         }
 
@@ -847,11 +868,12 @@ namespace TableDependency.SqlClient
             ICollection<string> processableMessages,
             IModelToTableMapper<T> modelMapper,
             IEnumerable<ColumnInfo> userInterestedColumns,
+            bool teardown,
             Encoding encoding)
         {
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
-            var waitforSqlScript = $"begin conversation timer ('{dialogHandle}') timeout = {timeOutWatchDog}; WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
+            var waitforSqlScript = $"WAITFOR(receive top ({processableMessages.Count}) [conversation_handle], [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), timeout {timeOut * 1000};";
             var newMessageReadyToBeNotified = false;
 
             try
@@ -861,6 +883,8 @@ namespace TableDependency.SqlClient
                 while (true)
                 {
                     var messagesBag = CreateMessagesBag(databaseObjectsNaming, encoding);
+
+                    if (teardown) this.RunBeginConversationTimer(timeOutWatchDog);
 
                     try
                     {
@@ -910,7 +934,7 @@ namespace TableDependency.SqlClient
                         {
                             newMessageReadyToBeNotified = false;
 
-                            NotifyListenersAboutChange(onChangeSubscribedList, modelMapper, messagesBag, userInterestedColumns);
+                            NotifyListenersAboutChange(onChangeSubscribedList, messagesBag);
                             this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
 
                             NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
@@ -940,7 +964,13 @@ namespace TableDependency.SqlClient
                 {
                     using (var sqlConnection = new SqlConnection(connectionString))
                     {
-                        EndConversation(sqlConnection, dialogHandle);
+                        using (var sqlCommand = sqlConnection.CreateCommand())
+                        {
+                            sqlCommand.CommandText = "end conversation @handle";
+                            sqlCommand.Parameters.Add("@handle", SqlDbType.UniqueIdentifier);
+                            sqlCommand.Parameters["@handle"].Value = dialogHandle;
+                            sqlCommand.ExecuteNonQuery();
+                        }
                     }
                 }
             }

@@ -9,6 +9,10 @@ namespace ApplicationListener1
 {
     internal class Program
     {
+        private static int insertCounter = 0;
+        private static int updateCounter = 0;
+        private static int deleteCounter = 0;
+
         private static void DropAndCreateTable(string connectionString)
         {
             using (var sqlConnection = new SqlConnection(connectionString))
@@ -16,9 +20,9 @@ namespace ApplicationListener1
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('[Customers]', 'U') IS NOT NULL DROP TABLE [dbo].[Customers]";
+                    sqlCommand.CommandText = "IF OBJECT_ID('[LoadTest]', 'U') IS NOT NULL DROP TABLE [dbo].[LoadTest]";
                     sqlCommand.ExecuteNonQuery();
-                    sqlCommand.CommandText = "CREATE TABLE [Customers]([Id] [VARCHAR](10) NOT NULL, [BirthDay] datetime NULL, [Salary] [float] NULL)";
+                    sqlCommand.CommandText = "CREATE TABLE [LoadTest] ([Id] [int], [FirstName] nvarchar(50), [SecondName] nvarchar(50))";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -29,7 +33,7 @@ namespace ApplicationListener1
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
             DropAndCreateTable(connectionString);
 
-            using (var tableDependency = new SqlTableDependency<Customer>(connectionString, "[Customers]"))
+            using (var tableDependency = new SqlTableDependency<LoadTest>(connectionString))
             {
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
@@ -47,20 +51,23 @@ namespace ApplicationListener1
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<LoadTest> e)
         {
             Console.WriteLine(Environment.NewLine);
 
-            if (e.ChangeType != ChangeType.None)
-            {
-                var changedEntity = e.Entity;
-                Console.WriteLine("DML operation: " + e.ChangeType);
-                Console.WriteLine("ID: " + changedEntity.Id);
-                Console.WriteLine("Name: " + changedEntity.Name);                
-                Console.WriteLine("Surname: " + changedEntity.Surname);
-                Console.WriteLine("BirthDay: " + changedEntity.BirthDay);
-                Console.WriteLine("Salary: " + changedEntity.Salary);
-            }
+            if (e.ChangeType == ChangeType.Insert) insertCounter++;
+            if (e.ChangeType == ChangeType.Update) updateCounter++;
+            if (e.ChangeType == ChangeType.Delete) deleteCounter++;
+
+            var changedEntity = e.Entity;
+            Console.WriteLine("DML operation: " + e.ChangeType);
+            Console.WriteLine("Id: " + changedEntity.Id);
+            Console.WriteLine("FirstName: " + changedEntity.FirstName);
+            Console.WriteLine("SecondName: " + changedEntity.SecondName);
+            Console.WriteLine("---------------------------------------------");
+            Console.WriteLine("Insert: " + insertCounter);
+            Console.WriteLine("Update: " + updateCounter);
+            Console.WriteLine("Delete: " + deleteCounter);
         }
     }
 }

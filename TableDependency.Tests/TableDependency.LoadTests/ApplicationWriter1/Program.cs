@@ -13,14 +13,11 @@ namespace ApplicationWriter1
             int updatedCnt = 0;
             int total = 10000;
             int index = 1;
+            int i = 1;
 
-            Console.Title = new string('*', 10) + " SQL ServerDB Writer B " + new string('*', 10);
-
-            System.Threading.Thread.Sleep(6000);
-
-
+            Console.Title = new string('*', 10) + " SQL ServerDB Writer 1 " + new string('*', 10);
+            System.Threading.Thread.Sleep(4000);
             var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
-
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -28,25 +25,28 @@ namespace ApplicationWriter1
                 {
                     while (index < total)
                     {
-                        switch (new Random().Next(1, 4))
+                        switch (i)
                         {
                             case 1:
-                                sqlCommand.CommandText = $"UPDATE [Customers] SET [First Name] = 'HHH', [Second Name] = '" + Guid.NewGuid().ToString() + "' WHERE ID = 'B" + (insertedCnt - 1) + "'";
-                                Console.WriteLine("Writer B executed: " + Environment.NewLine + sqlCommand.CommandText);
-                                if (sqlCommand.ExecuteNonQuery() > 0) updatedCnt++;
-                                break;
-                            case 2:
-                                sqlCommand.CommandText = $"INSERT INTO [Customers] ([Id], [First Name], [Second Name]) VALUES ('B{insertedCnt}', 'DDD', 'AAS')";
-                                Console.WriteLine("Writer B executed: " + Environment.NewLine + sqlCommand.CommandText);
+                                sqlCommand.CommandText = "INSERT INTO [LoadTest] ([Id], [FirstName], [SecondName]) VALUES (1, 'DDD', 'AAS')";
                                 if (sqlCommand.ExecuteNonQuery() > 0) insertedCnt++;
+                                i++;
                                 break;
+
+                            case 2:
+                                sqlCommand.CommandText = "UPDATE [LoadTest] SET [FirstName] = 'HHH', [SecondName] = '" + Guid.NewGuid() + "' WHERE [Id] = 1";
+                                if (sqlCommand.ExecuteNonQuery() > 0) updatedCnt++;
+                                i++;
+                                break;
+
                             case 3:
-                                sqlCommand.CommandText = "DELETE FROM [Customers] WHERE ID = 'B" + (insertedCnt - 1) + "'";
-                                Console.WriteLine("Writer B executed: " + Environment.NewLine + sqlCommand.CommandText);
+                                sqlCommand.CommandText = "DELETE FROM [LoadTest] WHERE [Id] = 1";                                
                                 if (sqlCommand.ExecuteNonQuery() > 0) deletedCnt++;
+                                i = 1;
                                 break;
                         }
 
+                        Console.WriteLine("Writer 1 executed: " + Environment.NewLine + sqlCommand.CommandText);
                         System.Threading.Thread.Sleep(50);
                         index++;
                     }

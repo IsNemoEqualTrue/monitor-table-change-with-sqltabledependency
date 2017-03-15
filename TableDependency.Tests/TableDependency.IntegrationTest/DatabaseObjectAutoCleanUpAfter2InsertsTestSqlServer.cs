@@ -1,18 +1,29 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
 #if DEBUG
     [TestClass]
     public class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServer
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
-        private static string TableName = "DisposeMe";
+        private static string TableName = "DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel";
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -54,20 +65,34 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void DatabaseObjectCleanUpTest2()
         {
-            var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
-            mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+            var mapper = new ModelToTableMapper<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>();
+            mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>(ConnectionString, TableName, mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
-            Thread.Sleep(1000 * 60 * 1);
+            Thread.Sleep(500);
 
             tableDependency.StopWithoutDisposing();
 
-            Thread.Sleep(1000 * 60 * 1);
+            Thread.Sleep(500);
 
+            var t = new Task(ModifyTableContent);
+            t.Start();
+
+            Thread.Sleep(1000 * 60 * 4);
+
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
+        }
+
+        private void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel> e)
+        {
+        }
+
+        private static void ModifyTableContent()
+        {
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
@@ -81,15 +106,8 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(100);
                 }
+                sqlConnection.Close();
             }
-
-            Thread.Sleep(1000 * 60 * 3);
-
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
-        }
-
-        private void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)
-        {
         }
     }
 #endif
