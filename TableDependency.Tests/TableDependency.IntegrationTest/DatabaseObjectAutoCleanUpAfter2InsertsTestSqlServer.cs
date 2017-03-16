@@ -63,7 +63,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void DatabaseObjectCleanUpTest2()
+        public void DatabaseObjectCleanUpTest()
         {
             var mapper = new ModelToTableMapper<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");

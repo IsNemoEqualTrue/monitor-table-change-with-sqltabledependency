@@ -441,7 +441,7 @@ namespace TableDependency.SqlClient
             CheckIfServiceBrokerIsEnabled(connectionString);
 
             _sqlVersion = this.GetSqlServerVersion(connectionString);
-            if (_sqlVersion == SqlServerVersion.SqlServer2000) throw new SqlServerVersionNotSupportedException(SqlServerVersion.SqlServer2000);
+            if (_sqlVersion < SqlServerVersion.SqlServer2012) throw new SqlServerVersionNotSupportedException(_sqlVersion);
         }
 
         protected string CreateWhereCondifition(bool prependSpace = false)
@@ -893,9 +893,10 @@ namespace TableDependency.SqlClient
                             await sqlConnection.OpenAsync(cancellationToken);
                             this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
 
-                            using (var sqlCommand = sqlConnection.CreateCommand())
+                            var sqlTransaction = sqlConnection.BeginTransaction();
+
+                            using (var sqlCommand = new SqlCommand(waitforSqlScript, sqlConnection, sqlTransaction))
                             {
-                                sqlCommand.CommandText = waitforSqlScript;
                                 sqlCommand.CommandTimeout = 0;
 
                                 NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.WaitingForNotification);
@@ -903,41 +904,53 @@ namespace TableDependency.SqlClient
 
                                 using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                 {
-                                    while (sqlDataReader.Read())
+                                    try
                                     {
-                                        var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
-                                        this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
-
-                                        if (processableMessages.Contains(messageType.Value) == false)
+                                        while (sqlDataReader.Read())
                                         {
-                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}] in the queue.");
-                                            if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
-                                            throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
-                                        }
+                                            var messageType = sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlString(1);
+                                            this.WriteTraceMessage(TraceLevel.Verbose, $"DB message received. Message type = {messageType}.");
 
-                                        var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
-                                        var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
+                                            if (processableMessages.Contains(messageType.Value) == false)
+                                            {
+                                                this.WriteTraceMessage(TraceLevel.Verbose, $"Invalid message type [{messageType.Value}] in the queue.");
+                                                if (messageType.Value == SqlMessageTypes.ErrorType) throw new ServiceBrokerErrorMessageException(databaseObjectsNaming);
+                                                throw new ServiceBrokerEndDialogException(databaseObjectsNaming);
+                                            }
 
-                                        if (messageStatus == MessagesBagStatus.Closed)
-                                        {
-                                            newMessageReadyToBeNotified = true;
-                                            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
-                                            this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
-                                            break;
+                                            var messageContent = sqlDataReader.IsDBNull(2) ? null : sqlDataReader.GetSqlBytes(2).Value;
+                                            var messageStatus = messagesBag.AddMessage(messageType.Value, messageContent);
+
+                                            if (messageStatus == MessagesBagStatus.Closed)
+                                            {
+                                                sqlDataReader.Close();
+                                                sqlTransaction.Commit();
+
+                                                newMessageReadyToBeNotified = true;
+                                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageReadyToBeNotified);
+                                                this.WriteTraceMessage(TraceLevel.Verbose, "Message ready to be notified.");
+                                                break;
+                                            }
                                         }
+                                    }
+                                    catch
+                                    {
+                                        sqlDataReader?.Close();
+                                        sqlTransaction.Rollback();
+                                        throw;
                                     }
                                 }
                             }
-                        }
 
-                        if (newMessageReadyToBeNotified)
-                        {
-                            newMessageReadyToBeNotified = false;
+                            if (newMessageReadyToBeNotified)
+                            {
+                                newMessageReadyToBeNotified = false;
 
-                            NotifyListenersAboutChange(onChangeSubscribedList, messagesBag);
-                            this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
+                                NotifyListenersAboutChange(onChangeSubscribedList, messagesBag);
+                                this.WriteTraceMessage(TraceLevel.Verbose, "Message notified.");
 
-                            NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
+                                NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.MessageSent);
+                            }
                         }
                     }
                     catch (Exception exception)

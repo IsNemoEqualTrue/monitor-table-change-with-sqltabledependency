@@ -4,7 +4,6 @@ using TableDependency;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient;
-using TableDependency.SqlClient.Where;
 using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
 namespace ConsoleApplicationSqlServer
@@ -43,9 +42,6 @@ namespace ConsoleApplicationSqlServer
 
             var mapper = new ModelToTableMapper<Customers>();
             mapper.AddMapping(c => c.Id, "CustomerID");
-
-            //Expression<Func<Customers, bool>> expression = p => p.ContactName.Trim() == "123";
-            //var filter = new SqlTableDependencyFilter(expression);
 
             using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
             {

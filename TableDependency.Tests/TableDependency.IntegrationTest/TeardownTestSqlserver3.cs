@@ -67,7 +67,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void TeardownTests()
         {
-            string naming = "TestTeardown2";
+            string naming = "TestTeardown3";
             SqlTableDependency<TeardownTestSqlserver3Model> tableDependency = null;
             string dataBaseObjectsNamingConvention = null;
 

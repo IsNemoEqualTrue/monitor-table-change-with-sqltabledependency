@@ -7,6 +7,7 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+#if DEBUG
     [TestClass]
     public class DatabaseObjectCleanUpSqlServer
     {
@@ -47,7 +48,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void DatabaseObjectCleanUpTest2()
+        public void DatabaseObjectCleanUpTest()
         {
             var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName);
             tableDependency.OnChanged += TableDependency_OnChanged;
@@ -66,4 +67,5 @@ namespace TableDependency.IntegrationTest
         {
         }
     }
+#endif
 }

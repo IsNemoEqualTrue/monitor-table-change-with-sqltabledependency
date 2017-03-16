@@ -54,7 +54,7 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void DatabaseObjectCleanUpTest2()
+        public void DatabaseObjectCleanUpTest()
         {
             var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");

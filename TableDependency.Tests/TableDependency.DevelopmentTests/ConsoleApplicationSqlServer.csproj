@@ -55,10 +55,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
-      <Project>{f1392831-cac1-4dc3-9f70-d23be4e0ef62}</Project>
-      <Name>TableDependency.SqlClient.Where</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
       <Project>{3b201820-cb8f-41a1-8430-0c806bcf7494}</Project>
       <Name>TableDependency.SqlClient</Name>
