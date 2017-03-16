@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
@@ -24,7 +23,7 @@ namespace TableDependency.IntegrationTest
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
         private static readonly string TableName = "TeardownTestSqlserver5Model";
 
-        private static int _counter = 1;
+        private static int _counter = 0;
         private static List<TeardownTestSqlserver5Model> _insertedValues = new List<TeardownTestSqlserver5Model>();
         private static List<TeardownTestSqlserver5Model> _notifiedValues = new List<TeardownTestSqlserver5Model>();
 
@@ -108,10 +107,12 @@ namespace TableDependency.IntegrationTest
             tableDependency.OnChanged += TableDependency_Changed;
             tableDependency.Start();
 
-            Thread.Sleep(3 * 60 * 1000);
+            Thread.Sleep(5000);
+
             tableDependency.Stop();
 
-            Thread.Sleep(5000);
+            Thread.Sleep(3 * 60 * 1000);
+            
 
             Assert.AreEqual(_counter, 1000);
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, dataBaseObjectsNamingConvention));

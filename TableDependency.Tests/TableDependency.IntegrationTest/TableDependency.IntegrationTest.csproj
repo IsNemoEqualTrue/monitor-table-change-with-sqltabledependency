@@ -65,6 +65,7 @@
     <Compile Include="DataAnnotationTestSqlServe5.cs" />
     <Compile Include="DataAnnotationTestSqlServe3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
+    <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
     <Compile Include="TeardownTestSqlserver5.cs" />
     <Compile Include="TeardownTestSqlserver4.cs" />
     <Compile Include="TeardownTestSqlserver3.cs" />
