@@ -67,11 +67,6 @@ namespace ConsoleApplicationSqlServer
 
             if (e.ChangeType != ChangeType.None)
             {
-                if (e.Sender.Contains("your table name"))
-                {
-                    
-                }
-
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
                 Console.WriteLine(@"CustomerID:    " + changedEntity.Id);
