@@ -22,28 +22,31 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"TableDependency, SqlTableDependency");
                 Console.WriteLine(@"Copyright (c) 2015-2017 Christian Del Bianco.");
                 Console.WriteLine(@"All rights reserved." + Environment.NewLine);
-                Console.WriteLine(@"************************************************************");
+                Console.WriteLine(@"**********************************************************************************************");
                 Console.WriteLine(@"Application used for development [connection string to use]:");
-                Console.WriteLine(@" F1: Integrated security");
-                Console.WriteLine(@" F2: SQL Server authentication using user with DB Owner Role");
-                Console.WriteLine(@" F3: SQL Server authentication using user not DBO");
+                Console.WriteLine(@" F1: SQL Server Developer 2012 - integrated security");
+                Console.WriteLine(@" F2: SQL Server Developer 2012 - user with DB Owner Role");
+                Console.WriteLine(@" F3: SQL Server Developer 2012 - user not DBO");
+                Console.WriteLine(@" F4: SQL Server Developer 2008 - (DESKTOP-DFTT9LE\SQLSERVER2008) user sa");
                 Console.WriteLine(@" ESC to exit");
-                Console.WriteLine(@"************************************************************");
+                Console.WriteLine(@"**********************************************************************************************");
 
                 consoleKeyInfo = Console.ReadKey();
                 if (consoleKeyInfo.Key == ConsoleKey.Escape) Environment.Exit(0);
 
-            } while (consoleKeyInfo.Key != ConsoleKey.F1 && consoleKeyInfo.Key != ConsoleKey.F2 && consoleKeyInfo.Key != ConsoleKey.F3);
+            } while (consoleKeyInfo.Key != ConsoleKey.F1 && consoleKeyInfo.Key != ConsoleKey.F2 && consoleKeyInfo.Key != ConsoleKey.F3 && consoleKeyInfo.Key != ConsoleKey.F4);
 
             
             if (consoleKeyInfo.Key == ConsoleKey.F1) connectionString = ConfigurationManager.ConnectionStrings["IntegratedSecurityConnectionString"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F2) connectionString = ConfigurationManager.ConnectionStrings["DbOwnerSqlServerConnectionString"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F3) connectionString = ConfigurationManager.ConnectionStrings["UserNotDboConnectionString"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F4) connectionString = ConfigurationManager.ConnectionStrings["SQLServer2008AsSa"].ConnectionString;
 
-            var mapper = new ModelToTableMapper<Customers>();
+
+            var mapper = new ModelToTableMapper<Customer>();
             mapper.AddMapping(c => c.Id, "CustomerID");
 
-            using (var dep = new SqlTableDependency<Customers>(connectionString, "Customers", mapper))
+            using (var dep = new SqlTableDependency<Customer>(connectionString, "Customers", mapper))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
@@ -61,7 +64,7 @@ namespace ConsoleApplicationSqlServer
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void Changed(object sender, RecordChangedEventArgs<Customers> e)
+        private static void Changed(object sender, RecordChangedEventArgs<Customer> e)
         {
             Console.WriteLine(Environment.NewLine);
 

@@ -441,7 +441,7 @@ namespace TableDependency.SqlClient
             CheckIfServiceBrokerIsEnabled(connectionString);
 
             _sqlVersion = this.GetSqlServerVersion(connectionString);
-            if (_sqlVersion < SqlServerVersion.SqlServer2012) throw new SqlServerVersionNotSupportedException(_sqlVersion);
+            if (_sqlVersion < SqlServerVersion.SqlServer2008) throw new SqlServerVersionNotSupportedException(_sqlVersion);
         }
 
         protected string CreateWhereCondifition(bool prependSpace = false)
