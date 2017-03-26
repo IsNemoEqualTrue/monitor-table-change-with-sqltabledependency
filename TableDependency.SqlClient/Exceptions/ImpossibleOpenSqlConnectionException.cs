@@ -32,7 +32,7 @@ namespace TableDependency.SqlClient.Exceptions
     public class ImpossibleOpenSqlConnectionException : TableDependencyException
     {
         protected internal ImpossibleOpenSqlConnectionException(string connectionString, Exception exception)
-            : base($"Impossible open db connection usin the following connection string '{connectionString}'.", exception)
+            : base($"Impossible open db connection using the following connection string '{connectionString}'.", exception)
         { }
     }
 }
