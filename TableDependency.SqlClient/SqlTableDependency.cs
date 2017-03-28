@@ -314,21 +314,6 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        protected IList<string> RetrieveProcessableMessages(IEnumerable<ColumnInfo> userInterestedColumns, string databaseObjectsNaming)
-        {
-            var processableMessages = new List<string>
-            {
-                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert),
-                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update),
-                string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete),
-                SqlMessageTypes.EndDialogType
-            };
-
-            processableMessages.AddRange(userInterestedColumns.Select(userInterestedColumn => $"{databaseObjectsNaming}/{userInterestedColumn.Name}"));
-
-            return processableMessages;
-        }
-
         protected bool CheckIfDatabaseObjectExists(string connectionString)
         {
             bool result;
@@ -495,7 +480,7 @@ namespace TableDependency.SqlClient
                         sqlCommand.ExecuteNonQuery();
                         processableMessages.Add(message);
                     }
-                    this.WriteTraceMessage(TraceLevel.Verbose, "Message types created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, "Message Types created.");
 
                     var contractBody = string.Join("," + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                     sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
@@ -518,7 +503,7 @@ namespace TableDependency.SqlClient
                         ? $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])"
                         : $"CREATE SERVICE [{databaseObjectsNaming}] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}])";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, "Service created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, "Service broker created.");
 
                     var declareVariableStatement = PrepareDeclareVariableStatement(interestedColumns);
                     var selectForSetVariablesStatement = PrepareSelectForSetVariables(interestedColumns);
