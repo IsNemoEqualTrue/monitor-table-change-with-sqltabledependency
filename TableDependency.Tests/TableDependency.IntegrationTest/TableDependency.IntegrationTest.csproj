@@ -66,6 +66,7 @@
     <Compile Include="DataAnnotationTestSqlServe3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
+    <Compile Include="TeardownTestSqlserver6.cs" />
     <Compile Include="TeardownTestSqlserver5.cs" />
     <Compile Include="TeardownTestSqlserver4.cs" />
     <Compile Include="TeardownTestSqlserver3.cs" />
@@ -85,8 +86,6 @@
     <Compile Include="Issue55.cs" />
     <Compile Include="TableWithSpaces.cs" />
     <Compile Include="TransactionTestSqlServer.cs" />
-    <Compile Include="EventForAllColumnsTestSqlServerUsingRoleDbOwner.cs" />
-    <Compile Include="EventForAllColumnsTestSqlServerUsingWIA.cs" />
     <Compile Include="Issue27.cs" />
     <Compile Include="RowVersionType.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />

@@ -26,7 +26,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class BinaryBitCharVarbinaryTypes
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "Test";
         private static Dictionary<string, Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>> _checkValues = new Dictionary<string, Tuple<BinaryBitCharVarbinaryModel, BinaryBitCharVarbinaryModel>>();
 

@@ -23,7 +23,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class BigIntDecimalAndFloatTypesTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "CheckDecimalAndFloat";
         private static readonly Dictionary<string, Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>> CheckValues = new Dictionary<string, Tuple<BigIntDecimalAndFloatModel, BigIntDecimalAndFloatModel>>();
 

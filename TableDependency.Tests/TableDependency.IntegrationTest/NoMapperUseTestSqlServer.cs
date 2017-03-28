@@ -24,7 +24,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NoMapperUseTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>>();

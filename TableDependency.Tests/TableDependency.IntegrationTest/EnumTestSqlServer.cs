@@ -27,7 +27,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class EnumTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static readonly string TableName = typeof(EnumTestSqlServerModel).Name.ToUpper();
         private static int _counter = 0;
         private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>>();

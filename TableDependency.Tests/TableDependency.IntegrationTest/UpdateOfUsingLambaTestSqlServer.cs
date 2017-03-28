@@ -24,7 +24,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class UpdateOfUsingLambaTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static readonly string TableName = typeof(UpdateOfUsingLambaTestSqlServerModel).Name.ToUpper();
         private static int _counter = 0;
         private static readonly Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>>();

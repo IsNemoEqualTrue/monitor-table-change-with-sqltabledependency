@@ -22,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer
     {
-        private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "ABCTableModel";
         private static int _counter1;
         private static int _counter2;

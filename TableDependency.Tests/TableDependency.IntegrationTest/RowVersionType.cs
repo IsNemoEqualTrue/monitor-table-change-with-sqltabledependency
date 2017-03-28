@@ -20,7 +20,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class RowVersionType
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "RowVersionTest";
         private byte[] RowVersionInsert = null;
         private byte[] RowVersionUpdate = null;

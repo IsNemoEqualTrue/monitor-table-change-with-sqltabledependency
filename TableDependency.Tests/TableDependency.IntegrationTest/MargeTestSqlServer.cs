@@ -26,7 +26,7 @@ namespace TableDependency.IntegrationTest
         private MargeTestSqlServerModel _insertedValues;
         private MargeTestSqlServerModel _deletedValues;
 
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TargetTableName = "energydata";
         private const string SourceTableName = "temp_energydata";
 

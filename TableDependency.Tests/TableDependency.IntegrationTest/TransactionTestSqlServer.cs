@@ -13,7 +13,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class TransactionTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Check_Model";
         private int _counter;
 

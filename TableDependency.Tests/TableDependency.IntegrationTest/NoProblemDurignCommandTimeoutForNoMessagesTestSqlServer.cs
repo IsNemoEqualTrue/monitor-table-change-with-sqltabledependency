@@ -24,7 +24,7 @@ namespace TableDependency.IntegrationTest
     {
 
         private static string _dbObjectsNaming;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "Check_Model";
 
         [ClassInitialize()]

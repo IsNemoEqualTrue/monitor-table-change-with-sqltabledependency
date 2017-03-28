@@ -24,7 +24,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NoTableAndColumnDefinitionsTestSqlServerTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "NoTableAndColumnDefinitionsTestSqlServerModel";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>>();

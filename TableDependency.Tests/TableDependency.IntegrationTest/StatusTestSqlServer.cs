@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class StatusTestSqlServer
     {        
         private SqlTableDependency<StatusTestSqlServerModel> _tableDependency = null;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "StatusCheckTest";
         private static IDictionary<TableDependencyStatus, bool> statuses = new Dictionary<TableDependencyStatus, bool>();
 

@@ -20,7 +20,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class PreliminaryTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "PreliminaryCheckTest";
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";

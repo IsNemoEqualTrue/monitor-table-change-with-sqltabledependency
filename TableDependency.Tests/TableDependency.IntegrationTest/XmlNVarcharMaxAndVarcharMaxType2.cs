@@ -28,7 +28,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class XmlNVarcharMaxAndVarcharMaxType2
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "AXXTest";
         private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>>();
 

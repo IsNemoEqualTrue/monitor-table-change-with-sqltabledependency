@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class TriggerTypeTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "CheckTriggerType";
         private static int _counter;
         private static Dictionary<string, Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<TriggerTypeTestSqlServerModel, TriggerTypeTestSqlServerModel>>();

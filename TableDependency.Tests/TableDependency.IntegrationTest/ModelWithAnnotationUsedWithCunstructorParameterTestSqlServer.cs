@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer
     {
 
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static readonly string TableName = "AAAA";
         private static int _counter;
         private static readonly Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> CheckValues = new Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();

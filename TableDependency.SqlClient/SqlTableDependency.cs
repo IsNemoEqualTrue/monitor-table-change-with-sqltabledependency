@@ -331,7 +331,7 @@ namespace TableDependency.SqlClient
 
         protected bool CheckIfDatabaseObjectExists(string connectionString)
         {
-            var result = false;
+            bool result;
 
             using (var sqlConnection = new SqlConnection(connectionString))
             {

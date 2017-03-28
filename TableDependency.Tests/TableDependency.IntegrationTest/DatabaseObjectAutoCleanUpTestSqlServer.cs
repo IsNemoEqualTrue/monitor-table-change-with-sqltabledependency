@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest
     public class DatabaseObjectAutoCleanUpTestSqlServer
     {
         private static string _dbObjectsNaming;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "AAADCheck_Model";
 
         [ClassInitialize()]

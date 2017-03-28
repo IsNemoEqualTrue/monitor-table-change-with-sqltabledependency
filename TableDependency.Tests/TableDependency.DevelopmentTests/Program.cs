@@ -23,24 +23,31 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"Copyright (c) 2015-2017 Christian Del Bianco.");
                 Console.WriteLine(@"All rights reserved." + Environment.NewLine);
                 Console.WriteLine(@"**********************************************************************************************");
-                Console.WriteLine(@"Application used for development [connection string to use]:");
-                Console.WriteLine(@" F1: SQL Server Developer 2012 - integrated security");
-                Console.WriteLine(@" F2: SQL Server Developer 2012 - user with DB Owner Role");
-                Console.WriteLine(@" F3: SQL Server Developer 2012 - user not DBO");
+                Console.WriteLine(@"Application used for development [choose connection string]:");
+                Console.WriteLine(@" F1: SQL Server Developer 2012 - (LOCAL HOST) integrated security");
+                Console.WriteLine(@" F2: SQL Server Developer 2012 - (LOCAL HOST) user with DB Owner Role");
+                Console.WriteLine(@" F3: SQL Server Developer 2012 - (LOCAL HOST) user not DBO");
                 Console.WriteLine(@" F4: SQL Server Developer 2008 - (DESKTOP-DFTT9LE\SQLSERVER2008) user sa");
+                Console.WriteLine(@" F5: SQL Server Developer 2008 - (DESKTOP-DFTT9LE\SQLSERVER2008) user Test_User");
                 Console.WriteLine(@" ESC to exit");
                 Console.WriteLine(@"**********************************************************************************************");
 
                 consoleKeyInfo = Console.ReadKey();
                 if (consoleKeyInfo.Key == ConsoleKey.Escape) Environment.Exit(0);
 
-            } while (consoleKeyInfo.Key != ConsoleKey.F1 && consoleKeyInfo.Key != ConsoleKey.F2 && consoleKeyInfo.Key != ConsoleKey.F3 && consoleKeyInfo.Key != ConsoleKey.F4);
+            } while (
+                consoleKeyInfo.Key != ConsoleKey.F1 && 
+                consoleKeyInfo.Key != ConsoleKey.F2 && 
+                consoleKeyInfo.Key != ConsoleKey.F3 && 
+                consoleKeyInfo.Key != ConsoleKey.F4 && 
+                consoleKeyInfo.Key != ConsoleKey.F5);
 
             
             if (consoleKeyInfo.Key == ConsoleKey.F1) connectionString = ConfigurationManager.ConnectionStrings["IntegratedSecurityConnectionString"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F2) connectionString = ConfigurationManager.ConnectionStrings["DbOwnerSqlServerConnectionString"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F3) connectionString = ConfigurationManager.ConnectionStrings["UserNotDboConnectionString"].ConnectionString;
-            if (consoleKeyInfo.Key == ConsoleKey.F4) connectionString = ConfigurationManager.ConnectionStrings["SQLServer2008AsSa"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F4) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
+            if (consoleKeyInfo.Key == ConsoleKey.F5) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
 
 
             var mapper = new ModelToTableMapper<Customer>();

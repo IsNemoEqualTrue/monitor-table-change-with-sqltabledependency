@@ -27,7 +27,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class GuidSmallMoneyTypes
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "CheckGuidSmallMoneyTimeStampTypes";
         private static Dictionary<string, Tuple<ModelGuidSmallMoneyTypes, ModelGuidSmallMoneyTypes>> _checkValues = new Dictionary<string, Tuple<ModelGuidSmallMoneyTypes, ModelGuidSmallMoneyTypes>>();
 

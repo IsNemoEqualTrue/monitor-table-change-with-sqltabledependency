@@ -29,7 +29,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class MultiDmlOperationsTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "MultiDmlOperations";
         private static readonly List<MultiDmlOperationsTestSqlServerModel> ModifiedValues = new List<MultiDmlOperationsTestSqlServerModel>();
         private static readonly List<MultiDmlOperationsTestSqlServerModel> InitialValues = new List<MultiDmlOperationsTestSqlServerModel>();

@@ -27,7 +27,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DataAnnotationTestSqlServer5
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static int _counter;
         private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel5, DataAnnotationTestSelServerModel5>>();
 

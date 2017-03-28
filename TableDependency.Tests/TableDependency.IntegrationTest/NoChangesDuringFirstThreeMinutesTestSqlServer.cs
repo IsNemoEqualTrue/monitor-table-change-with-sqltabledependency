@@ -23,7 +23,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NoChangesDuringFirstThreeMinutesTestSqlServer
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static readonly string TableName = "MoChangModel";
         private static Dictionary<string, Tuple<MoChangModel, MoChangModel>> CheckValues = new Dictionary<string, Tuple<MoChangModel, MoChangModel>>();
         private static int _counter = 0;

@@ -21,7 +21,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class TeardownTestSqlserver4
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static readonly string TableName = "TeardownTestSqlserver4Model";
         private static int _counter = 1;
         private static List<TeardownTestSqlserver4Model> _insertedValues = new List<TeardownTestSqlserver4Model>();

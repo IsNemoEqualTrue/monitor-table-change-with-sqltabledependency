@@ -23,7 +23,7 @@ namespace TableDependency.IntegrationTest
     public class Issue55
     {
         private const string TableName = "BranchABC$Sales Invoice Header";
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static int _counter;
         private static Dictionary<string, Tuple<Issue55Model, Issue55Model>> _checkValues = new Dictionary<string, Tuple<Issue55Model, Issue55Model>>();
 

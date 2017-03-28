@@ -24,7 +24,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class EventForSpecificColumnsTestSqlServer
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
         private static Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>>();

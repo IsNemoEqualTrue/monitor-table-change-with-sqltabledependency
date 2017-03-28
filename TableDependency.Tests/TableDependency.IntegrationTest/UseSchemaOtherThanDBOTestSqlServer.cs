@@ -20,7 +20,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class UseSchemaOtherThanDboTestSqlServer
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServerConnectionString"].ConnectionString;
+        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Customers";
         private const string SchemaName = "test_schema";
         private static int _counter;
