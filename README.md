@@ -157,7 +157,7 @@ TableDependency, SqlTableDependency and OracleTableDependency are personal open 
 ### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements.
 
-[See contributors](https://www.google.com)
+[See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Contacts
 Christian Del Bianco
