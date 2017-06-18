@@ -156,7 +156,7 @@ Here are some examples of application getting notification on record table chang
 ## Donate
 TableDependency, SqlTableDependency and OracleTableDependency are personal open source projects. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and a user friendly component. I need your help to achieve this.
 
-[Donate to TableDependency](https://pledgie.com/campaigns/30269.png?skin_name=chrome|https://pledgie.com/campaigns/30269)
+[![Donate](https://pledgie.com/campaigns/30269.png)](https://pledgie.com/campaigns/30269)
 
 ### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements.
