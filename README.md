@@ -67,11 +67,7 @@ CREATE TABLE [dbo].[Customers](
 
 Install SqlTableDependency using:
 
-![alt text][Nuget]
-
-
-[Nuget]: 
-https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png "Nuget package"
+[![IMAGE ALT TEXT HERE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
 Write your model defining interested table columns:
 ```C#
