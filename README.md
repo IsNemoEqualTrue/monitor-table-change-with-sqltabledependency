@@ -62,6 +62,10 @@ CREATE TABLE [dbo].[Client](
 ```
 
 1. Install SqlTableDependency using:
+![alt text][Nuget]
+
+[Nuget]: 
+https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png "Nuget package"
 
 2. Write your model defining interested properties:
 ```C#
