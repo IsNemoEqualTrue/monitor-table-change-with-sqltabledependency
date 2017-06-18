@@ -84,7 +84,7 @@ public class Customers
 ```
 The model can avoid to define all table columns if you are not interested in some value. Also, model's properties name can be different from database table columns name.
 
-3. Create the SqlTableDependency object passing the connection string and table name (table name is necessary because of model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
+Create the SqlTableDependency object passing the connection string and table name (table name is necessary because of model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
@@ -131,7 +131,7 @@ class Program
 
 Done! Now you are ready to receive notifications. Open SQL Server management studio and insert, update or delete some record in the Customer table:
 
-[![IMAGE ALT TEXT HERE]](https://www.youtube.com/watch?v=sHJVusS5Qz0)
+[![IMAGE ALT TEXT HERE]((http://img.youtube.com/vi/sHJVusS5Qz0/0.jpg)=](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ## Use cases and more examples
 
