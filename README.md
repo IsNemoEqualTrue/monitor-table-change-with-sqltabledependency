@@ -14,3 +14,26 @@ If we want **get alert about record table changes** without paying attention to 
 SqlTableDependency's record change audit, provides the low-level implementation to receive database notifications creating SQL Server trigger, queue and service broker that immediately notify us when any record table changes happens.
 
 For any record change, SqlTableDependency's event handler will get a notification containing modified table record values as well as the insert, update, delete operation type executed on our table.
+
+Basically, it is an enhancement of .NET SqlDepenency with the advantage of send events containing values for the record inserted, changed or deleted, as well as the DML operation (insert/delete/update) executed on the table. This is the real difference with. NET SqlDepenency: this class, in fact, does not tell you what data was changed on the database.
+
+## Requirements
+When you use notifications, you must be sure to enable Service Broker for the database. To do that you can use the following command:
+ 
+ALTER DATABASE MyDatabase SET ENABLE_BROKER
+ 
+Also case user specified in connection string is not DBO or has not db_owner role, he must have the following GRANT permissions:
+
+* ALTER
+* CONNECT
+* CONTROL
+* CREATE CONTRACT
+* CREATE MESSAGE TYPE
+* CREATE PROCEDURE
+* CREATE QUEUE
+* CREATE SERVICE
+* EXECUTE
+* SELECT
+* SUBSCRIBE QUERY NOTIFICATIONS
+* VIEW DATABASE STATE
+* VIEW DEFINITION
