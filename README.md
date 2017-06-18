@@ -27,7 +27,7 @@ Assuming we want monitor the Customer table contents, we create a SqlTableDepend
 * Stored procedure to clean up the created objects in case the application exits abruptly (that is, when the application terminate without disposing the SqlTableDependency object)
 
 Figure 1. Database Object created for send notifications
-![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/DbObjects-min.png
+![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png
  "Database object generated")
 
 ## Requirements
