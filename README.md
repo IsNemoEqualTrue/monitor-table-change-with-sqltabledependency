@@ -17,6 +17,18 @@ For any record change, SqlTableDependency's event handler will get a notificatio
 
 Basically, it is an enhancement of .NET SqlDepenency with the advantage of send events containing values for the record inserted, changed or deleted, as well as the DML operation (insert/delete/update) executed on the table. This is the real difference with. NET SqlDepenency: this class, in fact, does not tell you what data was changed on the database.
 
+### Under The Hood
+Assuming we want monitor the Customer table contents, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
+* Message types
+* Contract
+* Queue
+* Service Broker
+* Trigger on table to be monitored
+* Stored procedure to clean up the created objects in case the application exits abruptly (that is, when the application terminate without disposing the SqlTableDependency object)
+
+Figure 1. Database Object created for send notifications
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
 ## Requirements
 When you use notifications, you must be sure to enable Service Broker for the database. To do that you can use the following command:
 ```SQL
