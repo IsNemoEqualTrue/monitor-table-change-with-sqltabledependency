@@ -130,24 +130,7 @@ Done! Now you are ready to receive notifications. Open SQL Server management stu
 [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/sHJVusS5Qz0/0.jpg)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ## Use cases and more examples
-This page reports some use case examples. Some of these examples, use OracleTableDependency; this is not ena more supported. However, the example is still valid for SqlTableDepdendcy:
-
-* Model and properties with same name of table and columns.
-* Code First Data Annotations to map model with database table.
-* Explicit database table name.
-* Custom map between model property and table column using ModelToTableMapper<T>.
-* Specify for which properties we want receive notification using UpdateOfModel<T> mapper.
-* Filter notification by operation type.
-* Get Errors.
-* Logging.
-* Get Status.
-* Apply filter based on WHERE condition (see ).
-
-Here are some examples of application getting notification on record table change. After downoad the example, plese remember to update SqlTableDependency nuget package:
-
-* Monitor table change with WPF and WCF: This example show how to keep up to date a grid containing some stocks data. That grid has been automatically updated whenever a record change using database notifications. This notification contains new values for the modified table record.
-* Monitor table change with MVC, SignalR and jQuery: This example show how to keep up to date a table containing some stocks data. That table has been automatically updated whenever a record change using database notifications. This notification contains new values for the modified table record.
-* Monitor table change with MVC, SignalR and Knockout JS: This example show how to refresh client web browsers used to book flight tickets. Those terminals have to be update as soon as the availability change and the Web application must take the initiative of sending this information to clients instead of waiting for the client to request it. 
+Please refer to https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki
 
 ## Donate
 TableDependency, SqlTableDependency and OracleTableDependency are personal open source projects. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and a user friendly component. I need your help to achieve this.
