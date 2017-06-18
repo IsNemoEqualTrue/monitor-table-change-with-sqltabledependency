@@ -1,8 +1,12 @@
-# Audit, monitor and receive notifications on table change from SQL Server
+# Monitor and receive notifications on table changes
 
 SqlTableDependency is a high-level C# component to used to audit, monitor and receive notifications on SQL Server's record table changes.
 
 For any record table change, insert update or delete, a notification *containing values for the record **inserted**, **changed** or **deleted** is received from SqlTableDependency. This notification contains the update values int the database table.
+
+![alt text][Workflow]
+
+[Workflow]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png "Notifications"
 
 Compared to Microsoft ADO.NET SqlDependency class, this tracking change system has the advantage of avoid a database select to retrieve updated table record state, because this latest table status is delivered by the received notification.
 
@@ -80,7 +84,55 @@ public class Customers
 ```
 The model can avoid to define all table columns if you are not interested in some value.
 
-More examples
+3. Create the SqlTableDependency object passing the connection string and table name. Then create an event handler for SqlTableDependency's Changed event:
+
+```C#
+using System;
+using TableDependency.SqlClient;
+using TableDependency.Enums;
+using TableDependency.Events;
+
+class Program
+{
+   var _con= "data source=.; initial catalog=MyDB; integrated security=True";
+   
+   static void Main()
+   {
+       var mapper = new ModelToTableMapper<Customer>();
+       mapper.AddMapping(c => c.Surname, "Second Name");
+       mapper.AddMapping(c => c.Name, "First Name");
+
+       using (var dep = new SqlTableDependency<Customer>(_con, "Client", mapper))
+       {
+           dep.OnChanged += Changed;
+           dep.Start();
+
+           Console.WriteLine("Press a key to exit");
+           Console.ReadKey();
+
+           dep.Stop();
+        }
+   }
+
+   static void Changed(object sender, RecordChangedEventArgs<Customer> e)
+   {
+       if (e.ChangeType != ChangeType.None)
+       {
+           var changedEntity = e.Entity;
+           Console.WriteLine("DML operation: " + e.ChangeType);
+           Console.WriteLine("ID: " + changedEntity.Id);
+           Console.WriteLine("Name: " + changedEntity.Name);
+           Console.WriteLine("Surame: " + changedEntity.Surname);
+       }
+   }
+}
+```
+
+Done! Now you are ready to receive notifications. Open SQL Server management studio and insert, update or delete some record in the Customer table:
+
+
+
+## Use cases and more examples
 
     Monitor table change with WPF and WCF: This example show how to keep up to date a grid containing some stocks data. That grid has been automatically updated whenever a record change using database notifications. This notification contains new values for the modified table record.
 
