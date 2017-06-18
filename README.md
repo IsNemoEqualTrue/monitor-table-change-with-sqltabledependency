@@ -49,3 +49,33 @@ Also case user specified in connection string is not DBO or has not db_owner rol
 * SUBSCRIBE QUERY NOTIFICATIONS
 * VIEW DATABASE STATE
 * VIEW DEFINITION
+
+## Few steps to get alert on table insert update delete
+Let’s assume we are interested to receive record changes on the following database table:
+```C#
+CREATE TABLE [dbo].[Client](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[First Name] [nvarchar](50) NOT NULL,
+	[Second Name] [nvarchar](50) NOT NULL)
+```
+
+1. Install SqlTableDependency using:
+
+2. Write your model defining interested properties:
+```C#
+public class Customers
+{
+    public int Id { get; set; }
+    public string ContactName { get; set; }
+    public string ContactTitle { get; set; }
+}
+```
+The model can avoid to define all table columns if you are not interested in some value.
+
+More examples
+
+    Monitor table change with WPF and WCF: This example show how to keep up to date a grid containing some stocks data. That grid has been automatically updated whenever a record change using database notifications. This notification contains new values for the modified table record.
+
+    Monitor table change with MVC, SignalR and jQuery: This example show how to keep up to date a table containing some stocks data. That table has been automatically updated whenever a record change using database notifications. This notification contains new values for the modified table record.
+
+    Monitor table change with MVC, SignalR and Knockout JS: This example show how to refresh client web browsers used to book flight tickets. Those terminals have to be update as soon as the availability change and the Web application must take the initiative of sending this information to clients instead of waiting for the client to request it. 
