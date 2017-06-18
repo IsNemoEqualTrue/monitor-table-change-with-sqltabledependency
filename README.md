@@ -145,7 +145,7 @@ This page reports some use case examples. Some of these examples, use OracleTabl
 * Get Errors.
 * Logging.
 * Get Status.
-* Apply filter based on WHERE condition.
+* Apply filter based on WHERE condition (see ).
 
 Here are some examples of application getting notification on record table change. After downoad the example, plese remember to update SqlTableDependency nuget package:
 
@@ -165,4 +165,5 @@ Please, feel free to help and contribute with this project adding your comments,
 
 ## Contacts
 Christian Del Bianco
+
 christian.delbianco@gmail.com
