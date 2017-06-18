@@ -154,12 +154,11 @@ TableDependency, SqlTableDependency and OracleTableDependency are personal open 
 
 [![Donate](https://pledgie.com/campaigns/30269.png)](https://pledgie.com/campaigns/30269)
 
-### Contributors
+## Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements.
 
 [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Contacts
-Christian Del Bianco
-
-christian.delbianco@gmail.com
+Mail: christian.delbianco@gmail.com
+Skype: christian.delbianco
