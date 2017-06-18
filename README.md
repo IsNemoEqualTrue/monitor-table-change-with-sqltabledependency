@@ -56,7 +56,9 @@ Let’s assume we are interested to receive record changes on the following data
 CREATE TABLE [dbo].[Client](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[First Name] [nvarchar](50) NOT NULL,
-	[Second Name] [nvarchar](50) NOT NULL)
+	[Second Name] [nvarchar](50) NOT NULL,
+	[Birthday] [datetime] NOT NULL,
+	[DepartmentId] [int] NOT NULL)
 ```
 
 1. Install SqlTableDependency using:
@@ -66,8 +68,8 @@ CREATE TABLE [dbo].[Client](
 public class Customers
 {
     public int Id { get; set; }
-    public string ContactName { get; set; }
-    public string ContactTitle { get; set; }
+    public string Name { get; set; }
+    public string Surname { get; set; }
 }
 ```
 The model can avoid to define all table columns if you are not interested in some value.
