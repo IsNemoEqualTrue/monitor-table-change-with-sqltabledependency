@@ -26,10 +26,9 @@ Assuming we want monitor the Customer table contents, we create a SqlTableDepend
 * Trigger on table to be monitored
 * Stored procedure to clean up the created objects in case the application exits abruptly (that is, when the application terminate without disposing the SqlTableDependency object)
 
-![alt text][Database Object created for send notifications]: 
+![alt text][DatabaseObjects]
 
-[Database Object created for send notifications](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png
- "Database Object created for send notifications")
+[DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
 
 ## Requirements
 When you use notifications, you must be sure to enable Service Broker for the database. To do that you can use the following command:
