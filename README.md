@@ -19,11 +19,10 @@ Basically, it is an enhancement of .NET SqlDepenency with the advantage of send 
 
 ## Requirements
 When you use notifications, you must be sure to enable Service Broker for the database. To do that you can use the following command:
- 
+```SQL
 ALTER DATABASE MyDatabase SET ENABLE_BROKER
- 
+```
 Also case user specified in connection string is not DBO or has not db_owner role, he must have the following GRANT permissions:
-
 * ALTER
 * CONNECT
 * CONTROL
