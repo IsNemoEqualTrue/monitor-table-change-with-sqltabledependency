@@ -65,7 +65,7 @@ CREATE TABLE [dbo].[Client](
 	[DepartmentId] [int] NOT NULL)
 ```
 
-1. Install SqlTableDependency using:
+Install SqlTableDependency using:
 
 ![alt text][Nuget]
 
@@ -73,7 +73,7 @@ CREATE TABLE [dbo].[Client](
 [Nuget]: 
 https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png "Nuget package"
 
-2. Write your model defining interested properties:
+Write your model defining interested table columns:
 ```C#
 public class Customers
 {
@@ -82,9 +82,9 @@ public class Customers
     public string Surname { get; set; }
 }
 ```
-The model can avoid to define all table columns if you are not interested in some value.
+The model can avoid to define all table columns if you are not interested in some value. Also, model's properties name can be different from database table columns name.
 
-3. Create the SqlTableDependency object passing the connection string and table name. Then create an event handler for SqlTableDependency's Changed event:
+3. Create the SqlTableDependency object passing the connection string and table name (table name is necessary because of model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
@@ -98,6 +98,7 @@ class Program
    
    static void Main()
    {
+       // The mappar is use to link model properties with a name that do not match table columns name
        var mapper = new ModelToTableMapper<Customer>();
        mapper.AddMapping(c => c.Surname, "Second Name");
        mapper.AddMapping(c => c.Name, "First Name");
@@ -130,7 +131,7 @@ class Program
 
 Done! Now you are ready to receive notifications. Open SQL Server management studio and insert, update or delete some record in the Customer table:
 
-
+[![IMAGE ALT TEXT HERE]](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ## Use cases and more examples
 
