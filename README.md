@@ -143,6 +143,6 @@ Please, feel free to help and contribute with this project adding your comments,
 [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Contacts
-Christian Del Bianco
-Mail: christian.delbianco@gmail.com
-Skype: christian.delbianco
+Christian Del Bianco<br/>
+Mail: christian.delbianco@gmail.com<br/>
+Skype: christian.delbianco<br/>
