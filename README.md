@@ -123,7 +123,7 @@ class Program
 }
 ```
 
-Done! Now you are ready to receive notifications. Open SQL Server management studio and insert, update or delete some record in the Customers table:
+Done! Now you are ready to receive notifications:
 
 [![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/sHJVusS5Qz0/0.jpg)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
