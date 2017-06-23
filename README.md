@@ -146,7 +146,7 @@ This section reports some use case examples. Some of these examples, use OracleT
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 
 ## Donate
-TableDependency, SqlTableDependency and OracleTableDependency are personal open source projects. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and a user friendly component. I need your help to achieve this.
+SqlTableDependency is a personal open source project. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and  user-friendly component. I need your help to achieve this.
 
 [![Donate](https://pledgie.com/campaigns/30269.png)](https://pledgie.com/campaigns/30269)
 
