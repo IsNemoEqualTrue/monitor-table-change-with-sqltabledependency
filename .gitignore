@@ -213,7 +213,4 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 # Exclude files or folders
-TableDependency.SqlClient.Where/**
-TableDependency.Tests/TableDependency.SqlClient.Where.Tests/**
-Documents/**
 NuPkg/**
