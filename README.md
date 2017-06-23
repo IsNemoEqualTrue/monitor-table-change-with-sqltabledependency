@@ -160,23 +160,5 @@ Christian Del Bianco<br/>
 Mail: christian.delbianco@gmail.com<br/>
 Skype: christian.delbianco<br/>
 
-<div style="margin-top: 30px; text-align: center">
-            <div class="social-distance-between-elements" style="display: inline-block;">
-
-<a href="http://twitter.com/share?url=http://www.sqltabledependency.it&amp;text=Receive%20Sql%20Server%20Notifications&amp;" target="_blank" class="share-btn twitter">
-    <i class="fa fa-twitter"></i>
-</a>
-<a href="https://plus.google.com/share?url=http://www.sqltabledependency.it" target="_blank" class="share-btn google-plus">
-    <i class="fa fa-google-plus"></i>
-</a>
-<a href="http://www.facebook.com/sharer/sharer.php?u=http://www.sqltabledependency.it" target="_blank" class="share-btn facebook">
-    <i class="fa fa-facebook"></i>
-</a>
-<a href="http://www.linkedin.com/shareArticle?url=http://www.sqltabledependency.it&title=Receive Sql Server Notifications" target="_blank" class="share-btn linkedin">
-    <i class="fa fa-linkedin"></i>
-</a>
-</div>
-</div>
-
 ## World Visitor Distribution</div>
 http://rf.revolvermaps.com/0/0/7.js?i=52hrd41a1lo&amp;m=0c&amp;c=ff0000&amp;cr1=ffffff&amp;br=1&amp;sx=0&amp;cw=ffffff&amp;cb=000000
