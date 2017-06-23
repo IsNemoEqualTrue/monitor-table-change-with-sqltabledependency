@@ -159,3 +159,7 @@ Please, feel free to help and contribute with this project adding your comments,
 Christian Del Bianco<br/>
 Mail: christian.delbianco@gmail.com<br/>
 Skype: christian.delbianco<br/>
+
+## World Visitor Distribution</div>
+
+<script type="text/javascript" src="//rf.revolvermaps.com/0/0/7.js?i=52hrd41a1lo&amp;m=0c&amp;c=ff0000&amp;cr1=ffffff&amp;br=1&amp;sx=0&amp;cw=ffffff&amp;cb=000000" async="async"></script>
