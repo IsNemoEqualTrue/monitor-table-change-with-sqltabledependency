@@ -25,6 +25,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "TableDependency.Tests\TableDependency.DevelopmentTests\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlScripts", "SqlScripts", "{C4E75A76-C3E7-4B13-838E-F2C0246C22B6}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\Desktop\Documents\SQL Server\Checks SYS table.sql = ..\..\..\Desktop\Documents\SQL Server\Checks SYS table.sql
+		..\..\..\Desktop\Documents\SQL Server\Receive.sql = ..\..\..\Desktop\Documents\SQL Server\Receive.sql
+		..\..\..\Desktop\Documents\SQL Server\Send.sql = ..\..\..\Desktop\Documents\SQL Server\Send.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +79,6 @@ Global
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
 		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3} = {BE3F6738-85D8-46D0-928F-87085E19E9C0}
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
+		{C4E75A76-C3E7-4B13-838E-F2C0246C22B6} = {48852C1F-6B3D-4A7B-8836-7D45B50DBD20}
 	EndGlobalSection
 EndGlobal

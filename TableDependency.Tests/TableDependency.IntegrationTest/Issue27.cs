@@ -72,7 +72,8 @@ namespace TableDependency.IntegrationTest
                     Thread.Sleep(5000);                    
                 }
 
-                Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, objectNaming));
+                Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(objectNaming));
+                Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(objectNaming));
             }
             catch (Exception exception)
             {

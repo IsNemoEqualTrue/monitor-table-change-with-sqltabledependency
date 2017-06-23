@@ -41,10 +41,11 @@ namespace TableDependency.SqlClient.EventArgs
         public SqlRecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,
+            IEnumerable<ColumnInfo> userInterestedColumns,            
             string server,
             string database,
-            string sender) : base(messagesBag, mapper, userInterestedColumns, server, database, sender)
+            string sender,
+            string cultureInfoFiveLettersIsoCode) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfoFiveLettersIsoCode)
         {
 
         }

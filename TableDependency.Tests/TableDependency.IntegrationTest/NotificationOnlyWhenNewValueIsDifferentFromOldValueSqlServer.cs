@@ -102,7 +102,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_checkValues1[0].Item2.Surname, _checkValues1[0].Item1.Surname);
             Assert.AreEqual(_checkValues1[1].Item2.Name, _checkValues1[1].Item1.Name);
             Assert.AreEqual(_checkValues1[1].Item2.Surname, _checkValues1[1].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private static void TableDependency_Changed1(object sender, RecordChangedEventArgs<ABCTableModel> e)
@@ -181,7 +181,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_checkValues2[0].Item2.Surname, _checkValues2[0].Item1.Surname);
             Assert.AreEqual(_checkValues2[1].Item2.Name, _checkValues2[1].Item1.Name);
             Assert.AreEqual(_checkValues2[1].Item2.Surname, _checkValues2[1].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private static void TableDependency_Changed2(object sender, RecordChangedEventArgs<ABCTableModel> e)
@@ -256,7 +256,7 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter3, 0);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private static void TableDependency_Changed3(object sender, RecordChangedEventArgs<ABCTableModel> e)

@@ -90,7 +90,8 @@ namespace TableDependency.IntegrationTest
             SmallModifyTableContent();
 
             Thread.Sleep(3 * 60 * 1000);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(_dbObjectsNaming));
         }
 
         private static void SmallModifyTableContent()

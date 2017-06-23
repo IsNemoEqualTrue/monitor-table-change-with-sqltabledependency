@@ -12,20 +12,21 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class MoChangModel
+    public class MoChangModel2
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Surname { get; set; }        
+        public string Surname { get; set; }
     }
 
     [TestClass]
-    public class NoChangesDuringFirstThreeMinutesTestSqlServer
+    public class NoChangesDuringFirstThreeMinutesTestSqlServer2
     {
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static readonly string TableName = "MoChangModel";
-        private static Dictionary<string, Tuple<MoChangModel, MoChangModel>> CheckValues = new Dictionary<string, Tuple<MoChangModel, MoChangModel>>();
+        private static readonly string TableName = "MoChangModel2";
+        private static Dictionary<string, Tuple<MoChangModel2, MoChangModel2>> CheckValues = new Dictionary<string, Tuple<MoChangModel2, MoChangModel2>>();
         private static int _counter = 0;
+        private static string Mal = "First Time";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -62,44 +63,59 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void AfterThreeMinutesICanGetNotifications()
         {
-            SqlTableDependency<MoChangModel> tableDependency = null;
+            SqlTableDependency<MoChangModel2> tableDependency = null;
             string dataBaseObjectsNamingConvention = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<MoChangModel>(ConnectionString);
+                tableDependency = new SqlTableDependency<MoChangModel2>(ConnectionString);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 dataBaseObjectsNamingConvention = tableDependency.DataBaseObjectsNamingConvention;
-                
+
                 Thread.Sleep(4 * 60 * 1000);
                 Assert.IsFalse(SqlServerHelper.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention));
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
                 Thread.Sleep(20000);
+
+                Assert.AreEqual(_counter, 3);
+                Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
+
+                Mal = "Second round";
+                _counter = 0;
+                CheckValues = new Dictionary<string, Tuple<MoChangModel2, MoChangModel2>>();
+
+                Thread.Sleep(7 * 60 * 1000);
+                t = new Task(ModifyTableContent);
+                t.Start();
+                Thread.Sleep(20000);
+
+                Assert.AreEqual(_counter, 3);
+                Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi" + Mal);
+                Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita" + Mal);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-
-            Assert.AreEqual(_counter, 3);
-
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
-
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
-
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
-
+            Thread.Sleep(5000);
             Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dataBaseObjectsNamingConvention));
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<MoChangModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<MoChangModel2> e)
         {
             _counter++;
 
@@ -122,9 +138,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<MoChangModel, MoChangModel>(new MoChangModel { Id = 23, Name = "Pizza Mergherita", Surname = "Pizza Mergherita" }, new MoChangModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<MoChangModel, MoChangModel>(new MoChangModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Mergherita" }, new MoChangModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<MoChangModel, MoChangModel>(new MoChangModel { Id = 23, Name = "Pizza Funghi", Surname = "Pizza Funghi" }, new MoChangModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<MoChangModel2, MoChangModel2>(new MoChangModel2 { Id = 23, Name = "Pizza Mergherita" + Mal, Surname = "Pizza Mergherita" + Mal }, new MoChangModel2()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<MoChangModel2, MoChangModel2>(new MoChangModel2 { Id = 23, Name = "Pizza Funghi" + Mal, Surname = "Pizza Mergherita" + Mal }, new MoChangModel2()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<MoChangModel2, MoChangModel2>(new MoChangModel2 { Id = 23, Name = "Pizza Funghi" + Mal, Surname = "Pizza Funghi" + Mal }, new MoChangModel2()));
 
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {

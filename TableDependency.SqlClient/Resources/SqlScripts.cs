@@ -28,22 +28,28 @@ namespace TableDependency.SqlClient.Resources
 {
     public static class SqlScripts
     {
-        public const string CreateProcedureQueueActivation = @"CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
+        public const string CreateProcedureQueueActivation = @"
+CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
 BEGIN 
     SET NOCOUNT ON;
+    DECLARE @h AS UNIQUEIDENTIFIER;
 
-    RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
+    PRINT N'SqlTableDependency: Queue activation stored procedure {0} has been invoked.';
+    RECEIVE TOP(0) @h = [conversation_handle] FROM {2}.[{0}];
 
     IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N'{0}')
     BEGIN
         IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer' OR message_type_name = N'{3}') > 0)
         BEGIN 
+            PRINT N'SqlTableDependency: Drop objects {0} started.';
             {1}
+            PRINT N'SqlTableDependency: Drop objects {0} ended.';
         END 
     END
 END";
 
-        public const string CreateTrigger = @"CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
+        public const string CreateTrigger = @"
+CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
 BEGIN
     SET NOCOUNT ON;
 
@@ -74,13 +80,11 @@ BEGIN
         END
     END
 
-    SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable
+    SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable    
     IF @rowsToProcess < 1 RETURN
     SET @currentRow = 0
 
     BEGIN TRY
-        BEGIN TRANSACTION
-
         WHILE @currentRow < @rowsToProcess
         BEGIN
             SET @currentRow = @currentRow + 1
@@ -97,16 +101,6 @@ BEGIN
 
                 {7}
 
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
-                BEGIN
-                    RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
-                END
-
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
-                BEGIN
-                    RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
-                END
-                
                 END CONVERSATION @h;
             END
         
@@ -118,16 +112,6 @@ BEGIN
 
                 {8}
 
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
-                BEGIN
-                    RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
-                END
-
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
-                BEGIN
-                    RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
-                END
-                
                 END CONVERSATION @h;
             END
 
@@ -139,21 +123,11 @@ BEGIN
 
                 {9}
 
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'er')
-                BEGIN
-                    RAISERROR ('An error has occurred on the conversation endpoints', 18, 127)
-                END
-
-                IF EXISTS(select * from sys.conversation_endpoints where conversation_handle = @h and lower(state) = 'cd')
-                BEGIN
-                    RAISERROR ('This conversation endpoints is no longer in use.', 18, 127)
-                END
-                
                 END CONVERSATION @h;
-            END
-        END
+            END            
+        END                       
 
-        IF @@TRANCOUNT > 0 COMMIT TRANSACTION
+        {15}
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000)
@@ -162,24 +136,20 @@ BEGIN
 
         SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE()
 
-        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
-
-        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState)
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState) {16};
     END CATCH
 END";
 
-        public const string DisposeMessage = @"BEGIN TRANSACTION;
+        public const string DisposeMessage = @"
 DECLARE @conversation uniqueidentifier;
-RECEIVE TOP(0) [conversation_handle] FROM {2}.[{0}];
 BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE '{0}' ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
-SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);
-END CONVERSATION @conversation;
-COMMIT TRANSACTION;";
+SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);";
 
-        public const string InformationSchemaColumns = @"SELECT DB_NAME() AS TABLE_CATALOG,
+        public const string InformationSchemaColumns = @"
+SELECT DB_NAME() AS TABLE_CATALOG,
 SCHEMA_NAME(o.schema_id) AS TABLE_SCHEMA,
-o.name	AS TABLE_NAME,
-c.name	AS COLUMN_NAME,
+o.name AS TABLE_NAME,
+c.name AS COLUMN_NAME,
 COLUMNPROPERTY(c.object_id, c.name, 'ordinal') AS ORDINAL_POSITION,
 convert(nvarchar(4000), OBJECT_DEFINITION(c.default_object_id))	AS COLUMN_DEFAULT,
 convert(varchar(3), CASE c.is_nullable WHEN 1 THEN 'YES' ELSE 'NO' END)	AS IS_NULLABLE,
@@ -214,19 +184,24 @@ FROM sys.objects o JOIN sys.columns c ON c.object_id = o.object_id
 LEFT JOIN sys.types t ON c.user_type_id = t.user_type_id
 WHERE o.type IN ('U') and SCHEMA_NAME(o.schema_id) = '{0}' and o.name = '{1}'";
 
-        public const string InformationSchemaTables = @"SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
+        public const string InformationSchemaTables = @"
+SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
 
-        public const string ScriptDropAll = @"DECLARE @schema_id INT
-DECLARE @conversation_handle UNIQUEIDENTIFIER
+        public const string ScriptDropAll = @"
+DECLARE @schema_id INT;
+DECLARE @conversation_handle UNIQUEIDENTIFIER;
 
-SELECT @schema_id = schema_id FROM sys.schemas WHERE name = N'{2}';
+SELECT @schema_id = schema_id FROM sys.schemas WITH (NOLOCK) WHERE name = N'{2}';
 
-IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER [{2}].[tr_{0}];
+PRINT N'SqlTableDependency: Dropping trigger [{2}].[tr_{0}].'; 
+IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER [{2}].[tr_{0}];
+PRINT N'SqlTableDependency: Deactivating queue [{2}].[{0}].';
 IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') EXEC (N'ALTER QUEUE [{2}].[{0}] WITH ACTIVATION (STATUS = OFF)');
 
+PRINT N'SqlTableDependency: Ending conversations {0}.';
 SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service = N'{0}';
-DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations
-OPEN conversation_cursor
+DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations;
+OPEN conversation_cursor;
 FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
 WHILE @@FETCH_STATUS = 0 
 BEGIN
@@ -237,54 +212,40 @@ CLOSE conversation_cursor;
 DEALLOCATE conversation_cursor;
 DROP TABLE #Conversations;
 
-IF EXISTS (SELECT * FROM sys.services WHERE name = N'{0}') DROP SERVICE [{0}];
-IF EXISTS (SELECT * FROM sys.service_queues WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE {2}.[{0}];
-IF EXISTS (SELECT * FROM sys.service_contracts WHERE name = N'{0}') DROP CONTRACT [{0}];
+PRINT N'SqlTableDependency: Dropping service broker {0}.';
+IF EXISTS (SELECT * FROM sys.services WITH (NOLOCK) WHERE name = N'{0}') DROP SERVICE [{0}];
+PRINT N'SqlTableDependency: Dropping queue {2}.[{0}].';
+IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE {2}.[{0}];
+PRINT N'SqlTableDependency: Dropping contract {0}.';
+IF EXISTS (SELECT * FROM sys.service_contracts WITH (NOLOCK) WHERE name = N'{0}') DROP CONTRACT [{0}];
+PRINT N'SqlTableDependency: Dropping messages.';
 {1}
-IF EXISTS (SELECT * FROM sys.objects WHERE schema_id = @schema_id AND name = N'{0}_QueueActivation') DROP PROCEDURE [{2}].[{0}_QueueActivation];";
 
-        public const string SelectUserGrants = @"/*
-Security Audit Report
-1) List all access provisioned to a sql user or windows user/group directly 
-2) List all access provisioned to a sql user or windows user/group through a database or application role
-3) List all access provisioned to the public role
+PRINT N'SqlTableDependency: Dropping activation procedure {0}_QueueActivation.';
+IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivation') DROP PROCEDURE [{2}].[{0}_QueueActivation];";
 
-Columns Returned:
-UserName        : SQL or Windows/Active Directory user cccount.  This could also be an Active Directory group.
-UserType        : Value will be either 'SQL User' or 'Windows User'.  This reflects the type of user defined for the 
-                  SQL Server user account.
-DatabaseUserName: Name of the associated user as defined in the database user account.  The database user may not be the
-                  same as the server user.
-Role            : The role name.  This will be null if the associated permissions to the object are defined at directly
-                  on the user account, otherwise this will be the name of the role that the user is a member of.
-PermissionType  : Type of permissions the user/role has on an object. Examples could include CONNECT, EXECUTE, SELECT
-                  DELETE, INSERT, ALTER, CONTROL, TAKE OWNERSHIP, VIEW DEFINITION, etc.
-                  This value may not be populated for all roles.  Some built in roles have implicit permission
-                  definitions.
-PermissionState : Reflects the state of the permission type, examples could include GRANT, DENY, etc.
-                  This value may not be populated for all roles.  Some built in roles have implicit permission
-                  definitions.
-ObjectType      : Type of object the user/role is assigned permissions on.  Examples could include USER_TABLE, 
-                  SQL_SCALAR_FUNCTION, SQL_INLINE_TABLE_VALUED_FUNCTION, SQL_STORED_PROCEDURE, VIEW, etc.   
-                  This value may not be populated for all roles.  Some built in roles have implicit permission
-                  definitions.          
-ObjectName      : Name of the object that the user/role is assigned permissions on.  
-                  This value may not be populated for all roles.  Some built in roles have implicit permission
-                  definitions.
-ColumnName      : Name of the column of the object that the user/role is assigned permissions on. This value
-                  is only populated if the object is a table, view or a table value function.                 
-*/
-
+        /// <summary>
+        /// Security Audit Report
+        /// 1) List all access provisioned to a sql user or windows user/group directly 
+        /// 2) List all access provisioned to a sql user or windows user/group through a database or application role
+        /// 3) List all access provisioned to the public role
+        /// 
+        /// Columns Returned
+        /// UserName        : SQL or Windows/Active Directory user cccount.This could also be an Active Directory group.
+        /// UserType        : Value will be either 'SQL User' or 'Windows User'.  This reflects the type of user defined for the SQL Server user account.
+        /// DatabaseUserName: Name of the associated user as defined in the database user account.  The database user may not be the same as the server user.
+        /// Role            : The role name.This will be null if the associated permissions to the object are defined at directly on the user account, otherwise this will be the name of the role that the user is a member of.
+        /// PermissionType  : Type of permissions the user/role has on an object. Examples could include CONNECT, EXECUTE, SELECT DELETE, INSERT, ALTER, CONTROL, TAKE OWNERSHIP, VIEW DEFINITION, etc. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
+        /// PermissionState : Reflects the state of the permission type, examples could include GRANT, DENY, etc. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
+        /// ObjectType      : Type of object the user/role is assigned permissions on.Examples could include USER_TABLE, SQL_SCALAR_FUNCTION, SQL_INLINE_TABLE_VALUED_FUNCTION, SQL_STORED_PROCEDURE, VIEW, etc. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
+        /// ObjectName      : Name of the object that the user/role is assigned permissions on. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
+        /// ColumnName      : Name of the column of the object that the user/role is assigned permissions on.This value is only populated if the object is a table, view or a table value function.  
+        /// </summary>
+        public const string SelectUserGrants = @"
 --List all access provisioned to a sql user or windows user/group directly 
 SELECT  
-    [UserName] = CASE princ.[type] 
-                    WHEN 'S' THEN princ.[name]
-                    WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI
-                 END,
-    [UserType] = CASE princ.[type]
-                    WHEN 'S' THEN 'SQL User'
-                    WHEN 'U' THEN 'Windows User'
-                 END,  
+    [UserName] = CASE princ.[type] WHEN 'S' THEN princ.[name] WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
+    [UserType] = CASE princ.[type] WHEN 'S' THEN 'SQL User' WHEN 'U' THEN 'Windows User' END,  
     [DatabaseUserName] = princ.[name],       
     [Role] = null,      
     [PermissionType] = perm.[permission_name],       
@@ -303,8 +264,7 @@ LEFT JOIN
     sys.database_permissions perm ON perm.[grantee_principal_id] = princ.[principal_id]
 LEFT JOIN
     --Table columns
-    sys.columns col ON col.[object_id] = perm.major_id 
-                    AND col.[column_id] = perm.[minor_id]
+    sys.columns col ON col.[object_id] = perm.major_id AND col.[column_id] = perm.[minor_id]
 LEFT JOIN
     sys.objects obj ON perm.[major_id] = obj.[object_id]
 WHERE 
@@ -312,14 +272,8 @@ WHERE
 UNION
 --List all access provisioned to a sql user or windows user/group through a database or application role
 SELECT  
-    [UserName] = CASE memberprinc.[type] 
-                    WHEN 'S' THEN memberprinc.[name]
-                    WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI
-                 END,
-    [UserType] = CASE memberprinc.[type]
-                    WHEN 'S' THEN 'SQL User'
-                    WHEN 'U' THEN 'Windows User'
-                 END, 
+    [UserName] = CASE memberprinc.[type] WHEN 'S' THEN memberprinc.[name] WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
+    [UserType] = CASE memberprinc.[type] WHEN 'S' THEN 'SQL User' WHEN 'U' THEN 'Windows User' END, 
     [DatabaseUserName] = memberprinc.[name],   
     [Role] = roleprinc.[name],      
     [PermissionType] = perm.[permission_name],       
@@ -369,8 +323,7 @@ LEFT JOIN
     sys.database_permissions perm ON perm.[grantee_principal_id] = roleprinc.[principal_id]
 LEFT JOIN
     --Table columns
-    sys.columns col on col.[object_id] = perm.major_id 
-                    AND col.[column_id] = perm.[minor_id]                   
+    sys.columns col on col.[object_id] = perm.major_id AND col.[column_id] = perm.[minor_id]                   
 JOIN 
     --All objects   
     sys.objects obj ON obj.[object_id] = perm.[major_id]
@@ -398,7 +351,8 @@ ELSE BEGIN
     RETURN
 END";
 
-        public const string TriggerUpdateWithoutColumns = @"SET @dmlType = '{2}'
+        public const string TriggerUpdateWithoutColumns = @"
+SET @dmlType = '{2}'
 INSERT INTO @modifiedRecordsTable SELECT {1} FROM
 {3}";
 

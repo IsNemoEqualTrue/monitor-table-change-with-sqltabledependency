@@ -111,7 +111,8 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(listenerTask.Result.ObjectNaming));
         }
     }
 

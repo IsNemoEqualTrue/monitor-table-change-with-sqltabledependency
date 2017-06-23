@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient;
+using TableDependency.IntegrationTest.Helpers.SqlServer;
 
 namespace TableDependency.IntegrationTest
 {
@@ -106,6 +107,8 @@ namespace TableDependency.IntegrationTest
             Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.decimal18Column);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.decimal54Column, CheckValues[ChangeType.Delete.ToString()].Item1.decimal54Column);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.floatColumn, CheckValues[ChangeType.Delete.ToString()].Item1.floatColumn);
+
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<BigIntDecimalAndFloatModel> e)

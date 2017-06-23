@@ -41,13 +41,13 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        protected BaseEventArgs(string server, string database, string sender, string cultureInfoFiveLettersCode = "en-US")
+        protected BaseEventArgs(string server, string database, string sender, string cultureInfoFiveLettersIsoCode = "en-US")
         {
             this.Server = server;
             this.Database = database;
             this.Sender = sender;
 
-            this.Culture = new CultureInfo(cultureInfoFiveLettersCode);
+            this.Culture = new CultureInfo(cultureInfoFiveLettersIsoCode);
         }
 
         #endregion

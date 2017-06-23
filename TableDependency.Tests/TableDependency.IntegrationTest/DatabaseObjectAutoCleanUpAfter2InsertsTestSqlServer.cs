@@ -84,7 +84,8 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000 * 60 * 4);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dbObjectsNaming));
         }
 
         private void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel> e)

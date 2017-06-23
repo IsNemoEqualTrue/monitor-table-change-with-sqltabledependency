@@ -102,7 +102,8 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TaskCancellationTestSqlServerModel> e)

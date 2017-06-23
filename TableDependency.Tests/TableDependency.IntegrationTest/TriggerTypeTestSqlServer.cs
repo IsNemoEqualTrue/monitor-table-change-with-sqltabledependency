@@ -108,7 +108,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
            
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -137,7 +137,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -166,7 +166,7 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -203,7 +203,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita");
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -240,7 +240,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -277,7 +277,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -317,7 +317,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -357,7 +357,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -399,7 +399,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         [TestCategory("SqlServer")]
@@ -442,7 +442,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi");
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita");
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TriggerTypeTestSqlServerModel> e)

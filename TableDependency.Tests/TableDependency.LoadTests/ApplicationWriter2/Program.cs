@@ -11,13 +11,14 @@ namespace ApplicationWriter2
             int deletedCnt = 0;
             int insertedCnt = 0;
             int updatedCnt = 0;
-            int total = 10000;
+            int total = 7777;
             int index = 1;
             int i = 1;
 
+            var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+
             Console.Title = new string('*', 10) + " SQL Server DB Writer 2 " + new string('*', 10);
             System.Threading.Thread.Sleep(6000);
-            var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -28,7 +29,7 @@ namespace ApplicationWriter2
                         switch (i)
                         {
                             case 1:
-                                sqlCommand.CommandText = "INSERT INTO [LoadTest] ([Id], [FirstName], [SecondName]) VALUES (2, 'AAAA', 'AAAAS')";                                
+                                sqlCommand.CommandText = "INSERT INTO [LoadTest] ([Id], [FirstName], [SecondName]) VALUES (2, 'sono cazzi acidi', 'AAAAS')";                                
                                 if (sqlCommand.ExecuteNonQuery() > 0) insertedCnt++;
                                 i++;
                                 break;

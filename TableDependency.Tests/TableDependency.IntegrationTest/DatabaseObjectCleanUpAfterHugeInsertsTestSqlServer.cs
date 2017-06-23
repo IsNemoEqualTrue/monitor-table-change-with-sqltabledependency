@@ -49,7 +49,7 @@ namespace TableDependency.IntegrationTest
         [AssemblyCleanup()]
         public static void AssemblyCleanup()
         {
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
         }
 
         [TestCategory("SqlServer")]
@@ -76,7 +76,8 @@ namespace TableDependency.IntegrationTest
             SmalModifyTableContent();
 
             Thread.Sleep(4 * 60 * 1000);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(_dbObjectsNaming));
         }
 
         private static void BigModifyTableContent()

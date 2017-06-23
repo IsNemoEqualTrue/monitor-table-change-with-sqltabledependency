@@ -58,17 +58,18 @@ namespace TableDependency.EventArgs
         public RecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,
+            IEnumerable<ColumnInfo> userInterestedColumns,            
             string server,
             string database,
-            string sender) : base(server, database, sender)
+            string sender,
+            string cultureInfoFiveLettersIsoCode) : base(server, database, sender, cultureInfoFiveLettersIsoCode)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
             this.UserInterestedColumns = userInterestedColumns;
 
             this.ChangeType = messagesBag.MessageType;
-            this.Entity = MaterializeEntity(messagesBag.MessageSheets, mapper);
+            this.Entity = MaterializeEntity(messagesBag.Messages, mapper);
         }
 
         #endregion
@@ -99,40 +100,40 @@ namespace TableDependency.EventArgs
                     return Char.Parse(value);
 
                 case TypeCode.SByte:
-                    return SByte.Parse(value);
+                    return SByte.Parse(value, this.Culture);
 
                 case TypeCode.Byte:
-                    return Byte.Parse(value);
+                    return Byte.Parse(value, this.Culture);
 
                 case TypeCode.Int16:
-                    return Int16.Parse(value);
+                    return Int16.Parse(value, this.Culture);
 
                 case TypeCode.UInt16:
-                    return UInt16.Parse(value);
+                    return UInt16.Parse(value, this.Culture);
 
                 case TypeCode.Int32:
-                    return Int32.Parse(value);
+                    return Int32.Parse(value, this.Culture);
 
                 case TypeCode.UInt32:
-                    return UInt32.Parse(value);
+                    return UInt32.Parse(value, this.Culture);
 
                 case TypeCode.Int64:
-                    return Int64.Parse(value);
+                    return Int64.Parse(value, this.Culture);
 
                 case TypeCode.UInt64:
-                    return UInt64.Parse(value);
+                    return UInt64.Parse(value, this.Culture);
 
                 case TypeCode.Single:
-                    return Single.Parse(value);
+                    return Single.Parse(value, this.Culture);
 
                 case TypeCode.Double:
-                    return Double.Parse(value);
+                    return Double.Parse(value, this.Culture);
 
                 case TypeCode.Decimal:
-                    return Decimal.Parse(value);
+                    return Decimal.Parse(value, this.Culture);
 
                 case TypeCode.DateTime:
-                    return DateTime.Parse(value);
+                    return DateTime.Parse(value, this.Culture);
 
                 case TypeCode.String:
                     return value as string;

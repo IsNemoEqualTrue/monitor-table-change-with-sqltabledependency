@@ -6,8 +6,10 @@ using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TableDependency.Delegates;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Helpers.SqlServer;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -23,7 +25,7 @@ namespace TableDependency.IntegrationTest
 
     [TestClass]
     public class StatusTestSqlServer
-    {        
+    {
         private SqlTableDependency<StatusTestSqlServerModel> _tableDependency = null;
         private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "StatusCheckTest";
@@ -57,9 +59,8 @@ namespace TableDependency.IntegrationTest
             statuses.Add(TableDependencyStatus.Starting, false);
             statuses.Add(TableDependencyStatus.Started, false);
             statuses.Add(TableDependencyStatus.WaitingForNotification, false);
-            statuses.Add(TableDependencyStatus.MessageReadyToBeNotified, false);
-            statuses.Add(TableDependencyStatus.MessageSent, false);
-            statuses.Add(TableDependencyStatus.StoppedDueToCancellation, false);
+            statuses.Add(TableDependencyStatus.StopDueToCancellation, false);
+            statuses.Add(TableDependencyStatus.StopDueToError, false);
         }
 
         [ClassCleanup()]
@@ -88,6 +89,8 @@ namespace TableDependency.IntegrationTest
                 this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionString, TableName, mapper);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
                 this._tableDependency.OnStatusChanged += this.TableDependency_OnStatusChanged;
+                this._tableDependency.OnError += this.TableDependency_OnError;
+                var dataBaseObjectsNamingConvention = _tableDependency.DataBaseObjectsNamingConvention;
 
                 this._tableDependency.Start();
 
@@ -95,19 +98,29 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                t.Wait(5000);
 
                 this._tableDependency.Stop();
+                t.Wait(100);
 
-                foreach (var status in statuses)
-                {
-                    Assert.IsTrue(statuses[status.Key] == true);
-                }                
+                Assert.IsTrue(statuses[TableDependencyStatus.Starting]);
+                Assert.IsTrue(statuses[TableDependencyStatus.Started]);
+                Assert.IsTrue(statuses[TableDependencyStatus.WaitingForNotification]);
+                Assert.IsTrue(statuses[TableDependencyStatus.StopDueToCancellation]);
+                Assert.IsFalse(statuses[TableDependencyStatus.StopDueToError]);
+
+                Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dataBaseObjectsNamingConvention));
+                Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention));
             }
             finally
             {
                 this._tableDependency?.Dispose();
             }
+        }
+
+        private void TableDependency_OnError(object sender, ErrorEventArgs e)
+        {
+            throw e.Error;
         }
 
         private void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
@@ -118,7 +131,7 @@ namespace TableDependency.IntegrationTest
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<StatusTestSqlServerModel> e)
         {
-            
+
         }
 
         private static void ModifyTableContent()

@@ -38,6 +38,7 @@ namespace TableDependency.Messages
         #region Member variables
 
         private readonly string _endMessageSignature;
+        private readonly ICollection<string> _processableMessages;
         private readonly IList<string> _startMessagesSignature;
 
         #endregion
@@ -45,53 +46,65 @@ namespace TableDependency.Messages
         #region Properties
         public Encoding Encoding { get; }
         public ChangeType MessageType { get; private set; }
-        public List<Message> MessageSheets { get; }        
+        public List<Message> Messages { get; private set; }
         public MessagesBagStatus Status { get; private set; }
+        
 
         #endregion
 
         #region Constructors
 
-        public MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature)
+        public MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature, ICollection<string> processableMessages)
         {            
-            this.MessageSheets = new List<Message>();
+            this.Messages = new List<Message>();
             this.Status = MessagesBagStatus.None;
             this.Encoding = encoding;
 
             _endMessageSignature = endMessageSignature;
             _startMessagesSignature = startMessagesSignature;
+            _processableMessages = processableMessages;
         }
 
         #endregion
 
         #region Public Methods
 
-        public MessagesBagStatus AddMessage(string rawMessageType, byte[] messageValue)
+        public void Reset()
+        {            
+            this.Status = MessagesBagStatus.None;
+        }
+
+        public MessagesBagStatus AddMessage(Message message)
         {
-            if (_startMessagesSignature.Contains(rawMessageType))
+            if (_startMessagesSignature.Contains(message.Recipient))
             {
                 if (this.Status != MessagesBagStatus.None) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}.");
 
-                this.MessageType = GetMessageType(rawMessageType);
-                this.MessageSheets.Clear();
+                this.MessageType = MessagesBag.GetMessageType(message.Recipient);
+                this.Messages.Clear();
 
-                return (this.Status = MessagesBagStatus.Open);
+                return this.Status = MessagesBagStatus.Open;
             }
 
-            if (rawMessageType == _endMessageSignature)
+            if (message.Recipient == _endMessageSignature)
             {
                 if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}.");
-                return (this.Status = MessagesBagStatus.Closed);
+                return this.Status = MessagesBagStatus.Closed;
             }
 
             if (this.Status == MessagesBagStatus.Closed)
             {
-                throw new MessageMisalignedException($"Received {rawMessageType} message while current status is {MessagesBagStatus.Closed}.");
+                throw new MessageMisalignedException($"Received {message.Recipient} message while current status is {MessagesBagStatus.Closed}.");
             }
 
-            this.MessageSheets.Add(new Message(GetRecipient(rawMessageType), messageValue));
+            if (_processableMessages.Contains(message.Recipient) == false)
+            {
+                throw new MessageMisalignedException($"Queue containing a message type not expected [{message.Recipient}].");
+            }
 
-            return (this.Status = MessagesBagStatus.Collecting);
+            this.Messages.Add(new Message(MessagesBag.GetRecipient(message.Recipient), message.Body));
+
+            return this.Status = MessagesBagStatus.Collecting;
         }
 
         #endregion

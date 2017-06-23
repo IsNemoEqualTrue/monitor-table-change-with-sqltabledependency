@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient;
+using TableDependency.IntegrationTest.Helpers.SqlServer;
 
 namespace TableDependency.IntegrationTest
 {
@@ -113,6 +114,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(GetString(_checkValues[ChangeType.Delete.ToString()].Item2.varbinary50Column), GetString(_checkValues[ChangeType.Delete.ToString()].Item1.varbinary50Column));
             Assert.AreEqual(GetString(_checkValues[ChangeType.Delete.ToString()].Item2.varbinaryMAXColumn), GetString(_checkValues[ChangeType.Delete.ToString()].Item1.varbinaryMAXColumn));
 
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<BinaryBitCharVarbinaryModel> e)

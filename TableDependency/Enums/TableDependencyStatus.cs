@@ -32,9 +32,7 @@ namespace TableDependency.Enums
         Starting,
         Started,
         WaitingForNotification,
-        MessageReadyToBeNotified,
-        MessageSent,
-        StoppedDueToCancellation,
-        StoppedDueToError
+        StopDueToCancellation,
+        StopDueToError
     }
 }

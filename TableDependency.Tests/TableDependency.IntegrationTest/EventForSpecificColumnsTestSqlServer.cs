@@ -112,7 +112,7 @@ namespace TableDependency.IntegrationTest
 
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, _checkValues[ChangeType.Delete.ToString()].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForSpecificColumnsTestSqlServerModel> e)

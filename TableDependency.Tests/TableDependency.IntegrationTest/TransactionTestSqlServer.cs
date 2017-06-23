@@ -83,7 +83,8 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 0);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)

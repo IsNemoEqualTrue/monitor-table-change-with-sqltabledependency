@@ -65,13 +65,8 @@
     <Compile Include="DataAnnotationTestSqlServe5.cs" />
     <Compile Include="DataAnnotationTestSqlServe3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
+    <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer2.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
-    <Compile Include="TeardownTestSqlserver6.cs" />
-    <Compile Include="TeardownTestSqlserver5.cs" />
-    <Compile Include="TeardownTestSqlserver4.cs" />
-    <Compile Include="TeardownTestSqlserver3.cs" />
-    <Compile Include="TeardownTestSqlserver2.cs" />
-    <Compile Include="TeardownTestSqlserver1.cs" />
     <Compile Include="DataAnnotationTestSqlServer8.cs" />
     <Compile Include="DataAnnotationTestSqlServer7.cs" />
     <Compile Include="DataAnnotationTestSqlServer6.cs" />
@@ -111,9 +106,10 @@
     <Compile Include="DateTypeTestSqlServer.cs" />
     <Compile Include="RealTypesTest.cs" />
     <Compile Include="GuidSmallMoneyTypes.cs" />
-    <Compile Include="XmlNVarcharMaxAndVarcharMaxType2.cs" />
-    <Compile Include="XmlNVarcharMaxAndVarcharMaxType.cs" />
+    <Compile Include="NVarcharMaxAndVarcharMaxType2.cs" />
+    <Compile Include="NVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
+    <Compile Include="XmlAsStringSqlServerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">

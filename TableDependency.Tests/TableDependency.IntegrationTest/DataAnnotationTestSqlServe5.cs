@@ -39,10 +39,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL5', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL5];";
+                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL5', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL5];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [ANItemsTableSQL5]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = "CREATE TABLE [ANItemsTableSQL5]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -103,7 +103,8 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel5> e)
@@ -146,7 +147,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [ANItemsTableSQL5]";
+                    sqlCommand.CommandText = "DELETE FROM [ANItemsTableSQL5]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }

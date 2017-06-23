@@ -11,13 +11,14 @@ namespace ApplicationWriter1
             int deletedCnt = 0;
             int insertedCnt = 0;
             int updatedCnt = 0;
-            int total = 10000;
+            int total = 999999;
             int index = 1;
             int i = 1;
+            var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
 
             Console.Title = new string('*', 10) + " SQL ServerDB Writer 1 " + new string('*', 10);
             System.Threading.Thread.Sleep(4000);
-            var connectionString = ConfigurationManager.ConnectionStrings["connectionString"].ConnectionString;
+            
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
@@ -28,19 +29,19 @@ namespace ApplicationWriter1
                         switch (i)
                         {
                             case 1:
-                                sqlCommand.CommandText = "INSERT INTO [LoadTest] ([Id], [FirstName], [SecondName]) VALUES (1, 'DDD', 'AAS')";
+                                sqlCommand.CommandText = "INSERT INTO [LoadTest] ([Id], [FirstName], [SecondName]) VALUES (1, 'mannaggia', 'alla puttana')";
                                 if (sqlCommand.ExecuteNonQuery() > 0) insertedCnt++;
                                 i++;
                                 break;
 
                             case 2:
-                                sqlCommand.CommandText = "UPDATE [LoadTest] SET [FirstName] = 'HHH', [SecondName] = '" + Guid.NewGuid() + "' WHERE [Id] = 1";
+                                sqlCommand.CommandText = "UPDATE [LoadTest] SET [FirstName] = 'cazzarola', [SecondName] = '" + Guid.NewGuid() + "' WHERE [Id] = 1";
                                 if (sqlCommand.ExecuteNonQuery() > 0) updatedCnt++;
                                 i++;
                                 break;
 
                             case 3:
-                                sqlCommand.CommandText = "DELETE FROM [LoadTest] WHERE [Id] = 1";                                
+                                sqlCommand.CommandText = "DELETE FROM [LoadTest] WHERE [Id] = 1";
                                 if (sqlCommand.ExecuteNonQuery() > 0) deletedCnt++;
                                 i = 1;
                                 break;

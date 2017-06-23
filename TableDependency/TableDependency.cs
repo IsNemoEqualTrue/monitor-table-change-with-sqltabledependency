@@ -62,7 +62,6 @@ namespace TableDependency
         protected DmlTriggerType _dmlTriggerType;
         protected ITableDependencyFilter _filter;
         protected bool _disposed;
-        protected bool _teardown;
         protected string _dataBaseObjectsNamingConvention;
 
         #endregion
@@ -110,12 +109,20 @@ namespace TableDependency
         public TraceListener TraceListener { get; set; }
 
         /// <summary>
+        /// Gets or sets the culture information five letters iso code.
+        /// </summary>
+        /// <value>
+        /// The culture information five letters iso code.
+        /// </value>
+        public string CultureInfoFiveLettersIsoCode { get; set; } = "en-US";
+
+        /// <summary>
         /// Gets or sets the encoding use to convert database strings.
         /// </summary>
         /// <value>
         /// The encoding.
         /// </value>
-        public abstract Encoding Encoding { get; set; }
+        public Encoding Encoding { get; set; }
 
         /// <summary>
         /// Return the database objects naming convention for created objects used to receive notifications. 
@@ -160,15 +167,14 @@ namespace TableDependency
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType dmlTriggerType = DmlTriggerType.All,
-            bool teardown = true,
-            string namingForObjectsAlreadyExisting = null)
+            bool executeUserPermissionCheck = false)
         {
             if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
 
             this.CheckIfConnectionStringIsValid(connectionString);
             this.CheckIfParameterlessConstructorExistsForModel();
-            this.CheckIfUserHasPermissions(connectionString);
+            if (!executeUserPermissionCheck) this.CheckIfUserHasPermissions(connectionString);
 
             _connectionString = connectionString;
             _tableName = this.GetTableName(tableName);
@@ -192,11 +198,9 @@ namespace TableDependency
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(namingForObjectsAlreadyExisting);
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention();
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
-
-            _teardown = teardown;
         }
 
         #endregion
@@ -239,7 +243,7 @@ namespace TableDependency
 
             _task = null;
 
-            if (_teardown) this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
 
             _disposed = true;
 
@@ -481,7 +485,7 @@ namespace TableDependency
 
         protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
-        protected abstract string GetBaseObjectsNamingConvention(string objectNaming);
+        protected abstract string GetBaseObjectsNamingConvention();
 
         protected abstract string GetDataBaseName(string connectionString);
 
@@ -511,7 +515,8 @@ namespace TableDependency
                 _userInterestedColumns,
                 _server,
                 _database,
-                _dataBaseObjectsNamingConvention);
+                _dataBaseObjectsNamingConvention, 
+                this.CultureInfoFiveLettersIsoCode);
         }
 
         #endregion

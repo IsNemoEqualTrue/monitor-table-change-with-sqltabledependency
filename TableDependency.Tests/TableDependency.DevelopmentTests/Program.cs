@@ -24,9 +24,9 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"All rights reserved." + Environment.NewLine);
                 Console.WriteLine(@"**********************************************************************************************");
                 Console.WriteLine(@"Application used for development [choose connection string]:");
-                Console.WriteLine(@" F1: SQL Server Developer 2012 - (LOCAL HOST) integrated security");
-                Console.WriteLine(@" F2: SQL Server Developer 2012 - (LOCAL HOST) user with DB Owner Role");
-                Console.WriteLine(@" F3: SQL Server Developer 2012 - (LOCAL HOST) user not DBO");
+                Console.WriteLine(@" F1: SQL Server Developer 2014 - (LOCAL HOST) integrated security");
+                Console.WriteLine(@" F2: SQL Server Developer 2014 - (LOCAL HOST) user with DB Owner Role");
+                Console.WriteLine(@" F3: SQL Server Developer 2014 - (LOCAL HOST) user not DBO");
                 Console.WriteLine(@" F4: SQL Server Developer 2008 - (DESKTOP-DFTT9LE\SQLSERVER2008) user sa");
                 Console.WriteLine(@" F5: SQL Server Developer 2008 - (DESKTOP-DFTT9LE\SQLSERVER2008) user Test_User");
                 Console.WriteLine(@" ESC to exit");
@@ -68,7 +68,8 @@ namespace ConsoleApplicationSqlServer
 
         private static void OnError(object sender, ErrorEventArgs e)
         {
-            Console.WriteLine(e.Error.Message);
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.Error?.InnerException?.Message);
         }
 
         private static void Changed(object sender, RecordChangedEventArgs<Customer> e)
@@ -87,6 +88,8 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine(@"City:          " + changedEntity.City);
                 Console.WriteLine(@"PostalCode:    " + changedEntity.PostalCode);
                 Console.WriteLine(@"Country:       " + changedEntity.Country);
+
+                Console.WriteLine(@"Issue:       " + new String(changedEntity.Issue));
             }
         }
     }

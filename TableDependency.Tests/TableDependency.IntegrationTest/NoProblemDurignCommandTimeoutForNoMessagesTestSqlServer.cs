@@ -59,8 +59,8 @@ namespace TableDependency.IntegrationTest
             AppDomain.Unload(domain);
             Thread.Sleep(3*60*1000);
 
-            Assert.IsTrue(status != TableDependencyStatus.StoppedDueToError && status != TableDependencyStatus.StoppedDueToCancellation);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, _dbObjectsNaming));
+            Assert.IsTrue(status != TableDependencyStatus.StopDueToError && status != TableDependencyStatus.StopDueToCancellation);
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
         }
 
         [ClassCleanup()]

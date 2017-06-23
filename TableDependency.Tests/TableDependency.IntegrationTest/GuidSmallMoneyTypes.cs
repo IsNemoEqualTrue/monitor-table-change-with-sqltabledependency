@@ -118,7 +118,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.moneyColumn, _checkValues[ChangeType.Delete.ToString()].Item1.moneyColumn);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.smallmoneyColumn, _checkValues[ChangeType.Delete.ToString()].Item1.smallmoneyColumn);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_connectionString, naming));
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<ModelGuidSmallMoneyTypes> e)
