@@ -5,7 +5,8 @@
 SqlTableDependency is a high-level C# component to used to audit, monitor and receive notifications on SQL Server's record table changes.
 
 For any record table change, insert update or delete, a notification **containing values for the record** **inserted**, **changed** or **deleted** is received from SqlTableDependency. This notification contains the update values int the database table.
-<br/>
+
+
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
 
 Compared to Microsoft ADO.NET SqlDependency class, this tracking change system has the advantage of avoid a database select to retrieve updated table record state, because this latest table status is delivered by the received notification.
@@ -166,9 +167,9 @@ Please, feel free to help and contribute with this project adding your comments,
 [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Useful link
-* http://msftsbprodsamples.codeplex.com/<br/>
-* https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired<br/>
-* https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception<br/>
+* http://msftsbprodsamples.codeplex.com/
+* https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
+* https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
 
 ## Contacts
 Christian Del Bianco<br/>
