@@ -82,7 +82,9 @@ class Program
 
 Done! Now you are ready to receive notifications:
 
-[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/sHJVusS5Qz0/0.jpg)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
+<a href="https://www.youtube.com/watch?v=sHJVusS5Qz0"></a>
+
+
 
 ## Use cases and more examples
 Here are some examples of application getting notification on record table change. After downoad the example, plese remember to update SqlTableDependency nuget package:
@@ -164,9 +166,9 @@ Please, feel free to help and contribute with this project adding your comments,
 [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Useful link
-http://msftsbprodsamples.codeplex.com/<br/>
-https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired<br/>
-https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception<br/>
+* http://msftsbprodsamples.codeplex.com/<br/>
+* https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired<br/>
+* https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception<br/>
 
 ## Contacts
 Christian Del Bianco<br/>
