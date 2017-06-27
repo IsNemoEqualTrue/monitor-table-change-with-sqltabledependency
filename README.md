@@ -104,7 +104,7 @@ This section reports some use case examples. Some of these examples, use OracleT
 * [Get Status.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Status-change)
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 
-### Remark
+## Remark
 The Start(int timeOut = 120, int watchDogTimeOut = 180) method runs the listener to receive record change notifications.
 The watchDogTimeOut parameter specify the amount of time in seconds for the watch dog system.
 
@@ -162,9 +162,9 @@ Please, feel free to help and contribute with this project adding your comments,
 [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
 
 ## Useful link
-http://msftsbprodsamples.codeplex.com/
-https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
-https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
+http://msftsbprodsamples.codeplex.com/<br/>
+https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired<br/>
+https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception<br/>
 
 ## Contacts
 Christian Del Bianco<br/>
