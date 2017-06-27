@@ -82,7 +82,7 @@ class Program
 
 Done! Now you are ready to receive notifications:
 
-[![IMAGE ALT TEXT HERE](https://www.youtube.com/watch?v=sHJVusS5Qz0)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/sHJVusS5Qz0/0.jpg)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ## Use cases and more examples
 Here are some examples of application getting notification on record table change. After downoad the example, plese remember to update SqlTableDependency nuget package:
