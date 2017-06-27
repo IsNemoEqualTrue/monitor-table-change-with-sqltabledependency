@@ -1,6 +1,6 @@
 # Monitor and receive notifications on table changes
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/mit.svg" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
 
 SqlTableDependency is a high-level C# component to used to audit, monitor and receive notifications on SQL Server's record table changes.
 
