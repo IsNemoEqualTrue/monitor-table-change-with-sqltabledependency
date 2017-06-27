@@ -50,11 +50,13 @@ class Program
    
    static void Main()
    {
-       // The mappar is use to link model properties with a name that do not match table columns name
+       // The mappar is use to link model properties with table columns name in case name do not match
        var mapper = new ModelToTableMapper<Customer>();
        mapper.AddMapping(c => c.Surname, "Second Name");
        mapper.AddMapping(c => c.Name, "First Name");
 
+       // Here - as second parameter - we pass table name: this is necessary because the model name is 
+       // different from table name (Customer vs Customers)
        using (var dep = new SqlTableDependency<Customer>(_con, "Customers", mapper))
        {
            dep.OnChanged += Changed;
@@ -69,14 +71,11 @@ class Program
 
    static void Changed(object sender, RecordChangedEventArgs<Customer> e)
    {
-       if (e.ChangeType != ChangeType.None)
-       {
-           var changedEntity = e.Entity;
-           Console.WriteLine("DML operation: " + e.ChangeType);
-           Console.WriteLine("ID: " + changedEntity.Id);
-           Console.WriteLine("Name: " + changedEntity.Name);
-           Console.WriteLine("Surame: " + changedEntity.Surname);
-       }
+      var changedEntity = e.Entity;
+      Console.WriteLine("DML operation: " + e.ChangeType);
+      Console.WriteLine("ID: " + changedEntity.Id);
+      Console.WriteLine("Name: " + changedEntity.Name);
+      Console.WriteLine("Surame: " + changedEntity.Surname);
    }
 }
 ```
