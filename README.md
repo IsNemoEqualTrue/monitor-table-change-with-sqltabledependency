@@ -105,6 +105,7 @@ This section reports some use case examples. Some of these examples, use OracleT
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 
 ## Remark
+<blockquote>
 The Start(int timeOut = 120, int watchDogTimeOut = 180) method runs the listener to receive record change notifications.
 The watchDogTimeOut parameter specify the amount of time in seconds for the watch dog system.
 
@@ -115,6 +116,7 @@ It is a good practice - when possible - wrap SqlTableDependency within a using s
 However, when the application exits abruptly – that is not calling the Stop() method or not implementing the using statement - we need a way for cleaning up the SqlTableDependency infrastructure. The Start() method, has watchDogTimeOut optional parameter used to remove all the database objects. Its default value is 180 seconds: after this amount of time, if there are no listeners waiting for notifications, the SqlTableDependency infrastructure will be removed. This time seems long enough. Or not?
 
 There is one very common scenario that results in much more time: debugging. When you develop applications, you often spend several minutes inside the debugger before you move on. So please be careful when you debug an application that the value assigned to watchDogTimeOut parameter is long enough, otherwise you will incur in a destruction of database objects in the middle of you debug activity.
+</blockquote>
 
 ## Under The Hood
 SqlTableDependency's record change audit, provides the low-level implementation to receive database notifications creating SQL Server trigger, queue and service broker that immediately notify us when any record table changes happens.
