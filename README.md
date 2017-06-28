@@ -8,7 +8,7 @@ For any record table change, as insert, update or delete operation, a notificati
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
 
-<blockquote>This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the current table record status is delivered by the received notification.</blockquote>
+<blockquote><b>This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the current table record status is delivered by the received notification</b>.</blockquote>
 
 ## Track record table changes
 If we want **get alert about record table changes** without paying attention to the underlying SQL Server infrastructure then SqlTableDependency's record table change notifications will do that for us. Using notifications, an application can **detect table record changes** saving us from having to continuously re-query the database to get new values: for any record change, SqlTableDependency's event handler will get a notification containing modified table record values as well as the insert, update, delete operation type executed on our table.
