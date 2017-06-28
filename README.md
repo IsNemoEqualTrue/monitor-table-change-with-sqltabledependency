@@ -8,7 +8,7 @@ For any record table change, as insert, update or delete operation, a notificati
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
 
-This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the current table record status is delivered by the received notification.
+:bulb: This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the current table record status is delivered by the received notification.
 
 ## Track record table changes
 If we want **get alert about record table changes** without paying attention to the underlying SQL Server infrastructure then SqlTableDependency's record table change notifications will do that for us. Using notifications, an application can **detect table record changes** saving us from having to continuously re-query the database to get new values: for any record change, SqlTableDependency's event handler will get a notification containing modified table record values as well as the insert, update, delete operation type executed on our table.
@@ -17,11 +17,11 @@ Assuming we are interested to receive record changes for the following database 
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/rsz_table.jpg" />
 
-We start installing SqlTableDependency using:
+:one: We start installing SqlTableDependency using:
 
 [![IMAGE ALT TEXT HERE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
-After, we define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested to:
+:two: We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested to:
 
 ```C#
 public class Customer
@@ -33,7 +33,7 @@ public class Customer
 ```
 Properties can have a different name from table column. We see later as to establish a mapping.
 
-Now, create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
+:three:Create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
