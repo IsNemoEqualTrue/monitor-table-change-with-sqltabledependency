@@ -33,7 +33,7 @@ public class Customer
 ```
 Properties can have a different name from table column. We see later as to establish a mapping.
 
-:three:Create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
+:three: Create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
