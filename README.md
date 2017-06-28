@@ -2,19 +2,18 @@
 
 [![LICENSE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/mit.png)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt)
 
-SqlTableDependency is a high-level C# component to used to audit, monitor and receive notifications on SQL Server's record table changes.
+**SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes.
 
-For any record table change, insert update or delete, a notification **containing values for the record** **inserted**, **changed** or **deleted** is received from SqlTableDependency. This notification contains the update values int the database table.
-
+For any record table change, as insert, update or delete operation, a notification **containing values for the record changed** is received from SqlTableDependency. This notification contains the update values from the database table.
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
 
-Compared to Microsoft ADO.NET SqlDependency class, this tracking change system has the advantage of avoid a database select to retrieve updated table record state, because this latest table status is delivered by the received notification.
+This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the current table record status is delivered by the received notification.
 
 ## Track record table changes
 If we want **get alert about record table changes** without paying attention to the underlying SQL Server infrastructure then SqlTableDependency's record table change notifications will do that for us. Using notifications, an application can **detect table record changes** saving us from having to continuously re-query the database to get new values: for any record change, SqlTableDependency's event handler will get a notification containing modified table record values as well as the insert, update, delete operation type executed on our table.
 
-Let’s assume we are interested to receive record changes on the following database table:
+Assuming we are interested to receive record changes for the following database table:
 ```C#
 CREATE TABLE [dbo].[Customers](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
@@ -24,11 +23,12 @@ CREATE TABLE [dbo].[Customers](
 	[DepartmentId] [int] NOT NULL)
 ```
 
-Install SqlTableDependency using:
+We can start installing SqlTableDependency using:
 
 [![IMAGE ALT TEXT HERE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
-Write your model defining interested table columns:
+After, we define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested to:
+
 ```C#
 public class Customer
 {
@@ -37,9 +37,9 @@ public class Customer
     public string Surname { get; set; }
 }
 ```
-The model can avoid to define all table columns if you are not interested in some value. Also, model's properties name can be different from database table columns name.
+Properties can have a different name from table column. We see later as to establish a mapping.
 
-Create the SqlTableDependency object passing the connection string and table name (table name is necessary because of model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
+Now, create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
