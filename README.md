@@ -17,20 +17,9 @@ If we want **get alert about record table changes** without paying attention to 
 
 Assuming we are interested to receive record changes for the following database table:
 
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/rsz_table.jpg" />
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/table.png" />
-
-
-```C#
-CREATE TABLE [dbo].[Customers](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[First Name] [nvarchar](50) NOT NULL,
-	[Second Name] [nvarchar](50) NOT NULL,
-	[Birthday] [datetime] NOT NULL,
-	[DepartmentId] [int] NOT NULL)
-```
-
-We can start installing SqlTableDependency using:
+We start installing SqlTableDependency using:
 
 [![IMAGE ALT TEXT HERE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
