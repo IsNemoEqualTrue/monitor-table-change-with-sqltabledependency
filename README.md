@@ -17,11 +17,11 @@ Assuming we are interested to receive record changes for the following database 
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/rsz_table.jpg" />
 
-:one: We start installing SqlTableDependency using:
+Start installing SqlTableDependency using:
 
 [![IMAGE ALT TEXT HERE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
-:two: We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested to:
+We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested to:
 
 ```C#
 public class Customer
@@ -33,7 +33,7 @@ public class Customer
 ```
 Properties can have a different name from table column. We see later as to establish a mapping.
 
-:three: Create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
+Create the SqlTableDependency object passing the connection string and table name (table name in sonly necessary when C# model name is different from table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
 using System;
