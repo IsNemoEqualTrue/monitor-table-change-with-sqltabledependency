@@ -1,4 +1,4 @@
-# Monitor and receive notifications on table changes
+# Monitor and receive notifications on table changes :zap:
 
 [![LICENSE](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/mit.png)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt)
 
