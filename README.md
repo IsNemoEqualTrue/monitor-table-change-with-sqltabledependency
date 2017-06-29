@@ -169,4 +169,4 @@ Please, feel free to help and contribute with this project adding your comments,
 ## Contacts
 :boy: Christian Del Bianco<br/>
 :email: christian.delbianco@gmail.com<br/>
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/emoticon-0151-skype.png"/> christian.delbianco
+ <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/emoticon-0151-skype.png"/>   christian.delbianco
