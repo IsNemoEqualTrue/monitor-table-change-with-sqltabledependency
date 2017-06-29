@@ -166,6 +166,5 @@ Please, feel free to help and contribute with this project adding your comments,
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
 
 ## Contacts
-Christian Del Bianco<br/>
-Mail: christian.delbianco@gmail.com<br/>
-Skype: christian.delbianco<br/>
+:boy: Christian Del Bianco<br/>
+:email: christian.delbianco@gmail.com<br/>
