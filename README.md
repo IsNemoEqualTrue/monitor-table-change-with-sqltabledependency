@@ -1,7 +1,7 @@
 # Monitor and receive notifications on table changes
 
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![license](https://img.shields.io/badge/release-6.1.0-green.svg)](#) [![issues](https://img.shields.io/badge/issues-1-yellow.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/issues) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) 
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![license](https://img.shields.io/badge/release-6.1.0-green.svg)](#) [![issues](https://img.shields.io/badge/issues-1-yellow.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/issues) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) <iframe src="https://ghbtns.com/github-btn.html?user=christiandelbianco&repo=monitor-table-change-with-sqltabledependency&type=watch&count=true&v=2" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
 
 **SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes.
 
