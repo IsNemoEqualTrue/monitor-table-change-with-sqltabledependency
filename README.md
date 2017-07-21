@@ -1,5 +1,10 @@
-# Monitor and receive notifications on table changes
+<!--
+  Title: Monitor and receive notifications on table changes
+  Description: Get database notification on insert, delete and update record table change and receive new, deleted or updated table record values.
+  Author: Christian Del Bianco
+  -->
 
+# Monitor and receive notifications on table changes
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![license](https://img.shields.io/badge/release-6.1.0-green.svg)](#) [![issues](https://img.shields.io/badge/issues-1-yellow.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/issues) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2012-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-RED.svg)](#)
 
