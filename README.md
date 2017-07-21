@@ -151,6 +151,8 @@ Also case user specified in connection string is not DBO or has not db_owner rol
 * VIEW DATABASE STATE
 * VIEW DEFINITION
 
+It is also possible skip the permissions test done from SqlTableDependency, setting executeUserPermissionCheck constructor parameter to false. In this case, If the user does not have sufficient permissions, a SQL server exception will be thrown.
+
 ## Donate
 SqlTableDependency is a personal open source project. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and  user-friendly component. I need your help to achieve this.
 
