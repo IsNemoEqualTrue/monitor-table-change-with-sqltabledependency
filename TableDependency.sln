@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}"
 	ProjectSection(SolutionItems) = preProject
-		docs\New Text Document.txt = docs\New Text Document.txt
+		docs\index.html = docs\index.html
 	EndProjectSection
 EndProject
 Global
