@@ -27,7 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}"
 	ProjectSection(SolutionItems) = preProject
-		docs\_config.yml = docs\_config.yml
 		docs\audit-table-change-infrastructure.html = docs\audit-table-change-infrastructure.html
 		docs\DbObjects.png = docs\DbObjects.png
 		docs\favicon.ico = docs\favicon.ico
