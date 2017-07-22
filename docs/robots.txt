@@ -1,0 +1,2 @@
+Sitemap: https://christiandelbianco.github.io/monitor-table-change-with-sqltabledependency/sitemap.xml
+User-agent: *
