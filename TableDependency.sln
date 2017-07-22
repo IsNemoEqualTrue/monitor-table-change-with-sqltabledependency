@@ -25,7 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.Integration
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "TableDependency.Tests\TableDependency.DevelopmentTests\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{4F25D0FC-CF29-44F0-B18A-94810E05FCD5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}"
+	ProjectSection(SolutionItems) = preProject
+		docs\New Text Document.txt = docs\New Text Document.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
