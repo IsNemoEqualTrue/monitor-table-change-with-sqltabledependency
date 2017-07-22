@@ -44,6 +44,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6C9E1520-2
 		docs\site.css = docs\site.css
 		docs\site.min.css = docs\site.min.css
 		docs\sitemap.xml = docs\sitemap.xml
+		docs\socials\css\social-share-kit.css = docs\socials\css\social-share-kit.css
 		docs\table-change-infrastructure-dll.png = docs\table-change-infrastructure-dll.png
 		docs\table-change-infrastructure-nuget.png = docs\table-change-infrastructure-nuget.png
 		docs\table-change-infrastructure.png = docs\table-change-infrastructure.png
@@ -78,6 +79,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{BB8EFAAA-7D6D-
 		docs\bootstrap\js\bootstrap.js = docs\bootstrap\js\bootstrap.js
 		docs\bootstrap\js\bootstrap.min.js = docs\bootstrap\js\bootstrap.min.js
 		docs\bootstrap\js\npm.js = docs\bootstrap\js\npm.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "socials", "socials", "{936B2C51-CE28-4832-AF23-48BF86D78F0E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{3BE6F1BF-459A-4315-8B4D-327E9DE590ED}"
+	ProjectSection(SolutionItems) = preProject
+		docs\socials\css\social-share-kit.css = docs\socials\css\social-share-kit.css
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fonts", "fonts", "{654FE58B-C906-40A6-92F7-F4F9B557B481}"
+	ProjectSection(SolutionItems) = preProject
+		docs\socials\fonts\social-share-kit.eot = docs\socials\fonts\social-share-kit.eot
+		docs\socials\fonts\social-share-kit.svg = docs\socials\fonts\social-share-kit.svg
+		docs\socials\fonts\social-share-kit.ttf = docs\socials\fonts\social-share-kit.ttf
+		docs\socials\fonts\social-share-kit.woff = docs\socials\fonts\social-share-kit.woff
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{079392EB-C573-4232-AD50-7C84D86D2679}"
+	ProjectSection(SolutionItems) = preProject
+		docs\socials\js\social-share-kit.js = docs\socials\js\social-share-kit.js
+		docs\socials\js\social-share-kit.min.js = docs\socials\js\social-share-kit.min.js
 	EndProjectSection
 EndProject
 Global
@@ -131,5 +153,9 @@ Global
 		{C8141439-8E51-4DF3-BFF5-218C5701C624} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
 		{501757C2-A08A-4312-A28D-63499FD9AA1A} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
 		{BB8EFAAA-7D6D-416B-B95C-A3D927303654} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
+		{936B2C51-CE28-4832-AF23-48BF86D78F0E} = {6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}
+		{3BE6F1BF-459A-4315-8B4D-327E9DE590ED} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
+		{654FE58B-C906-40A6-92F7-F4F9B557B481} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
+		{079392EB-C573-4232-AD50-7C84D86D2679} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
 	EndGlobalSection
 EndGlobal
