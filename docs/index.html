@@ -163,7 +163,7 @@
 
                     <p>To be notify about record table changes, first of all we need to define our model object mapping the table structure we want to monitor.</p>
 
-                    <h3>Record changes value container</h3>
+                    <h3>Table value changes container</h3>
                     <p>
                         Define a C# class to contains <b>new record table values filled by table change notification</b>. Basically, it maps the interested SQL Server table columns, specifing for whom columns the notification returns updated values. Supposing a table as:
                         <!-- robots content="none" -->
@@ -207,7 +207,7 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                     </p>
                     <!-- /robots -->
 
-                    <h3>Listen for table change alert</h3>
+                    <h3>Table change event listen</h3>
                     <p>When we want to receive notification on table content modify, just subscribe to change event:</p>
                     <pre><code>dep.OnChanged += Changed;</code></pre>
 
@@ -230,13 +230,13 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                     </p>
                     <!-- /robots -->
 
-                    <h3>Start notification listener</h3>
+                    <h3>Get table change notifications</h3>
                     <p>Run the listener for receiving table change notifications for every DML operation executed on the monitored table:</p>
                     <!-- robots content="none" -->
                     <pre><code>dep.Start();</code></pre>
                     <!-- /robots -->
 
-                    <h3>Dispose notification listener</h3>
+                    <h3>Dispose table change notification listener</h3>
                     <p>Call Stop method to remove all SQL Server objects created to receive table record change notifications:</p>
                     <!-- robots content="none" -->
                     <pre><code>dep.Stop();</code></pre>
@@ -245,7 +245,7 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                     <p>
                         This remove the SQL Server infrastructure to deliver table change notifications.
                     </p>
-                    <h3>Table change alert infrastructure</h3>
+                    <h3>Table record change monitor infrastructure</h3>
                     <p>
                         SqlTableDependency create and dispose the following SQL Server object for the table under monitor:<ul>
                             <li>Table trigger: put value record for insert, delete and update in SQL Server queue.</li>

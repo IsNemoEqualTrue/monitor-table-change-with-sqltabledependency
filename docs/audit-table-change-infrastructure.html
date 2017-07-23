@@ -59,10 +59,8 @@
         <div class="row">
             <div class="col-sm-12 blog-main">
                 <div class="blog-post">
-
-                    <h2>Difference between SqlTableDependency and .NET SqlDepenency?</h2>
                     <p>
-                        Basically, the main difference is that <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a> send events containing values for the table record inserted, changed or deleted, as well as the DML operation (insert/delete/update) about table change: SqlDepenency doesn't tell what data was changed on SQL Server table, they only say that something has changed.
+                        SqlTableDependency works similarly to .NET SqlDepenency but the main difference is that <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a> send events containing values for the table record inserted, changed or deleted, as well as the DML operation (insert/delete/update) about table change: SqlDepenency doesn't tell what data was changed on SQL Server table, they only say that something has changed.
                     </p>
 
                     <p>SqlTableDependency instead returns you <b>updated record table change values</b>.</p><p>
@@ -76,7 +74,7 @@
                         turn from server application to clients.
                     </p>
 
-                    <h2>Audit table change notifications infrastructure</h2>
+                    <h2>Monitor table change notifications infrastructure</h2>
                     <p>
                         Notifications due to table record change are achieved thanks to the following SQL Server infrastructure build at runtime from SqlTableDependency.
                     </p>
@@ -100,7 +98,7 @@
                         <img src="table-change-infrastructure.png" alt="SQL Server audit table change infrastructure" class="img-responsive" />
                     </p>
 
-                    <h2>Table change audit infrastructure disposition</h2>
+                    <h2>Table change monitor infrastructure disposition</h2>
                     <p>
                         It is a good practice is to wrap SqlTableDependency within a using statement or, alternatively, call the Stop() method once we do not need any more notifications.
                     </p>
