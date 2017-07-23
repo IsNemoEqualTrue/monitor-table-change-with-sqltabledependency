@@ -121,7 +121,7 @@
                             <li>.NET SqlDependency</li>
                         </ul>
                     </p>
-                    
+
                     All of them works based on a notifications infrastructure. The first two options require us a good T-SQL and SQL Server knoledge in order to create service broker and queue to monitor every table data change done on our records table and <b>notify</b> us about any <b>record table change</b>.
                     Although the last one does not require us this low level knoledge, it presents a limitation: delivered notification does not report us any information about which record has been changed, forcing us to perform a further SELECT to refresh our cache.
 
@@ -256,28 +256,9 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                             <li>Stored procedure: queue activation.</li>
                         </ul>
                     </p>
-                <p align="center">
-                        <div class="ssk-group" style="margin-left: auto !important; margin-right: auto !important">
-                            <a href="" class="ssk ssk-facebook"></a>
-                            <a href="" class="ssk ssk-twitter"></a>
-                            <a href="" class="ssk ssk-google-plus"></a>
-                            <a href="" class="ssk ssk-pinterest"></a>
-                            <a href="" class="ssk ssk-tumblr"></a>
-                        </div>
-
+                    <p>
                         For complete demos on how to receive a notification on table values change,
                         see <a href="table-change-notifications-examples.html" style="text-transform: capitalize;">notification examples</a> page.
-                    </p>
-
-                    <hr />
-                    <p align="center">
-                        <div class="ssk-group" style="margin-left: auto !important; margin-right: auto !important">
-                            <a href="" class="ssk ssk-facebook"></a>
-                            <a href="" class="ssk ssk-twitter"></a>
-                            <a href="" class="ssk ssk-google-plus"></a>
-                            <a href="" class="ssk ssk-pinterest"></a>
-                            <a href="" class="ssk ssk-tumblr"></a>
-                        </div>
                     </p>
 
                     <div class="topic">monitor SQL Server table changes using C# detecting changes in table</div>
@@ -290,6 +271,17 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
 
                     <hr />
                     <p align="center">
+
+                        <div class="ssk-group" style="margin-left: auto !important; margin-right: auto !important">
+                            <a href="" class="ssk ssk-facebook"></a>
+                            <a href="" class="ssk ssk-twitter"></a>
+                            <a href="" class="ssk ssk-google-plus"></a>
+                            <a href="" class="ssk ssk-pinterest"></a>
+                            <a href="" class="ssk ssk-tumblr"></a>
+                        </div>
+                        
+                        <br/>
+
                         <small><b>Detect record table changes</b>: Last edit on 22 July 2017 by Christian Del Bianco</small><br />
                         <small>For more info on monitor table record changes see <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a>'s GitHub project site.</small>
                     </p>
