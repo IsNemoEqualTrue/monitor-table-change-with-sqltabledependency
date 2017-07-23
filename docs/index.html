@@ -127,7 +127,7 @@
 
                     <p>
                         <blockquote>
-                            Is it possible receive notifications containing modified record on any table change, as delete update or insert, in order to avoid another select to mantains update our cache?
+                            Is it possible receive notifications containing modified record on any table change, as delete update or insert, in order to avoid another select to maintains update our cache?
                         </blockquote>
                     </p>
 
@@ -191,7 +191,7 @@
 </code></pre>
                     </p>
                     <!-- /robots -->
-                    <p>It is possible to define only table columns we are interested to receive values by notifications, simply secifing the a model mapper as show later.</p>
+                    <p>It is possible to define only table columns we are interested to receive values by notifications, simply specifying the a model mapper as shown later.</p>
 
 
                     <h3>Audit table changes with SqlTableDependency</h3>
@@ -208,7 +208,7 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                     <!-- /robots -->
 
                     <h3>Table change event listen</h3>
-                    <p>When we want to receive notification on table content modify, just subscribe to change event:</p>
+                    <p>If we want to receive notifications on table value change, subscribe to change event:</p>
                     <pre><code>dep.OnChanged += Changed;</code></pre>
 
                     <p>Notification contains values for insert, delete or update table change:</p>
@@ -285,7 +285,7 @@ var dep = new SqlTableDependency&lt;Customer&gt;(_con, "Client", map))
                     <hr />
                     <p align="center">
                         <small><b>Detect record table changes</b>: Last edit on 22 July 2017 by Christian Del Bianco</small><br />
-                        <small>More info on monitor table record changes see <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a>'s GitHub project site.</small>
+                        <small>For more info on monitor table record changes see <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a>'s GitHub project site.</small>
                     </p>
 
                 </div>
