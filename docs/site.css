@@ -244,54 +244,7 @@ font-size: 40px;
   margin-bottom: 0;
 }
 
-
-/** Social Button CSS **/
-
-.social-distance-between-elements {
-justify-content: space-between;
-}
-
-.share-btn {
-    display: inline-block;
-    color: #ffffff;
-    border: none;
-    padding: 0.5em;
-    width: 4em;
-    box-shadow: 0 2px 0 0 rgba(0,0,0,0.2);
-    outline: none;
-    text-align: center;
-}
-
-.share-btn:hover {
-  color: #eeeeee;
-}
-
-.share-btn:active {
-  position: relative;
-  top: 2px;
-  box-shadow: none;
-  color: #e2e2e2;
-  outline: none;
-}
-
-.share-btn.twitter     { background: #55acee; }
-.share-btn.google-plus { background: #dd4b39; }
-.share-btn.facebook    { background: #3B5998; }
-.share-btn.linkedin    { background: #4875B4; }
-.share-btn.email       { background: #444444; }
-
 .topic {
 	position: absolute;
     left: -9999px;
 }
-
-
-
-
-
-
-
-
-
-
-

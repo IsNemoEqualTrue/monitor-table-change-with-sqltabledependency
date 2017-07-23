@@ -17,7 +17,7 @@
 
     <link rel="icon" href="favicon.ico">
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="site.css" rel="stylesheet">
+    <link href="site.min.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -62,7 +62,7 @@
 
                     <h2>Difference between SqlTableDependency and .NET SqlDepenency?</h2>
                     <p>
-                        Basically, the main difference is that <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a> send events containing values for the table record inserted, changed or deleted, as well as the DML operation (insert/delete/update) about table change: SqlDepenency doesn't tell what data was changed on the database table, they only say that something has changed.
+                        Basically, the main difference is that <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a> send events containing values for the table record inserted, changed or deleted, as well as the DML operation (insert/delete/update) about table change: SqlDepenency doesn't tell what data was changed on SQL Server table, they only say that something has changed.
                     </p>
 
                     <p>SqlTableDependency instead returns you <b>updated record table change values</b>.</p><p>
@@ -71,17 +71,17 @@
 
 
                     <p>
-                        So, instead of executing a request from client to the server application, and then the server application
-                        to the database, we are doing the reverse: sending a request from database to server application, and in
+                        So, instead of executing a request from client to the server application, and then from server application
+                        to database, we are doing the reverse: sending a request from SQL Server to server application, and in
                         turn from server application to clients.
                     </p>
 
                     <h2>Audit table change notifications infrastructure</h2>
                     <p>
-                        Notifications due to table record change are achieved thanks to the following database infrastructure build at runtime from SqlTableDependency.
+                        Notifications due to table record change are achieved thanks to the following SQL Server infrastructure build at runtime from SqlTableDependency.
                     </p>
                     <p>
-                        Assuming we want monitor <i>Customer</i> table chnges, once SqlTableDependency starts, the following database objects are created:
+                        Assuming we want monitor any <i>Customer</i> table changes, once SqlTableDependency starts, the following SQL Server objects are created:
                     </p>
 
                     <ul>
@@ -93,7 +93,7 @@
                         <li>Stored procedure to clean up the created objects in case the application exits abruptly</li>
                     </ul>
                     
-                    <p>Final result of this <b>audit table change infrastructure</b> is:</p>
+                    <p>Final result of this <b>audit record table change</b> infrastructure is:</p>
                     <p>
 
                     <p>
@@ -109,7 +109,7 @@
                         However, when the application exits abruptly – that is not calling the Stop() method or not implementing the using statement - we need a way for cleaning up the SqlTableDependency infrastructure.
                     </p>
                     <p>
-                        The Start() method, has watchDogTimeOut optional parameter used to remove all the database objects. Its default value is 180 seconds: after this amount of time, if there are no listeners waiting for notifications, the SqlTableDependency infrastructure will be automatically removed.
+                        The Start() method, has watchDogTimeOut optional parameter used to remove all SQL Server objects. Its default value is 180 seconds: after this amount of time, if there are no listeners waiting for notifications, the SqlTableDependency infrastructure will be automatically removed.
                     </p>
                     </p>
                     <h2>When use table change notifications</h2>
@@ -117,7 +117,7 @@
                         Query notifications are designed for data that does not change frequently. They are also best
                         used in server-side applications rather than client-side applications. Remember that each
                         request for a notification is registered in SQL Server. If thousands of client applications each
-                        request a notification, this can create a scalability problem on your database server.
+                        request a notification, this can create a scalability problem on your SQL Server db.
                         Microsoft's recommendation is that for client-side applications, you should limit the use of
                         query notifications to no more than ten concurrent users.
                     </p><p>
@@ -136,7 +136,7 @@
                     <hr />
                     <p align="center">
                         <small><b>Detect record table changes</b>: Last edit on 22 July 2017 by Christian Del Bianco</small><br />
-                        <small>More info on <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">GitHub project site</a>.</small>
+                        <small>More info on monitor table record changes see <a href="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency">SqlTableDependency</a>'s GitHub project site.</small>
                     </p>
 
                 </div>
