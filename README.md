@@ -158,9 +158,7 @@ SqlTableDependency is a personal open source project. Started in 2015, I have pu
 [![Donate](https://pledgie.com/campaigns/30269.png)](https://pledgie.com/campaigns/30269)
 
 ## Contributors
-Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements.
-
-[See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors)
+Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
 ## Useful link
 * http://msftsbprodsamples.codeplex.com/
