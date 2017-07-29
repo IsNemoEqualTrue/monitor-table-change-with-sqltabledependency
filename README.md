@@ -166,7 +166,3 @@ Please, feel free to help and contribute with this project adding your comments,
 * http://msftsbprodsamples.codeplex.com/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
-
-## Contacts
-:boy: Christian Del Bianco<br/>
-:email: christian.delbianco@gmail.com<br/>
