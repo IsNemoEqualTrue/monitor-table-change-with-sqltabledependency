@@ -167,7 +167,7 @@ namespace TableDependency
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType dmlTriggerType = DmlTriggerType.All,
-            bool executeUserPermissionCheck = false)
+            bool executeUserPermissionCheck = false, string dataBaseObjectNamePrefix = null)
         {
             if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
@@ -198,7 +198,7 @@ namespace TableDependency
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention();
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(dataBaseObjectNamePrefix);
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
         }
@@ -485,7 +485,7 @@ namespace TableDependency
 
         protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
-        protected abstract string GetBaseObjectsNamingConvention();
+        protected abstract string GetBaseObjectsNamingConvention(string dataBaseObjectNamePrefix);
 
         protected abstract string GetDataBaseName(string connectionString);
 
