@@ -69,7 +69,8 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<RowVersioneModel>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<RowVersioneModel>(ConnectionString,TableName);
+             //   tableDependency = new SqlTableDependency<RowVersioneModel>(ConnectionString, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
 

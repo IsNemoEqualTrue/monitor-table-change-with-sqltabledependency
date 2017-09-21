@@ -64,6 +64,7 @@ namespace TableDependency
         protected bool _disposed;
         protected string _dataBaseObjectsNamingConvention;
 
+
         #endregion
 
         #region Events
