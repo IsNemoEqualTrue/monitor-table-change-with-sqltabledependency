@@ -101,7 +101,7 @@ This section reports some use case examples. Some of these examples, use OracleT
 * [Get Status.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Status-change)
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 
-### Remark
+#### Remark
 <blockquote>
 The Start(int timeOut = 120, int watchDogTimeOut = 180) method runs the listener to receive record change notifications.
 The watchDogTimeOut parameter specify the amount of time in seconds for the watch dog system.
@@ -115,7 +115,7 @@ However, when the application exits abruptly – that is not calling the Stop() 
 There is one very common scenario that results in much more time: debugging. When you develop applications, you often spend several minutes inside the debugger before you move on. So please be careful when you debug an application that the value assigned to watchDogTimeOut parameter is long enough, otherwise you will incur in a destruction of database objects in the middle of you debug activity.
 </blockquote>
 
-### Under The Hood
+#### Under The Hood
 SqlTableDependency's record change audit, provides the low-level implementation to receive database notifications creating SQL Server trigger, queue and service broker that immediately notify us when any record table changes happens.
 
 Assuming we want monitor the Customer table contents, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
@@ -130,7 +130,7 @@ Assuming we want monitor the Customer table contents, we create a SqlTableDepend
 
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
 
-### Requirements
+#### Requirements
 When you use notifications, you must be sure to enable Service Broker for the database. To do that you can use the following command:
 ```SQL
 ALTER DATABASE MyDatabase SET ENABLE_BROKER
@@ -152,15 +152,15 @@ Also case user specified in connection string is not DBO or has not db_owner rol
 
 It is also possible skip the permissions test done from SqlTableDependency, setting executeUserPermissionCheck constructor parameter to false. In this case, If the user does not have sufficient permissions, a SQL server exception will be thrown.
 
-### Donate
+#### Donate
 SqlTableDependency is a personal open source project. Started in 2015, I have put hundreds of hours adding new features, enhancing and fixes, with the goal to make them a usefull and  user-friendly component. I need your help to achieve this.
 
 [![Donate](https://pledgie.com/campaigns/30269.png)](https://pledgie.com/campaigns/30269)
 
-### Contributors
+#### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
-### Useful link
+#### Useful link
 * http://msftsbprodsamples.codeplex.com/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
