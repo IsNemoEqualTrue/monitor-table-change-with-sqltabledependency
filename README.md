@@ -102,8 +102,8 @@ This section reports some use case examples. Some of these examples, use the Ora
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 
 #### Remark
-The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method runs the listener to receive record change notifications.
-The `watchDogTimeOut` parameter specify the amount of time in seconds for the watch dog system.
+The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method starts the listener to receive record change notifications.
+The `watchDogTimeOut` parameter specifies the amount of time in seconds for the watch dog system.
 
 After calling the `Stop()` method, notifications are not longer delivered. Database objects created by SqlTableDependency will be deleted.
 
