@@ -198,7 +198,7 @@ namespace TableDependency
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention();
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(true);
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
         }
@@ -227,7 +227,7 @@ namespace TableDependency
             }
 
             _disposed = false;
-            _processableMessages = this.CreateOrReuseDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
+            _processableMessages = this.CreateOrReuseDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
         }
 
         /// <summary>
@@ -485,7 +485,7 @@ namespace TableDependency
 
         protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
-        protected abstract string GetBaseObjectsNamingConvention();
+        protected abstract string GetBaseObjectsNamingConvention(bool withId);
 
         protected abstract string GetDataBaseName(string connectionString);
 
@@ -573,7 +573,7 @@ namespace TableDependency
 
         #region Database object generation/disposition
 
-        protected abstract IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+        protected abstract IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
         protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 
