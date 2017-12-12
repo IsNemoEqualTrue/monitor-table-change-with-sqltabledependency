@@ -28,6 +28,10 @@ namespace TableDependency.SqlClient.Resources
 {
     public static class SqlScripts
     {
+        public const string DropProcedureQueueActivation = @"
+IF EXISTS (SELECT * FROM sysobjects where NAME='{0}_QueueActivation')
+	DROP PROCEDURE {1}.[{0}_QueueActivation];
+";
         public const string CreateProcedureQueueActivation = @"
 CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
 BEGIN 
@@ -47,7 +51,10 @@ BEGIN
         END 
     END
 END";
-
+        public const string DropTrigger = @"
+IF EXISTS (SELECT * FROM sysobjects where NAME='tr_{0}')
+	DROP TRIGGER [tr_{0}];
+";
         public const string CreateTrigger = @"
 CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
 BEGIN

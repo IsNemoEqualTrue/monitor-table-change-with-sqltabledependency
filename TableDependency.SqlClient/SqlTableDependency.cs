@@ -443,7 +443,7 @@ namespace TableDependency.SqlClient
                         }
                         processableMessages.Add(message);
                     }
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Message Types {(doDoesNotExist ? "reused." : "created.")}.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Message Types {(doDoesNotExist ? "created." : "reused.")}.");
 
                     if (doDoesNotExist)
                     {
@@ -451,13 +451,20 @@ namespace TableDependency.SqlClient
                         sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
+                    }
 
-                        var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
-                        var dropAllScript = this.PrepareScriptDropAll(databaseObjectsNaming, dropMessages);
-                        sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(databaseObjectsNaming, dropAllScript, disposeMessage);
-                        sqlCommand.ExecuteNonQuery();
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
+                    sqlCommand.CommandText = this.PrepareScriptDropProcedureQueueActivation(databaseObjectsNaming);
+                    sqlCommand.ExecuteNonQuery();
 
+                    var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
+                    var dropAllScript = this.PrepareScriptDropAll(databaseObjectsNaming, dropMessages);
+                    sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(databaseObjectsNaming, dropAllScript, disposeMessage);
+                    sqlCommand.ExecuteNonQuery();
+
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Procedure Queue Activation {(doDoesNotExist ? "replaced" : "created")}.");
+
+                    if (doDoesNotExist)
+                    {
                         sqlCommand.CommandText = $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()});";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
@@ -467,18 +474,23 @@ namespace TableDependency.SqlClient
                             : $"CREATE SERVICE [{databaseObjectsNaming}] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}]);";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, "Service broker created.");
+                    }
 
-                        var declareVariableStatement = this.PrepareDeclareVariableStatement(interestedColumns);
-                        var selectForSetVariablesStatement = this.PrepareSelectForSetVariables(interestedColumns);
-                        var sendInsertConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
-                        var sendUpdatedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
-                        var sendDeletedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
-                        var exceptStatement = this.PrepareExceptStatement(interestedColumns);
-                        var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
-                            ? string.Format(SqlScripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement)
-                            : string.Format(SqlScripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement);
+                    var declareVariableStatement = this.PrepareDeclareVariableStatement(interestedColumns);
+                    var selectForSetVariablesStatement = this.PrepareSelectForSetVariables(interestedColumns);
+                    var sendInsertConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
+                    var sendUpdatedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
+                    var sendDeletedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
+                    var exceptStatement = this.PrepareExceptStatement(interestedColumns);
+                    var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
+                        ? string.Format(SqlScripts.TriggerUpdateWithColumns, updateColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement)
+                        : string.Format(SqlScripts.TriggerUpdateWithoutColumns, _tableName, selectColumns, ChangeType.Update, exceptStatement);
 
-                        sqlCommand.CommandText = this.PrepareScriptTrigger(
+
+                    sqlCommand.CommandText = this.PrepareScriptDropTrigger(databaseObjectsNaming);
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = this.PrepareScriptTrigger(
                             databaseObjectsNaming,
                             tableColumns,
                             selectColumns,
@@ -489,9 +501,9 @@ namespace TableDependency.SqlClient
                             sendUpdatedConversationStatements,
                             sendDeletedConversationStatements);
 
-                        sqlCommand.ExecuteNonQuery();
-                        this.WriteTraceMessage(TraceLevel.Verbose, "Trigger created.");
-                    }
+                    sqlCommand.ExecuteNonQuery();
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {(doDoesNotExist ? "created" : "replaced")}.");
+
                     var sqlParameter = new SqlParameter { ParameterName = "@dialog_handle", DbType = DbType.Guid, Direction = ParameterDirection.Output };
                     sqlCommand.CommandText = string.Format("BEGIN DIALOG @dialog_handle FROM SERVICE [{0}] TO SERVICE '{0}';", _dataBaseObjectsNamingConvention);
                     sqlCommand.Parameters.Add(sqlParameter);
@@ -570,6 +582,14 @@ namespace TableDependency.SqlClient
             return this.ActivateDatabaseLoging ? script : this.RemoveLogOperations(script);
         }
 
+        protected virtual string PrepareScriptDropTrigger(string databaseObjectsNaming)
+        {
+            return string.Format(SqlScripts.DropTrigger, databaseObjectsNaming);
+        }
+        protected virtual string PrepareScriptDropProcedureQueueActivation(string databaseObjectsNaming)
+        {
+            return string.Format(SqlScripts.DropProcedureQueueActivation, databaseObjectsNaming, _schemaName);
+        }
         protected virtual string RemoveLogOperations(string source)
         {
             while (true)
