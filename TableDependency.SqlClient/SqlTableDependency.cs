@@ -450,8 +450,8 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = $"IF EXISTS (SELECT * FROM sys.services WITH (NOLOCK) WHERE name = N'{databaseObjectsNaming}') DROP SERVICE [{databaseObjectsNaming}]";
                     sqlCommand.ExecuteNonQuery();
 
-
-                    sqlCommand.CommandText = $"SELECT message_type_name, message_body, [conversation_handle] FROM [{SchemaName}].[{databaseObjectsNaming}] WHERE message_type_name LIKE '{databaseObjectsNaming}%';";
+                    
+                    sqlCommand.CommandText = $"IF EXISTS(SELECT * FROM sys.service_queues WHERE name = '{databaseObjectsNaming}') SELECT message_type_name, message_body, [conversation_handle] FROM [{SchemaName}].[{databaseObjectsNaming}] WHERE message_type_name LIKE '{databaseObjectsNaming}%';";
                     var queueTable = new DataTable();
                     SqlDataAdapter oDataAdapter = new SqlDataAdapter(sqlCommand);
                     oDataAdapter.Fill(queueTable);
@@ -466,14 +466,12 @@ namespace TableDependency.SqlClient
                     
                     foreach (var message in typesToAdd)
                     {
-                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageInsert}] VALIDATION = NONE;";
+                        sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
                         sqlCommand.ExecuteNonQuery();
                     }
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message Types {(doDoesNotExist ? "created." : "reused.")}.");
 
-
-                    
-
+                   
                     var contractBody = string.Join("," + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                     sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                     sqlCommand.ExecuteNonQuery();
