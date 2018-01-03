@@ -412,12 +412,12 @@ namespace TableDependency
             foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
                 var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
-                //var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
+                var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
 
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (tableColumn.Name != null && string.Equals(tableColumn.Name.ToLowerInvariant(), propertyMappedTo?.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                    if (tableColumn.Name != null && string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName?.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
                     {
                         if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {

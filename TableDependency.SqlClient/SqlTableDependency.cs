@@ -520,9 +520,7 @@ namespace TableDependency.SqlClient
                             sb.AppendLine("WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;");
 
 
-                            var items = group.ToArray();
                             int i = 0;
-
                             foreach (var item in group)
                             {
                                 string messageTypeName = item.Field<string>("message_type_name");
