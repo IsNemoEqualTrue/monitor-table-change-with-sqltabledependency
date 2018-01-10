@@ -1,4 +1,4 @@
-# Monitor and receive notifications on table changes
+# Monitor and receive notifications on record table changes
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![license](https://img.shields.io/badge/release-6.1.0-brightgreen.svg)](#) [![date](https://img.shields.io/badge/date-May%2026%2C%202017-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2012-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
 
@@ -21,7 +21,7 @@ Start installing SqlTableDependency using:
 
 [![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
-We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns: just the ones we are interested in:
+We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns but just the ones we are interested in:
 
 ```C#
 public class Customer
