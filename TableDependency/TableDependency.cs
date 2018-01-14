@@ -167,14 +167,14 @@ namespace TableDependency
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType dmlTriggerType = DmlTriggerType.All,
-            bool executeUserPermissionCheck = false)
+            bool executeUserPermissionCheck = true)
         {
             if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
 
             this.CheckIfConnectionStringIsValid(connectionString);
             this.CheckIfParameterlessConstructorExistsForModel();
-            if (!executeUserPermissionCheck) this.CheckIfUserHasPermissions(connectionString);
+            if (executeUserPermissionCheck) this.CheckIfUserHasPermissions(connectionString);
 
             _connectionString = connectionString;
             _tableName = this.GetTableName(tableName);
