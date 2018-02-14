@@ -48,6 +48,7 @@ using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.SqlClient.Utilities;
 using TableDependency.Utilities;
+using System.Reflection;
 #endregion
 
 namespace TableDependency.SqlClient
@@ -62,6 +63,7 @@ namespace TableDependency.SqlClient
         protected Guid DialogHandle;
         protected const string DisposeMessageTemplate = "{0}/Dispose";
         protected const string StartMessageTemplate = "{0}/StartDialog/{1}";
+        protected readonly string Salt = string.Empty;
 
         #endregion
 
@@ -133,8 +135,10 @@ namespace TableDependency.SqlClient
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType notifyOn = DmlTriggerType.All,
-            bool executeUserPermissionCheck = false) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
+            bool executeUserPermissionCheck = false,
+            string salt = "") : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
         {
+            Salt = salt;
         }
 
         #endregion
@@ -322,7 +326,8 @@ namespace TableDependency.SqlClient
             using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
-                var sqlCommand = new SqlCommand($"SELECT name FROM sys.service_queues WITH (NOLOCK) WHERE name like N'{GetBaseObjectsNamingConvention(false)}%' order by create_date DESC;", sqlConnection);
+                var sqlCommand = new SqlCommand($"SELECT name FROM sys.service_queues WITH (NOLOCK) WHERE name = @objectName order by create_date DESC;", sqlConnection);
+                sqlCommand.Parameters.AddWithValue("@objectName", GetBaseObjectsNamingConvention());
                 string dbName = (string)sqlCommand.ExecuteScalar();
                 if (!string.IsNullOrEmpty(dbName))
                 {
@@ -347,9 +352,9 @@ namespace TableDependency.SqlClient
             return processableMessages;
         }
 
-        protected override string GetBaseObjectsNamingConvention(bool withId)
+        protected override string GetBaseObjectsNamingConvention()
         {
-            return $"{_schemaName}_{_tableName}{(withId ? $"_{Guid.NewGuid()}" : "")}";
+            return $"{Environment.MachineName}_{Assembly.GetEntryAssembly().GetName().Name}_{TableName}{Salt}";
         }
 
         protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
@@ -450,7 +455,7 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = $"IF EXISTS (SELECT * FROM sys.services WITH (NOLOCK) WHERE name = N'{databaseObjectsNaming}') DROP SERVICE [{databaseObjectsNaming}]";
                     sqlCommand.ExecuteNonQuery();
 
-                    
+
                     sqlCommand.CommandText = $"IF EXISTS(SELECT * FROM sys.service_queues WHERE name = '{databaseObjectsNaming}') SELECT message_type_name, message_body, [conversation_handle] FROM [{SchemaName}].[{databaseObjectsNaming}] WHERE message_type_name LIKE '{databaseObjectsNaming}%';";
                     var queueTable = new DataTable();
                     SqlDataAdapter oDataAdapter = new SqlDataAdapter(sqlCommand);
@@ -462,8 +467,8 @@ namespace TableDependency.SqlClient
                     sqlCommand.CommandText = $"IF EXISTS (SELECT * FROM sys.service_contracts WITH (NOLOCK) WHERE name = N'{databaseObjectsNaming}') DROP CONTRACT [{databaseObjectsNaming}]";
                     sqlCommand.ExecuteNonQuery();
 
-                    
-                    
+
+
                     foreach (var message in typesToAdd)
                     {
                         sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
@@ -471,7 +476,7 @@ namespace TableDependency.SqlClient
                     }
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message Types {(doDoesNotExist ? "created." : "reused.")}.");
 
-                   
+
                     var contractBody = string.Join("," + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
                     sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
                     sqlCommand.ExecuteNonQuery();

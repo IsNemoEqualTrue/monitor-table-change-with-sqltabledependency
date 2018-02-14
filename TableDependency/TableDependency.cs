@@ -198,7 +198,7 @@ namespace TableDependency
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
             this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
 
-            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention(true);
+            _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention();
             _dmlTriggerType = dmlTriggerType;
             _filter = filter;
         }
@@ -485,7 +485,7 @@ namespace TableDependency
 
         protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
 
-        protected abstract string GetBaseObjectsNamingConvention(bool withId);
+        protected abstract string GetBaseObjectsNamingConvention();
 
         protected abstract string GetDataBaseName(string connectionString);
 
