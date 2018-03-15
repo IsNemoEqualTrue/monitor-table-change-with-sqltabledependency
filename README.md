@@ -82,7 +82,9 @@ Done! Now you are ready to receive notifications:
 [![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ### Monitor table changes use cases and examples
-Here are some examples of applications getting notification on record table change. After downloading the example, please remember to update SqlTableDependency nuget package:
+To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test).
+
+Also, here are some examples of applications getting notification on record table change. After downloading the example, please remember to update SqlTableDependency nuget package:
 
 * [Monitor table change with WPF and WCF](https://github.com/christiandelbianco/Monitor-table-change-with-WPF-WCF-sqltabledependency): This example shows how to continuously update a _DataGrid_ of stock data. The grid will be updated whenever a record change occurs. The notification event contains new values for the modified table record.
 * [Monitor table change with MVC, SignalR and jQuery](https://github.com/christiandelbianco/monitor-table-change-with-mvc-signalR-jquery-sqltabledependency): This example shows how to continuously update a table containing stock data. The table will be updated whenever a record change occurs. The notification event contains new values for the modified table record.
