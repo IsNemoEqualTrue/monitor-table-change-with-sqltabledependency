@@ -132,8 +132,8 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 ### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
-* Server hosting SqlTableDependency **must not goes to SLEEP mode**. Sleep mode block SqlTableDependency code and this result in running the database watch dog that drop all SqlTableDependency's db objects.
-* Backup and Restore of database already containing SqlTableDependency's db objects, does not works.
+* Server hosting SqlTableDependency **must not goes to SLEEP mode**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects.
+* Backup and Restore of database already containing SqlTableDependency's db objects, does not work.
 
 When you use notifications, you must be sure to enable Service Broker for the database. To do so, please run the following command:
 ```SQL
