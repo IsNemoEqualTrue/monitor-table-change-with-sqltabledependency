@@ -158,5 +158,7 @@ It is possible skip permissions test done by SqlTableDependency setting `execute
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
 #### Useful link
+* http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/
+* https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
