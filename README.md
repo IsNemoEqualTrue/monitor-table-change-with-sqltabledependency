@@ -188,8 +188,7 @@ Executing same script on DB created by a SQL Server 2008 R2 instance (TableDepen
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-42.png" />
 
-Even if your SQL Server instance is 2008 R2 or greater, DB compatibility lever is fondamental to receive record change notifications!
-
+Even if your SQL Server instance is 2008 R2 or greater, DB compatibility lever (VALUE column) is fondamental to receive record change notifications!
 
 #### Useful link
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
