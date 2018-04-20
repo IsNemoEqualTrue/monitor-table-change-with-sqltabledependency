@@ -182,10 +182,10 @@ END [SQLVersion]
 FROM @DBINFO
 WHERE [Field] IN ('dbi_createversion','dbi_version')
 ```
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-42.png" />
 
 Then executing same script on DB created by a SQL Server 2008 R2 instance, the result was:
-
-
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-04.png" />
 
 Compatibility lever is fondamental to receive record change notifications!
 
