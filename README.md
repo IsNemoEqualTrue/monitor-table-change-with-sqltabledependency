@@ -152,7 +152,7 @@ In case the user specified in the connection string is not database operator and
 * VIEW DATABASE STATE
 * VIEW DEFINITION
 
-It is possible to skip the permissions test done by SqlTableDependency. Set the `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if the user does not have sufficient permissions.
+It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
 
 #### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
