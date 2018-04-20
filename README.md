@@ -158,7 +158,7 @@ It is possible skip permissions test done by SqlTableDependency setting `execute
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
 To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency, no exception is raised as well as no notification on record change is detected.
 
-In order to discover yout database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). I initially executed it using the old Northwind database and what i get as result is visible in the picture below:
+In order to discover yout database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). Executint this script on Northwind database I got:
 
 ```SQL
 USE Northwind
@@ -182,12 +182,13 @@ END [SQLVersion]
 FROM @DBINFO
 WHERE [Field] IN ('dbi_createversion','dbi_version')
 ```
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-42.png" />
-
-Then executing same script on DB created by a SQL Server 2008 R2 instance, the result was:
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-04.png" />
 
-Compatibility lever is fondamental to receive record change notifications!
+Then executing same script on DB created by a SQL Server 2008 R2 instance, the result was:
+
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-42.png" />
+
+Even if your SQL Server instance is 2008 R2 or greater, DB compatibility lever is fondamental to receive record change notifications!
 
 #### Useful link
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
