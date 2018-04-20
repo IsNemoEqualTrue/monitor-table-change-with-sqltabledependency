@@ -130,7 +130,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
 
 #### Requirements
-* SQL Server 2008 R2 or latest versions
+* SQL Server 2008 R2 or latest versions (plese see note about Compatibility Level and Database Version)
 * .NET Framewrok 4.5.1 or latest versions
 
 When you use notifications, you must be sure to enable Service Broker for the database. To do so, please run the following command:
@@ -154,11 +154,46 @@ In case the user specified in the connection string is not database operator and
 
 It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
 
-#### Contributors
-Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
+### Note about Compatibility Level and Database Version
+From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
+To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency, no exception is raised as well as no notification on record change is detected.
+
+In order to discover yout database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). I initially executed it using the old Northwind database and what i get as result is visible in the picture below:
+
+```SQL
+USE Northwind
+
+DECLARE @DBINFO TABLE ([ParentObject] VARCHAR(60),[Object] VARCHAR(60),[Field] VARCHAR(30),[VALUE] VARCHAR(4000))
+INSERT INTO @DBINFO
+EXECUTE sp_executesql N'DBCC DBINFO WITH TABLERESULTS'
+SELECT [Field]
+,[VALUE]
+,CASE
+WHEN [VALUE] = 515 THEN 'SQL 7'
+WHEN [VALUE] = 539 THEN 'SQL 2000'
+WHEN [VALUE] IN (611,612) THEN 'SQL 2005'
+WHEN [VALUE] = 655 THEN 'SQL 2008'
+WHEN [VALUE] = 661 THEN 'SQL 2008R2'
+WHEN [VALUE] = 706 THEN 'SQL 2012'
+WHEN [VALUE] = 782 THEN 'SQL 2014'
+WHEN [VALUE] = 852 THEN 'SQL 2016'
+ELSE '?'
+END [SQLVersion]
+FROM @DBINFO
+WHERE [Field] IN ('dbi_createversion','dbi_version')
+```
+
+Then executing same script on DB created by a SQL Server 2008 R2 instance, the result was:
+
+
+
+Compatibility lever is fondamental to receive record change notifications!
 
 #### Useful link
-* http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
+
+#### Contributors
+Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
+
