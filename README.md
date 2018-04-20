@@ -188,7 +188,7 @@ WHERE [Field] IN ('dbi_createversion','dbi_version')
 
 Executing same script on DB created by SQL Server 2008 R2 instance (TableDependencyDB), the result is:
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-42.png" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2011-51-49.png" />
 
 Even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
 
