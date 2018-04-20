@@ -36,16 +36,15 @@ Properties can have a different name from table column. We'll see later how to e
 Create the SqlTableDependency object passing the connection string and table name (only necessary if the C# model name is different from the table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
-using System;
+using TableDependency;
 using TableDependency.SqlClient;
-using TableDependency.Enums;
-using TableDependency.Events;
+using TableDependency.EventArgs;
 
-class Program
+public class Program
 {
-   var _con= "data source=.; initial catalog=MyDB; integrated security=True";
+   private static string _con= "data source=.; initial catalog=MyDB; integrated security=True";
    
-   static void Main()
+   public static void Main()
    {
        // The mappar is use to link model properties with table columns name in case name do not match
        var mapper = new ModelToTableMapper<Customer>();
@@ -66,7 +65,7 @@ class Program
         }
    }
 
-   static void Changed(object sender, RecordChangedEventArgs<Customer> e)
+   public static void Changed(object sender, RecordChangedEventArgs<Customer> e)
    {
       var changedEntity = e.Entity;
       Console.WriteLine("DML operation: " + e.ChangeType);
