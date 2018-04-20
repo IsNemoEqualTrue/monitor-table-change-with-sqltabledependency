@@ -156,7 +156,7 @@ In case the user specified in the connection string is not database operator and
 
 It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
 
-### Note about Compatibility Level and Database Version
+### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
 To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
 
