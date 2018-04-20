@@ -130,7 +130,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
 
 #### Requirements
-* SQL Server 2012 or latest versions
+* SQL Server 2008 R2 or latest versions
 * .NET Framewrok 4.5.1 or latest versions
 
 When you use notifications, you must be sure to enable Service Broker for the database. To do so, please run the following command:
