@@ -163,7 +163,7 @@ To reproduce this issue infact, I download Northwind.mdf file and then I attache
 In order to discover your database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). Executing this script on my Northwind database I get:
 
 ```SQL
-USE Northwind
+USE <your db>
 
 DECLARE @DBINFO TABLE ([ParentObject] VARCHAR(60),[Object] VARCHAR(60),[Field] VARCHAR(30),[VALUE] VARCHAR(4000))
 INSERT INTO @DBINFO
