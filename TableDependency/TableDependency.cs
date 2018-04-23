@@ -227,7 +227,7 @@ namespace TableDependency
             }
 
             _disposed = false;
-            _processableMessages = this.CreateOrReuseDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
+            _processableMessages = this.CreateOrReuseDatabaseObjects(_connectionString, _tableName, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
         }
 
         /// <summary>
@@ -417,7 +417,7 @@ namespace TableDependency
                 // If model property is mapped to table column keep it
                 foreach (var tableColumn in tableColumnsList)
                 {
-                    if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                    if (tableColumn.Name != null && string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName?.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
                     {
                         if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {
@@ -573,7 +573,7 @@ namespace TableDependency
 
         #region Database object generation/disposition
 
-        protected abstract IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+        protected abstract IList<string> CreateOrReuseDatabaseObjects(string connectionString, string tableName, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
 
         protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
 

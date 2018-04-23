@@ -28,7 +28,11 @@ namespace TableDependency.SqlClient.Resources
 {
     public static class SqlScripts
     {
-        public const string CreateProcedureQueueActivation = @"
+        public static readonly string DropProcedureQueueActivation = @"
+IF EXISTS (SELECT * FROM sysobjects where NAME='{0}_QueueActivation')
+	DROP PROCEDURE {1}.[{0}_QueueActivation];
+";
+        public static readonly string CreateProcedureQueueActivation = @"
 CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
 BEGIN 
     SET NOCOUNT ON;
@@ -47,8 +51,11 @@ BEGIN
         END 
     END
 END";
-
-        public const string CreateTrigger = @"
+        public static readonly string DropTrigger = @"
+IF EXISTS (SELECT * FROM sysobjects where NAME='tr_{0}')
+	DROP TRIGGER [tr_{0}];
+";
+        public static readonly string CreateTrigger = @"
 CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
 BEGIN
     SET NOCOUNT ON;
@@ -140,12 +147,12 @@ BEGIN
     END CATCH
 END";
 
-        public const string DisposeMessage = @"
+        public static readonly string DisposeMessage = @"
 DECLARE @conversation uniqueidentifier;
 BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE '{0}' ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
 SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);";
 
-        public const string InformationSchemaColumns = @"
+        public static readonly string InformationSchemaColumns = @"
 SELECT DB_NAME() AS TABLE_CATALOG,
 SCHEMA_NAME(o.schema_id) AS TABLE_SCHEMA,
 o.name AS TABLE_NAME,
@@ -184,10 +191,10 @@ FROM sys.objects o JOIN sys.columns c ON c.object_id = o.object_id
 LEFT JOIN sys.types t ON c.user_type_id = t.user_type_id
 WHERE o.type IN ('U') and SCHEMA_NAME(o.schema_id) = '{0}' and o.name = '{1}'";
 
-        public const string InformationSchemaTables = @"
+        public static readonly string InformationSchemaTables = @"
 SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
 
-        public const string ScriptDropAll = @"
+        public static readonly string ScriptDropAll = @"
 DECLARE @schema_id INT;
 DECLARE @conversation_handle UNIQUEIDENTIFIER;
 
@@ -241,7 +248,7 @@ IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id 
         /// ObjectName      : Name of the object that the user/role is assigned permissions on. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
         /// ColumnName      : Name of the column of the object that the user/role is assigned permissions on.This value is only populated if the object is a table, view or a table value function.  
         /// </summary>
-        public const string SelectUserGrants = @"
+        public static readonly string SelectUserGrants = @"
 --List all access provisioned to a sql user or windows user/group directly 
 SELECT  
     [UserName] = CASE princ.[type] WHEN 'S' THEN princ.[name] WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
@@ -342,7 +349,7 @@ ORDER BY
     perm.[state_desc],
     obj.type_desc--perm.[class_desc]";
 
-        public const string TriggerUpdateWithColumns = @"IF ({0}) BEGIN
+        public static readonly string TriggerUpdateWithColumns = @"IF ({0}) BEGIN
     SET @dmlType = '{3}'
     INSERT INTO @modifiedRecordsTable SELECT {2} FROM
     {4}
@@ -351,7 +358,7 @@ ELSE BEGIN
     RETURN
 END";
 
-        public const string TriggerUpdateWithoutColumns = @"
+        public static readonly string TriggerUpdateWithoutColumns = @"
 SET @dmlType = '{2}'
 INSERT INTO @modifiedRecordsTable SELECT {1} FROM
 {3}";
