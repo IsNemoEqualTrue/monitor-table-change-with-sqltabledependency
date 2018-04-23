@@ -193,7 +193,7 @@ Executing same script on DB created by SQL Server 2008 R2 instance (TableDepende
 Even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
 
 ### Not supported SQL Server types
-Following SQL Server columns types are not supported by SqlTableDepdency:
+Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * XML
 * IMAGE
 * TEXT/NTEXT
