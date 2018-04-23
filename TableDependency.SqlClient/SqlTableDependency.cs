@@ -125,7 +125,7 @@ namespace TableDependency.SqlClient
         /// <param name="updateOf">List of columns that need to monitor for changing on order to receive notifications.</param>
         /// <param name="filter">The filter condition translated in WHERE.</param>
         /// <param name="notifyOn">The notify on Insert, Delete, Update operation.</param>
-        /// <param name="executeUserPermissionCheck">if set to <c>true</c> [execute user permission check].</param>
+        /// <param name="executeUserPermissionCheck">if set to <c>true</c> [skip user permission check].</param>
         public SqlTableDependency(
             string connectionString,
             string tableName = null,
@@ -133,7 +133,7 @@ namespace TableDependency.SqlClient
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType notifyOn = DmlTriggerType.All,
-            bool executeUserPermissionCheck = false) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
+            bool executeUserPermissionCheck = true) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
         {
         }
 
