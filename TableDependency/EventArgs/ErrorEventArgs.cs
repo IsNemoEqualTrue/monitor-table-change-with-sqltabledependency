@@ -40,14 +40,12 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal ErrorEventArgs(Exception e, string server, string database, string sender) 
-            : this("TableDependency stopped working", e, server, database, sender)
+        internal ErrorEventArgs(Exception e, string server, string database, string sender) : this("TableDependency stopped working", e, server, database, sender)
         {
 
         }
 
-        internal ErrorEventArgs(string message, Exception e, string server, string database, string sender) 
-            : base(server, database, sender)
+        internal ErrorEventArgs(string message, Exception e, string server, string database, string sender) : base(server, database, sender)
         {
             this.Message = message;
             this.Error = e;

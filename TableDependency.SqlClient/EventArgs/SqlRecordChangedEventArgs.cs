@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using TableDependency.Abstracts;
@@ -45,7 +46,7 @@ namespace TableDependency.SqlClient.EventArgs
             string server,
             string database,
             string sender,
-            string cultureInfoFiveLettersIsoCode) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfoFiveLettersIsoCode)
+            CultureInfo cultureInfo) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfo)
         {
 
         }

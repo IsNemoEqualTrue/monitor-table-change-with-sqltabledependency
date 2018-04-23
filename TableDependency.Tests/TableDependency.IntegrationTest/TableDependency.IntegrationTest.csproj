@@ -80,9 +80,13 @@
     <Compile Include="DatabaseObjectAutoCleanUpTestSqlServer.cs" />
     <Compile Include="Issue55.cs" />
     <Compile Include="TableWithSpaces.cs" />
+    <Compile Include="TransactionTestSqlServer4.cs" />
+    <Compile Include="TransactionTestSqlServer3.cs" />
+    <Compile Include="TransactionTestSqlServer2.cs" />
     <Compile Include="TransactionTestSqlServer.cs" />
     <Compile Include="Issue27.cs" />
     <Compile Include="RowVersionType.cs" />
+    <Compile Include="UseSchemaOtherThanDBOTestSqlServer2.cs" />
     <Compile Include="UseSchemaOtherThanDBOTestSqlServer.cs" />
     <Compile Include="NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer.cs" />
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />

@@ -32,7 +32,7 @@ namespace TableDependency.EventArgs
     {
         #region Properties
 
-        public CultureInfo Culture { get; protected set; }
+        public CultureInfo CultureInfo { get; protected set; }
         public string Server { get; protected set; }
         public string Database { get; protected set; }
         public string Sender { get; protected set; }
@@ -41,13 +41,12 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        protected BaseEventArgs(string server, string database, string sender, string cultureInfoFiveLettersIsoCode = "en-US")
+        protected BaseEventArgs(string server, string database, string sender, CultureInfo cultureInfo = null)
         {
             this.Server = server;
             this.Database = database;
             this.Sender = sender;
-
-            this.Culture = new CultureInfo(cultureInfoFiveLettersIsoCode);
+            this.CultureInfo = cultureInfo;
         }
 
         #endregion

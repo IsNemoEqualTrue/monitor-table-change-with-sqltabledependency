@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using TableDependency.Abstracts;
@@ -62,7 +63,7 @@ namespace TableDependency.EventArgs
             string server,
             string database,
             string sender,
-            string cultureInfoFiveLettersIsoCode) : base(server, database, sender, cultureInfoFiveLettersIsoCode)
+            CultureInfo cultureInfo) : base(server, database, sender, cultureInfo)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
@@ -78,7 +79,7 @@ namespace TableDependency.EventArgs
 
         public virtual object GetValue(PropertyInfo propertyInfo, ColumnInfo columnInfo, byte[] message)
         {
-            var stringValue = Convert.ToString(this.MessagesBag.Encoding.GetString(message), base.Culture);
+            var stringValue = Convert.ToString(this.MessagesBag.Encoding.GetString(message), base.CultureInfo);
             return this.GetValueObject(propertyInfo, stringValue);
         }
 
@@ -100,40 +101,40 @@ namespace TableDependency.EventArgs
                     return Char.Parse(value);
 
                 case TypeCode.SByte:
-                    return SByte.Parse(value, this.Culture);
+                    return SByte.Parse(value, base.CultureInfo);
 
                 case TypeCode.Byte:
-                    return Byte.Parse(value, this.Culture);
+                    return Byte.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int16:
-                    return Int16.Parse(value, this.Culture);
+                    return Int16.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt16:
-                    return UInt16.Parse(value, this.Culture);
+                    return UInt16.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int32:
-                    return Int32.Parse(value, this.Culture);
+                    return Int32.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt32:
-                    return UInt32.Parse(value, this.Culture);
+                    return UInt32.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int64:
-                    return Int64.Parse(value, this.Culture);
+                    return Int64.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt64:
-                    return UInt64.Parse(value, this.Culture);
+                    return UInt64.Parse(value, base.CultureInfo);
 
                 case TypeCode.Single:
-                    return Single.Parse(value, this.Culture);
+                    return Single.Parse(value, base.CultureInfo);
 
                 case TypeCode.Double:
-                    return Double.Parse(value, this.Culture);
+                    return Double.Parse(value, base.CultureInfo);
 
                 case TypeCode.Decimal:
-                    return Decimal.Parse(value, this.Culture);
+                    return Decimal.Parse(value, base.CultureInfo);
 
                 case TypeCode.DateTime:
-                    return DateTime.Parse(value, this.Culture);
+                    return DateTime.Parse(value, base.CultureInfo);
 
                 case TypeCode.String:
                     return value as string;

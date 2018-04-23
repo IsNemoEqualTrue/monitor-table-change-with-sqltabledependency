@@ -34,7 +34,8 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>TableDependency.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>
@@ -87,9 +88,6 @@
     <Compile Include="Utilities\EnumUtil.cs" />
     <Compile Include="Utilities\ModelUtil.cs" />
     <Compile Include="Utilities\Separator.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="TableDependency.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

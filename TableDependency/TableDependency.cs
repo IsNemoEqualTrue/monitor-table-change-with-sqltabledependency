@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -109,12 +110,12 @@ namespace TableDependency
         public TraceListener TraceListener { get; set; }
 
         /// <summary>
-        /// Gets or sets the culture information five letters iso code.
+        /// Gets or sets the culture info.
         /// </summary>
         /// <value>
         /// The culture information five letters iso code.
         /// </value>
-        public string CultureInfoFiveLettersIsoCode { get; set; } = "en-US";
+        public CultureInfo CultureInfo { get; set; } = new CultureInfo("en-US");
 
         /// <summary>
         /// Gets or sets the encoding use to convert database strings.
@@ -178,7 +179,7 @@ namespace TableDependency
 
             _connectionString = connectionString;
             _tableName = this.GetTableName(tableName);
-            _schemaName = this.GetSchemaName(tableName);
+            _schemaName = this.GetSchemaName();
             _server = this.GetServerName(connectionString);
             _database = this.GetDataBaseName(connectionString);
 
@@ -493,15 +494,15 @@ namespace TableDependency
 
         protected abstract string GetTableName(string tableName);
 
-        protected virtual string GetTableNameFromTableDataAnnotation()
+        protected virtual string GetTableNameFromDataAnnotation()
         {
             var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Name;
         }
 
-        protected abstract string GetSchemaName(string tableName);
+        protected abstract string GetSchemaName();
 
-        protected virtual string GetSchemaNameFromTableDataAnnotation()
+        protected virtual string GetSchemaNameFromDataAnnotation()
         {
             var attribute = typeof(T).GetTypeInfo().GetCustomAttribute(typeof(TableAttribute));
             return ((TableAttribute)attribute)?.Schema;
@@ -516,7 +517,7 @@ namespace TableDependency
                 _server,
                 _database,
                 _dataBaseObjectsNamingConvention, 
-                this.CultureInfoFiveLettersIsoCode);
+                this.CultureInfo);
         }
 
         #endregion

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Configuration;
-using TableDependency;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.SqlClient;
@@ -50,10 +50,9 @@ namespace ConsoleApplicationSqlServer
             if (consoleKeyInfo.Key == ConsoleKey.F5) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
 
 
-            var mapper = new ModelToTableMapper<Customer>();
-            mapper.AddMapping(c => c.Id, "CustomerID");
 
-            using (var dep = new SqlTableDependency<Customer>(connectionString, "Customers", mapper))
+
+            using (var dep = new SqlTableDependency<TransactionItem>(connectionString))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
@@ -72,24 +71,24 @@ namespace ConsoleApplicationSqlServer
             Console.WriteLine(e.Error?.InnerException?.Message);
         }
 
-        private static void Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void Changed(object sender, RecordChangedEventArgs<TransactionItem> e)
         {
             Console.WriteLine(Environment.NewLine);
 
             if (e.ChangeType != ChangeType.None)
             {
-                var changedEntity = e.Entity;
-                Console.WriteLine(@"DML operation: " + e.ChangeType);
-                Console.WriteLine(@"CustomerID:    " + changedEntity.Id);
-                Console.WriteLine(@"ContactTitle:  " + changedEntity.ContactTitle);
-                Console.WriteLine(@"CompanyName:   " + changedEntity.CompanyName);
-                Console.WriteLine(@"ContactName:   " + changedEntity.ContactName);
-                Console.WriteLine(@"Address:       " + changedEntity.Address);
-                Console.WriteLine(@"City:          " + changedEntity.City);
-                Console.WriteLine(@"PostalCode:    " + changedEntity.PostalCode);
-                Console.WriteLine(@"Country:       " + changedEntity.Country);
+                //var changedEntity = e.Entity;
+                //Console.WriteLine(@"DML operation: " + e.ChangeType);
+                //Console.WriteLine(@"CustomerID:    " + changedEntity.Id);
+                //Console.WriteLine(@"ContactTitle:  " + changedEntity.ContactTitle);
+                //Console.WriteLine(@"CompanyName:   " + changedEntity.CompanyName);
+                //Console.WriteLine(@"ContactName:   " + changedEntity.ContactName);
+                //Console.WriteLine(@"Address:       " + changedEntity.Address);
+                //Console.WriteLine(@"City:          " + changedEntity.City);
+                //Console.WriteLine(@"PostalCode:    " + changedEntity.PostalCode);
+                //Console.WriteLine(@"Country:       " + changedEntity.Country);
 
-                Console.WriteLine(@"Issue:       " + new String(changedEntity.Issue));
+                Console.WriteLine(e.Entity.Description);
             }
         }
     }

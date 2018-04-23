@@ -189,14 +189,14 @@ namespace TableDependency.SqlClient
 
         protected override RecordChangedEventArgs<T> GetRecordChangedEventArgs(MessagesBag messagesBag)
         {
-            return new SqlRecordChangedEventArgs<T>(                
+            return new SqlRecordChangedEventArgs<T>(
                 messagesBag,
                 _mapper,
                 _userInterestedColumns,
                 _server,
                 _database,
                 _dataBaseObjectsNamingConvention,
-                this.CultureInfoFiveLettersIsoCode);
+                base.CultureInfo);
         }
 
         protected override string GetDataBaseName(string connectionString)
@@ -215,32 +215,21 @@ namespace TableDependency.SqlClient
         {
             if (!string.IsNullOrWhiteSpace(tableName))
             {
-                if (tableName.Contains("."))
-                {
-                    var splitted = tableName.Split('.');
-                    return splitted[1].Replace("[", string.Empty).Replace("]", string.Empty);
-                }
-
                 return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
 
-            return !string.IsNullOrWhiteSpace(GetTableNameFromTableDataAnnotation()) ? GetTableNameFromTableDataAnnotation() : typeof(T).Name;
+            var tableNameFromDataAnotation = GetTableNameFromDataAnnotation();
+            return !string.IsNullOrWhiteSpace(tableNameFromDataAnotation) ? tableNameFromDataAnotation : typeof(T).Name;
         }
 
-        protected override string GetSchemaName(string tableName)
+        protected override string GetSchemaName()
         {
             // If no default schema is defined for a user account, SQL Server will assume dbo is the default schema. 
             // It is important note that if the user is authenticated by SQL Server via the Windows operating system, no default schema will be associated with the user. 
             // Therefore if the user creates an object, a new schema will be created and named the same as the user, 
             // and the object will be associated with that user schema, though not directly with the user.
-            if (!string.IsNullOrWhiteSpace(tableName))
-            {
-                if (!tableName.Contains(".")) return "dbo";
-                var splitted = tableName.Split('.');
-                return splitted[0].Trim() != string.Empty ? splitted[0].Replace("[", string.Empty).Replace("]", string.Empty) : string.Empty;
-            }
-
-            return !string.IsNullOrWhiteSpace(GetSchemaNameFromTableDataAnnotation()) ? GetSchemaNameFromTableDataAnnotation() : "dbo";
+            var schemaName = GetSchemaNameFromDataAnnotation();
+            return !string.IsNullOrWhiteSpace(schemaName) ? schemaName : "dbo";
         }
 
         protected virtual int GetSchemaId(string schemaName, string connectionString)
@@ -442,19 +431,19 @@ namespace TableDependency.SqlClient
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Contract created.");
 
-                    var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE[{0}];", c)));
+                    var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(c => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", c)));
                     var dropAllScript = this.PrepareScriptDropAll(databaseObjectsNaming, dropMessages);
                     sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(databaseObjectsNaming, dropAllScript, disposeMessage);
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Procedure Queue Activation created.");
 
-                    sqlCommand.CommandText = $"CREATE QUEUE {_schemaName}.[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = {_schemaName}.[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()});";
+                    sqlCommand.CommandText = $"CREATE QUEUE [{_schemaName}].[{databaseObjectsNaming}] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF), ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{databaseObjectsNaming}_QueueActivation], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()});";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Queue created.");
 
                     sqlCommand.CommandText = string.IsNullOrWhiteSpace(this.ServiceAuthorization)
-                        ? $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}]);"
-                        : $"CREATE SERVICE [{databaseObjectsNaming}] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE {_schemaName}.[{databaseObjectsNaming}] ([{databaseObjectsNaming}]);";
+                        ? $"CREATE SERVICE [{databaseObjectsNaming}] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}] ([{databaseObjectsNaming}]);"
+                        : $"CREATE SERVICE [{databaseObjectsNaming}] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}] ([{databaseObjectsNaming}]);";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, "Service broker created.");
 
@@ -741,10 +730,10 @@ namespace TableDependency.SqlClient
         protected virtual string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE[{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE [{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION @h MESSAGE TYPE [{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
                 .ToList();
 
-            sendList.Insert(0, $";SEND ON CONVERSATION @h MESSAGE TYPE[{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
+            sendList.Insert(0, $";SEND ON CONVERSATION @h MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
 
             return string.Join(Environment.NewLine, sendList);
         }
@@ -889,8 +878,8 @@ namespace TableDependency.SqlClient
 
             var waitforSqlScript = "BEGIN CONVERSATION TIMER ('" + dialogHandle + "') TIMEOUT = " + timeOutWatchDog + ";";
             waitforSqlScript += "DECLARE @rh UNIQUEIDENTIFIER;";
-            waitforSqlScript += $"RECEIVE TOP(0) @rh = [conversation_handle] FROM {schemaName}.[{databaseObjectsNaming}];";
-            waitforSqlScript += $"WAITFOR(RECEIVE TOP({processableMessages.Count}) [message_type_name], [message_body] FROM {schemaName}.[{databaseObjectsNaming}]), TIMEOUT {timeOut * 1000};";
+            waitforSqlScript += $"RECEIVE TOP(0) @rh = [conversation_handle] FROM [{schemaName}].[{databaseObjectsNaming}];";
+            waitforSqlScript += $"WAITFOR (RECEIVE TOP({processableMessages.Count}) [message_type_name], [message_body] FROM [{schemaName}].[{databaseObjectsNaming}]), TIMEOUT {timeOut * 1000};";
             waitforSqlScript += "END CONVERSATION @rh WITH CLEANUP;";
 
             try
@@ -910,35 +899,20 @@ namespace TableDependency.SqlClient
 
                         try
                         {
-                            var sqlTransaction = sqlConnection.BeginTransaction();
-
-                            using (var sqlCommand = new SqlCommand(waitforSqlScript, sqlConnection, sqlTransaction))
+                            using (var sqlCommand = new SqlCommand(waitforSqlScript, sqlConnection))
                             {
                                 sqlCommand.CommandTimeout = 0;
                                 this.WriteTraceMessage(TraceLevel.Verbose, "Executing WAITFOR command.");
 
                                 using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                                 {
-                                    try
+                                    while (sqlDataReader.Read())
                                     {
-                                        while (sqlDataReader.Read())
-                                        {
-                                            receivedMessages.Add(new Message(sqlDataReader.GetSqlString(0).Value, sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlBytes(1).Value));
-                                            this.WriteTraceMessage(TraceLevel.Verbose, $"Received message type = {sqlDataReader.GetSqlString(0).Value}.");
-                                        }
-
-                                        sqlDataReader.Close();
-                                        sqlTransaction.Commit();
-                                    }
-                                    catch
-                                    {
-                                        sqlDataReader?.Close();
-                                        sqlTransaction.Rollback();
-                                        throw;
+                                        receivedMessages.Add(new Message(sqlDataReader.GetSqlString(0).Value, sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlBytes(1).Value));
+                                        this.WriteTraceMessage(TraceLevel.Verbose, $"Received message type = {sqlDataReader.GetSqlString(0).Value}.");
                                     }
                                 }
                             }
-
 
                             if (receivedMessages.Count > 0)
                             {

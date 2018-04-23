@@ -25,6 +25,7 @@
 #endregion
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using TableDependency.Delegates;
 using TableDependency.Enums;
@@ -54,7 +55,7 @@ namespace TableDependency.Abstracts
         TraceListener TraceListener { get; set; }
         TableDependencyStatus Status { get; }
         Encoding Encoding { get; set; }
-        string CultureInfoFiveLettersIsoCode { get; set; }
+        CultureInfo CultureInfo { get; set; }
         string DataBaseObjectsNamingConvention { get; }        
         string TableName { get; }
         string SchemaName { get; }

@@ -28,18 +28,17 @@ namespace TableDependency.SqlClient.Resources
 {
     public static class SqlScripts
     {
-        public const string CreateProcedureQueueActivation = @"
-CREATE PROCEDURE {2}.[{0}_QueueActivation] AS 
+        public const string CreateProcedureQueueActivation = @"CREATE PROCEDURE [{2}].[{0}_QueueActivation] AS 
 BEGIN 
     SET NOCOUNT ON;
     DECLARE @h AS UNIQUEIDENTIFIER;
 
     PRINT N'SqlTableDependency: Queue activation stored procedure {0} has been invoked.';
-    RECEIVE TOP(0) @h = [conversation_handle] FROM {2}.[{0}];
+    RECEIVE TOP(0) @h = [conversation_handle] FROM [{2}].[{0}];
 
-    IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE name = N'{0}')
+    IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE name = N'{0}')
     BEGIN
-        IF ((SELECT COUNT(*) FROM {2}.[{0}] WITH(NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer' OR message_type_name = N'{3}') > 0)
+        IF ((SELECT COUNT(*) FROM [{2}].[{0}] WITH (NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer' OR message_type_name = N'{3}') > 0)
         BEGIN 
             PRINT N'SqlTableDependency: Drop objects {0} started.';
             {1}
@@ -48,8 +47,7 @@ BEGIN
     END
 END";
 
-        public const string CreateTrigger = @"
-CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
+        public const string CreateTrigger = @"CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
 BEGIN
     SET NOCOUNT ON;
 
@@ -140,13 +138,11 @@ BEGIN
     END CATCH
 END";
 
-        public const string DisposeMessage = @"
-DECLARE @conversation uniqueidentifier;
+        public const string DisposeMessage = @"DECLARE @conversation uniqueidentifier;
 BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE '{0}' ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
 SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);";
 
-        public const string InformationSchemaColumns = @"
-SELECT DB_NAME() AS TABLE_CATALOG,
+        public const string InformationSchemaColumns = @"SELECT DB_NAME() AS TABLE_CATALOG,
 SCHEMA_NAME(o.schema_id) AS TABLE_SCHEMA,
 o.name AS TABLE_NAME,
 c.name AS COLUMN_NAME,
@@ -184,11 +180,9 @@ FROM sys.objects o JOIN sys.columns c ON c.object_id = o.object_id
 LEFT JOIN sys.types t ON c.user_type_id = t.user_type_id
 WHERE o.type IN ('U') and SCHEMA_NAME(o.schema_id) = '{0}' and o.name = '{1}'";
 
-        public const string InformationSchemaTables = @"
-SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
+        public const string InformationSchemaTables = @"SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
 
-        public const string ScriptDropAll = @"
-DECLARE @schema_id INT;
+        public const string ScriptDropAll = @"DECLARE @schema_id INT;
 DECLARE @conversation_handle UNIQUEIDENTIFIER;
 
 SELECT @schema_id = schema_id FROM sys.schemas WITH (NOLOCK) WHERE name = N'{2}';
@@ -215,7 +209,7 @@ DROP TABLE #Conversations;
 PRINT N'SqlTableDependency: Dropping service broker {0}.';
 IF EXISTS (SELECT * FROM sys.services WITH (NOLOCK) WHERE name = N'{0}') DROP SERVICE [{0}];
 PRINT N'SqlTableDependency: Dropping queue {2}.[{0}].';
-IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE {2}.[{0}];
+IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE [{2}].[{0}];
 PRINT N'SqlTableDependency: Dropping contract {0}.';
 IF EXISTS (SELECT * FROM sys.service_contracts WITH (NOLOCK) WHERE name = N'{0}') DROP CONTRACT [{0}];
 PRINT N'SqlTableDependency: Dropping messages.';
@@ -241,8 +235,7 @@ IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id 
         /// ObjectName      : Name of the object that the user/role is assigned permissions on. This value may not be populated for all roles.  Some built in roles have implicit permission definitions.
         /// ColumnName      : Name of the column of the object that the user/role is assigned permissions on.This value is only populated if the object is a table, view or a table value function.  
         /// </summary>
-        public const string SelectUserGrants = @"
---List all access provisioned to a sql user or windows user/group directly 
+        public const string SelectUserGrants = @"--List all access provisioned to a sql user or windows user/group directly 
 SELECT  
     [UserName] = CASE princ.[type] WHEN 'S' THEN princ.[name] WHEN 'U' THEN ulogin.[name] COLLATE Latin1_General_CI_AI END,
     [UserType] = CASE princ.[type] WHEN 'S' THEN 'SQL User' WHEN 'U' THEN 'Windows User' END,  
