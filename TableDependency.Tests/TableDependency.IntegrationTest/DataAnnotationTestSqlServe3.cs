@@ -40,10 +40,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
+                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [ANItemsTableSQL3]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = "CREATE TABLE [ANItemsTableSQL3]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -62,7 +62,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
+                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -149,7 +149,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [ANItemsTableSQL3]";
+                    sqlCommand.CommandText = "DELETE FROM [ANItemsTableSQL3]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
