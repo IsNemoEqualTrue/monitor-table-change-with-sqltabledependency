@@ -133,7 +133,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
 * Server/windows service hosting SqlTableDependency **must not goes to SLEEP mode or idle state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects.
-* Backup and Restore of database already containing SqlTableDependency's db objects, does not work.
+* Database Backup and Restore: restoring SqlTableDependency's db objects, it does **not work**.
 
 When you use notifications, you must be sure to enable Service Broker for the database. To do so, please run the following command:
 ```SQL
@@ -160,7 +160,7 @@ It is possible skip permissions test done by SqlTableDependency setting `execute
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
 To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
 
-In order to discover your database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). Executing this script on my Northwind database I get:
+In order to discover your database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). 
 
 ```SQL
 USE <your db>
@@ -184,9 +184,11 @@ END [SQLVersion]
 FROM @DBINFO
 WHERE [Field] IN ('dbi_createversion','dbi_version')
 ```
+Executing this script on my Northwind database I get:
+
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2010-40-04.png" />
 
-Executing same script on DB created by SQL Server 2008 R2 instance (TableDependencyDB), the result is:
+Executing this script on DB created by SQL Server 2008 R2 instance (TableDependencyDB), the result is:
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/2018-04-20%20at%2011-51-49.png" />
 
