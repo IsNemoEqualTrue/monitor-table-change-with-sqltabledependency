@@ -129,7 +129,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
 
-### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Requirements 
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
 * Server/windows service hosting SqlTableDependency **must not goes to SLEEP mode or idle state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects.
@@ -156,7 +156,7 @@ In case the user specified in the connection string is not database operator and
 
 It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
 
-### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/docs/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
 To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
 
@@ -194,7 +194,7 @@ Executing this script on DB created by SQL Server 2008 R2 instance (TableDepende
 
 Even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
 
-### Not supported SQL Server types
+#### Not supported SQL Server types
 Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * XML
 * IMAGE
