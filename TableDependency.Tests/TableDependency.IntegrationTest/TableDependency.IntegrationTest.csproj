@@ -58,8 +58,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="DataAnnotationTestSqlServe5.cs" />
-    <Compile Include="DataAnnotationTestSqlServe3.cs" />
+    <Compile Include="DataAnnotationTestSqlServer5.cs" />
+    <Compile Include="DataAnnotationTestSqlServer3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer2.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
