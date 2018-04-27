@@ -37,10 +37,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Oracle.ManagedDataAccess, Version=4.121.2.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
-      <HintPath>..\packages\Oracle.ManagedDataAccess.12.1.2400\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -62,8 +58,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="DataAnnotationTestSqlServe5.cs" />
-    <Compile Include="DataAnnotationTestSqlServe3.cs" />
+    <Compile Include="DataAnnotationTestSqlServer5.cs" />
+    <Compile Include="DataAnnotationTestSqlServer3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer2.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
@@ -79,6 +75,7 @@
     <Compile Include="EnumTestSqlServer.cs" />
     <Compile Include="DatabaseObjectAutoCleanUpTestSqlServer.cs" />
     <Compile Include="Issue55.cs" />
+    <Compile Include="NVarcharMaxAndVarcharMaxModel2.cs" />
     <Compile Include="TableWithSpaces.cs" />
     <Compile Include="TransactionTestSqlServer4.cs" />
     <Compile Include="TransactionTestSqlServer3.cs" />
@@ -114,6 +111,7 @@
     <Compile Include="NVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
     <Compile Include="XmlAsStringSqlServerTest.cs" />
+    <Compile Include="XmlNVarcharMaxAndVarcharMaxType2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
@@ -129,7 +127,6 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
     <None Include="test.runsettings" />
   </ItemGroup>
   <Choose>
