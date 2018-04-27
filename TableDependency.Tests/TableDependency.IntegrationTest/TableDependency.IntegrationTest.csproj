@@ -75,6 +75,7 @@
     <Compile Include="EnumTestSqlServer.cs" />
     <Compile Include="DatabaseObjectAutoCleanUpTestSqlServer.cs" />
     <Compile Include="Issue55.cs" />
+    <Compile Include="NVarcharMaxAndVarcharMaxModel2.cs" />
     <Compile Include="TableWithSpaces.cs" />
     <Compile Include="TransactionTestSqlServer4.cs" />
     <Compile Include="TransactionTestSqlServer3.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="NVarcharMaxAndVarcharMaxType.cs" />
     <Compile Include="UpdateOfUsingLambaTestSqlServer.cs" />
     <Compile Include="XmlAsStringSqlServerTest.cs" />
+    <Compile Include="XmlNVarcharMaxAndVarcharMaxType2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">

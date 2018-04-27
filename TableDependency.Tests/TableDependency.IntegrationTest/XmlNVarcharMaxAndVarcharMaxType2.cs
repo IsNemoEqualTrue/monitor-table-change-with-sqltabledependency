@@ -15,16 +15,6 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NVarcharMaxAndVarcharMaxModel2
-    {
-        // *****************************************************
-        // SQL Server Data Type Mappings: 
-        // https://msdn.microsoft.com/en-us/library/cc716729%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
-        // *****************************************************
-        public string varcharMAXColumn { get; set; }
-        public string nvarcharMAXColumn { get; set; }
-    }
-
     [TestClass]
     public class XmlNVarcharMaxAndVarcharMaxType2
     {
@@ -95,8 +85,9 @@ namespace TableDependency.IntegrationTest
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
-                   
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(ConnectionString, naming));
+
+            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxModel2> e)
