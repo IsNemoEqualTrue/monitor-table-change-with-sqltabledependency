@@ -1,38 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [Table("Item", Schema = "Transaction")]
-    public class TransactionItem
+    public class UseSchemaOtherThanDboTestSqlServer2Model
     {
         public Guid TransactionItemId { get; set; }
         public string Description { get; set; }
     }
 
     [TestClass]
-    public class UseSchemaOtherThanDboTestSqlServer2
+    public class UseSchemaOtherThanDboTestSqlServer2 : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
         private const string TableName = "Item";
         private const string SchemaName = "Transaction";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<TransactionItem, TransactionItem>> CheckValues = new Dictionary<string, Tuple<TransactionItem, TransactionItem>>();
+        private static readonly Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServer2Model, UseSchemaOtherThanDboTestSqlServer2Model>> CheckValues = new Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServer2Model, UseSchemaOtherThanDboTestSqlServer2Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -57,7 +55,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -80,12 +78,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void TableWithTest()
         {
-            SqlTableDependency<TransactionItem> tableDependency = null;
+            SqlTableDependency<UseSchemaOtherThanDboTestSqlServer2Model> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<TransactionItem>(ConnectionString);
+                tableDependency = new SqlTableDependency<UseSchemaOtherThanDboTestSqlServer2Model>(ConnectionStringForSa);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -94,7 +92,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -105,10 +103,12 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Description, CheckValues[ChangeType.Insert.ToString()].Item1.Description);
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Description, CheckValues[ChangeType.Update.ToString()].Item1.Description);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TransactionItem> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<UseSchemaOtherThanDboTestSqlServer2Model> e)
         {
             _counter++;
 
@@ -128,11 +128,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<TransactionItem, TransactionItem>(new TransactionItem { Description = "Christian" }, new TransactionItem()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<TransactionItem, TransactionItem>(new TransactionItem { Description = "Velia" }, new TransactionItem()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<TransactionItem, TransactionItem>(new TransactionItem { Description = "Velia" }, new TransactionItem()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServer2Model, UseSchemaOtherThanDboTestSqlServer2Model>(new UseSchemaOtherThanDboTestSqlServer2Model { Description = "Christian" }, new UseSchemaOtherThanDboTestSqlServer2Model()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServer2Model, UseSchemaOtherThanDboTestSqlServer2Model>(new UseSchemaOtherThanDboTestSqlServer2Model { Description = "Velia" }, new UseSchemaOtherThanDboTestSqlServer2Model()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServer2Model, UseSchemaOtherThanDboTestSqlServer2Model>(new UseSchemaOtherThanDboTestSqlServer2Model { Description = "Velia" }, new UseSchemaOtherThanDboTestSqlServer2Model()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -59,7 +59,7 @@ namespace TableDependency.EventArgs
         public RecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,            
+            IEnumerable<ColumnInfo> userInterestedColumns,
             string server,
             string database,
             string sender,
@@ -70,7 +70,7 @@ namespace TableDependency.EventArgs
             this.UserInterestedColumns = userInterestedColumns;
 
             this.ChangeType = messagesBag.MessageType;
-            this.Entity = MaterializeEntity(messagesBag.Messages, mapper);
+            this.Entity = this.MaterializeEntity(messagesBag.Messages, mapper);
         }
 
         #endregion
@@ -95,49 +95,49 @@ namespace TableDependency.EventArgs
             switch (typeCode)
             {
                 case TypeCode.Boolean:
-                    return Boolean.Parse(value);
+                    return bool.Parse(value);
 
                 case TypeCode.Char:
-                    return Char.Parse(value);
+                    return char.Parse(value);
 
                 case TypeCode.SByte:
-                    return SByte.Parse(value, base.CultureInfo);
+                    return sbyte.Parse(value, base.CultureInfo);
 
                 case TypeCode.Byte:
-                    return Byte.Parse(value, base.CultureInfo);
+                    return byte.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int16:
-                    return Int16.Parse(value, base.CultureInfo);
+                    return short.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt16:
-                    return UInt16.Parse(value, base.CultureInfo);
+                    return ushort.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int32:
-                    return Int32.Parse(value, base.CultureInfo);
+                    return int.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt32:
-                    return UInt32.Parse(value, base.CultureInfo);
+                    return uint.Parse(value, base.CultureInfo);
 
                 case TypeCode.Int64:
-                    return Int64.Parse(value, base.CultureInfo);
+                    return long.Parse(value, base.CultureInfo);
 
                 case TypeCode.UInt64:
-                    return UInt64.Parse(value, base.CultureInfo);
+                    return ulong.Parse(value, base.CultureInfo);
 
                 case TypeCode.Single:
-                    return Single.Parse(value, base.CultureInfo);
+                    return float.Parse(value, base.CultureInfo);
 
                 case TypeCode.Double:
-                    return Double.Parse(value, base.CultureInfo);
+                    return double.Parse(value, base.CultureInfo);
 
                 case TypeCode.Decimal:
-                    return Decimal.Parse(value, base.CultureInfo);
+                    return decimal.Parse(value, base.CultureInfo);
 
                 case TypeCode.DateTime:
                     return DateTime.Parse(value, base.CultureInfo);
 
                 case TypeCode.String:
-                    return value as string;
+                    return value;
 
                 case TypeCode.Object:
                     Guid guid;
@@ -172,13 +172,39 @@ namespace TableDependency.EventArgs
                 var message = messages.FirstOrDefault(m => string.Equals(m.Recipient, columnName, StringComparison.CurrentCultureIgnoreCase));
                 if (message == default(Message)) continue;
 
-                var dbColumnInfo = this.GetColumnInfo(columnName);
+                var columnInfo = this.GetColumnInfo(columnName);
 
-                var value = this.GetValue(entityPropertyInfo, dbColumnInfo, message.Body);
-                entityPropertyInfo.SetValue(entity, value);
+                var value = this.GetValue(entityPropertyInfo, columnInfo, message.Body);
+                this.SetValue(entity, entityPropertyInfo.Name, value);
             }
 
             return entity;
+        }
+
+        protected virtual void SetValue(object inputObject, string propertyName, object propertyVal)
+        {
+            var type = inputObject.GetType();
+            var propertyInfo = type.GetProperty(propertyName);
+
+            if (propertyVal != null)
+            {
+                Type propertyType = propertyInfo.PropertyType;
+
+                var targetType = this.IsNullableType(propertyType) 
+                    ? Nullable.GetUnderlyingType(propertyType) 
+                    : propertyType;
+
+                propertyVal = targetType.IsEnum 
+                    ? Enum.ToObject(targetType, propertyVal) 
+                    : Convert.ChangeType(propertyVal, targetType);
+            }
+
+            propertyInfo.SetValue(inputObject, propertyVal, null);
+        }
+
+        protected virtual bool IsNullableType(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
 
         #endregion

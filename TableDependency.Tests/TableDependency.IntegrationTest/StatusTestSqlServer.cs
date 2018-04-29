@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.Delegates;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -24,17 +22,16 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class StatusTestSqlServer
+    public class StatusTestSqlServer : SqlTableDependencyBaseTest
     {
-        private SqlTableDependency<StatusTestSqlServerModel> _tableDependency = null;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
+        private SqlTableDependency<StatusTestSqlServerModel> _tableDependency;
         private const string TableName = "StatusCheckTest";
-        private static IDictionary<TableDependencyStatus, bool> statuses = new Dictionary<TableDependencyStatus, bool>();
+        private static readonly IDictionary<TableDependencyStatus, bool> Statuses = new Dictionary<TableDependencyStatus, bool>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -56,17 +53,17 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            statuses.Add(TableDependencyStatus.Starting, false);
-            statuses.Add(TableDependencyStatus.Started, false);
-            statuses.Add(TableDependencyStatus.WaitingForNotification, false);
-            statuses.Add(TableDependencyStatus.StopDueToCancellation, false);
-            statuses.Add(TableDependencyStatus.StopDueToError, false);
+            Statuses.Add(TableDependencyStatus.Starting, false);
+            Statuses.Add(TableDependencyStatus.Started, false);
+            Statuses.Add(TableDependencyStatus.WaitingForNotification, false);
+            Statuses.Add(TableDependencyStatus.StopDueToCancellation, false);
+            Statuses.Add(TableDependencyStatus.StopDueToError, false);
         }
 
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -86,7 +83,7 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<StatusTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
-                this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionString, TableName, mapper);
+                this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
                 this._tableDependency.OnStatusChanged += this.TableDependency_OnStatusChanged;
                 this._tableDependency.OnError += this.TableDependency_OnError;
@@ -98,19 +95,19 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(5000);
+                Thread.Sleep(1000 * 10 * 1);
 
                 this._tableDependency.Stop();
-                t.Wait(100);
+                Thread.Sleep(1000 * 5 * 1);
 
-                Assert.IsTrue(statuses[TableDependencyStatus.Starting]);
-                Assert.IsTrue(statuses[TableDependencyStatus.Started]);
-                Assert.IsTrue(statuses[TableDependencyStatus.WaitingForNotification]);
-                Assert.IsTrue(statuses[TableDependencyStatus.StopDueToCancellation]);
-                Assert.IsFalse(statuses[TableDependencyStatus.StopDueToError]);
+                Assert.IsTrue(Statuses[TableDependencyStatus.Starting]);
+                Assert.IsTrue(Statuses[TableDependencyStatus.Started]);
+                Assert.IsTrue(Statuses[TableDependencyStatus.WaitingForNotification]);
+                Assert.IsTrue(Statuses[TableDependencyStatus.StopDueToCancellation]);
+                Assert.IsFalse(Statuses[TableDependencyStatus.StopDueToError]);
 
-                Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dataBaseObjectsNamingConvention));
-                Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention));
+                Assert.IsTrue(base.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention));
+                Assert.IsTrue(base.CountConversationEndpoints(dataBaseObjectsNamingConvention) == 0);
             }
             finally
             {
@@ -125,7 +122,7 @@ namespace TableDependency.IntegrationTest
 
         private void TableDependency_OnStatusChanged(object sender, StatusChangedEventArgs e)
         {
-            statuses[e.Status] = true;
+            Statuses[e.Status] = true;
             Assert.IsTrue(e.Status == this._tableDependency.Status);
         }
 
@@ -136,7 +133,7 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

@@ -1,24 +1,23 @@
-﻿using System.Configuration;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [TestClass]
-    public class DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer
+    public class DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer";
-        public static string _dbObjectsNaming;
+        private static readonly string TableName = "DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer";
+        public static string DbObjectsNaming;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -35,7 +34,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -46,12 +45,6 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-        [AssemblyCleanup()]
-        public static void AssemblyCleanup()
-        {
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
-        }
-
         [TestCategory("SqlServer")]
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
@@ -59,16 +52,16 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
-            _dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
+            DbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
             Thread.Sleep(50);
 
             var t = new Task(BigModifyTableContent);
             t.Start();
-            t.Wait(10000);
+            Thread.Sleep(1000 * 10 * 1);
 
             Thread.Sleep(1000 * 30 * 1);
             tableDependency.Stop();
@@ -76,13 +69,13 @@ namespace TableDependency.IntegrationTest
             SmalModifyTableContent();
 
             Thread.Sleep(4 * 60 * 1000);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(DbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(DbObjectsNaming) == 0);
         }
 
         private static void BigModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -98,7 +91,7 @@ namespace TableDependency.IntegrationTest
 
         private static void SmalModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

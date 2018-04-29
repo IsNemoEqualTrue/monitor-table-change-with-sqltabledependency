@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -22,9 +21,8 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class NoMapperUseTestSqlServer
+    public class NoMapperUseTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>>();
@@ -32,7 +30,7 @@ namespace TableDependency.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -58,7 +56,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -78,7 +76,7 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<NoMapperUseTestSqlServerModel>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<NoMapperUseTestSqlServerModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -87,7 +85,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -101,7 +99,9 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, CheckValues[ChangeType.Update.ToString()].Item1.Surname);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, CheckValues[ChangeType.Delete.ToString()].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoMapperUseTestSqlServerModel> e)
@@ -131,7 +131,7 @@ namespace TableDependency.IntegrationTest
             CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>(new NoMapperUseTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoMapperUseTestSqlServerModel()));
             CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>(new NoMapperUseTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoMapperUseTestSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

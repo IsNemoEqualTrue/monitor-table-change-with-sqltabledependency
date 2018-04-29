@@ -1,40 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class AAA_Item3
+    public class TableNameFromModelClassNameAndUpdateOfTestSqlServerModel
     {
         public long Id { get; set; }
+
         public string Name { get; set; }
+
         [Column(ColumnName)]
         public string FamilyName { get; set; }
+
         private const string ColumnName = "SURNAME";
+
         public static string GetColumnName => ColumnName;
     }
 
     [TestClass]
-    public class TableNameFromModelClassNameAndUpdateOfTestSqlServer
+    public class TableNameFromModelClassNameAndUpdateOfTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static readonly string TableName = typeof(AAA_Item3).Name.ToUpper();
-        private static readonly Dictionary<string, Tuple<AAA_Item3, AAA_Item3>> CheckValues = new Dictionary<string, Tuple<AAA_Item3, AAA_Item3>>();
-        private static int _counter = 0;
+        private static readonly string TableName = typeof(TableNameFromModelClassNameAndUpdateOfTestSqlServerModel).Name.ToUpper();
+        private static readonly Dictionary<string, Tuple<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel, TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel, TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>>();
+        private static int _counter;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -60,7 +62,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -75,15 +77,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<AAA_Item3> tableDependency = null;
-            string naming = null;
+            SqlTableDependency<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel> tableDependency = null;
+            string naming;
 
             try
             {
-                UpdateOfModel<AAA_Item3> updateOF = new UpdateOfModel<AAA_Item3>();
-                updateOF.Add(model => model.FamilyName);
+                UpdateOfModel<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel> updateOf = new UpdateOfModel<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>();
+                updateOf.Add(model => model.FamilyName);
 
-                tableDependency = new SqlTableDependency<AAA_Item3>(ConnectionString, updateOf: updateOF);
+                tableDependency = new SqlTableDependency<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>(ConnectionStringForTestUser, updateOf: updateOf);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -92,7 +94,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(30000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -107,11 +109,11 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.FamilyName, CheckValues[ChangeType.Delete.ToString()].Item1.FamilyName);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<AAA_Item3> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel> e)
         {
             _counter++;
 
@@ -134,11 +136,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Mergherita", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<AAA_Item3, AAA_Item3>(new AAA_Item3 { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new AAA_Item3()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel, TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>(new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel { Id = 23, Name = "Pizza Mergherita", FamilyName = "Pizza Mergherita" }, new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel, TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>(new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<TableNameFromModelClassNameAndUpdateOfTestSqlServerModel, TableNameFromModelClassNameAndUpdateOfTestSqlServerModel>(new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel { Id = 23, Name = "Pizza Funghi", FamilyName = "Pizza Mergherita" }, new TableNameFromModelClassNameAndUpdateOfTestSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

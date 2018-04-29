@@ -1,36 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
-namespace TableDependency.IntegrationTest.TypeChecks
+namespace TableDependency.IntegrationTest
 {
     public class DateTypeTestModel
     {
-        public DateTime? dateColumn { get; set; }
-        public DateTime? datetimeColumn { get; set; }
-        public DateTime? datetime2Column { get; set; }
-        public DateTimeOffset? datetimeoffsetColumn { get; set; }
+        public DateTime? DateColumn { get; set; }
+        public DateTime? DatetimeColumn { get; set; }
+        public DateTime? Datetime2Column { get; set; }
+        public DateTimeOffset? DatetimeoffsetColumn { get; set; }
     }
 
     [TestClass]
-    public class DateTypeTest
+    public class DateTypeTest : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "Test";
+        private const string TableName = "Test";
         private static readonly Dictionary<string, Tuple<DateTypeTestModel, DateTypeTestModel>> CheckValues = new Dictionary<string, Tuple<DateTypeTestModel, DateTypeTestModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -56,7 +57,7 @@ namespace TableDependency.IntegrationTest.TypeChecks
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -75,7 +76,7 @@ namespace TableDependency.IntegrationTest.TypeChecks
 
             try
             {
-                tableDependency = new SqlTableDependency<DateTypeTestModel>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<DateTypeTestModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
               
@@ -84,31 +85,33 @@ namespace TableDependency.IntegrationTest.TypeChecks
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.dateColumn, CheckValues[ChangeType.Insert.ToString()].Item1.dateColumn);
-            Assert.IsNull(CheckValues[ChangeType.Insert.ToString()].Item2.datetimeColumn);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.datetime2Column, CheckValues[ChangeType.Insert.ToString()].Item1.datetime2Column);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.datetimeoffsetColumn, CheckValues[ChangeType.Insert.ToString()].Item1.datetimeoffsetColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.DateColumn, CheckValues[ChangeType.Insert.ToString()].Item1.DateColumn);
+            Assert.IsNull(CheckValues[ChangeType.Insert.ToString()].Item2.DatetimeColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Datetime2Column, CheckValues[ChangeType.Insert.ToString()].Item1.Datetime2Column);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.DatetimeoffsetColumn, CheckValues[ChangeType.Insert.ToString()].Item1.DatetimeoffsetColumn);
 
-            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.dateColumn);
-            var date1 = CheckValues[ChangeType.Update.ToString()].Item1.datetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item1.datetimeColumn.GetValueOrDefault().Millisecond);
-            var date2 = CheckValues[ChangeType.Update.ToString()].Item2.datetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item2.datetimeColumn.GetValueOrDefault().Millisecond);
+            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.DateColumn);
+            var date1 = CheckValues[ChangeType.Update.ToString()].Item1.DatetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item1.DatetimeColumn.GetValueOrDefault().Millisecond);
+            var date2 = CheckValues[ChangeType.Update.ToString()].Item2.DatetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item2.DatetimeColumn.GetValueOrDefault().Millisecond);
             Assert.AreEqual(date1.ToString("yyyyMMddhhmm"), date2.ToString("yyyyMMddhhmm"));
-            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.datetime2Column);
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.datetimeoffsetColumn, CheckValues[ChangeType.Update.ToString()].Item1.datetimeoffsetColumn);
+            Assert.IsNull(CheckValues[ChangeType.Update.ToString()].Item2.Datetime2Column);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.DatetimeoffsetColumn, CheckValues[ChangeType.Update.ToString()].Item1.DatetimeoffsetColumn);
 
-            Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.dateColumn);
-            date1 = CheckValues[ChangeType.Update.ToString()].Item1.datetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item1.datetimeColumn.GetValueOrDefault().Millisecond);
-            date2 = CheckValues[ChangeType.Update.ToString()].Item2.datetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item2.datetimeColumn.GetValueOrDefault().Millisecond);
-            Assert.AreEqual(date1.ToString("yyyyMMddhhmm"), date2.ToString("yyyyMMddhhmm")); Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.datetime2Column);
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.datetimeoffsetColumn.GetValueOrDefault().ToString("yyyyMMddhhmm"), CheckValues[ChangeType.Delete.ToString()].Item1.datetimeoffsetColumn.GetValueOrDefault().ToString("yyyyMMddhhmm"));
+            Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.DateColumn);
+            date1 = CheckValues[ChangeType.Update.ToString()].Item1.DatetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item1.DatetimeColumn.GetValueOrDefault().Millisecond);
+            date2 = CheckValues[ChangeType.Update.ToString()].Item2.DatetimeColumn.GetValueOrDefault().AddMilliseconds(-CheckValues[ChangeType.Update.ToString()].Item2.DatetimeColumn.GetValueOrDefault().Millisecond);
+            Assert.AreEqual(date1.ToString("yyyyMMddhhmm"), date2.ToString("yyyyMMddhhmm")); Assert.IsNull(CheckValues[ChangeType.Delete.ToString()].Item2.Datetime2Column);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.DatetimeoffsetColumn.GetValueOrDefault().ToString("yyyyMMddhhmm"), CheckValues[ChangeType.Delete.ToString()].Item1.DatetimeoffsetColumn.GetValueOrDefault().ToString("yyyyMMddhhmm"));
 
+            Assert.IsTrue(base.AreAllDbObjectDisposed(tableDependency.DataBaseObjectsNamingConvention));
+            Assert.IsTrue(base.CountConversationEndpoints(tableDependency.DataBaseObjectsNamingConvention) == 0);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<DateTypeTestModel> e)
@@ -116,42 +119,42 @@ namespace TableDependency.IntegrationTest.TypeChecks
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    CheckValues[ChangeType.Insert.ToString()].Item2.dateColumn = e.Entity.dateColumn;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.datetimeColumn = e.Entity.datetimeColumn;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.datetime2Column = e.Entity.datetime2Column;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.datetimeoffsetColumn = e.Entity.datetimeoffsetColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.DateColumn = e.Entity.DateColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.DatetimeColumn = e.Entity.DatetimeColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Datetime2Column = e.Entity.Datetime2Column;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.DatetimeoffsetColumn = e.Entity.DatetimeoffsetColumn;
                     break;
                 case ChangeType.Update:
-                    CheckValues[ChangeType.Update.ToString()].Item2.dateColumn = e.Entity.dateColumn;
-                    CheckValues[ChangeType.Update.ToString()].Item2.datetimeColumn = e.Entity.datetimeColumn;
-                    CheckValues[ChangeType.Update.ToString()].Item2.datetime2Column = e.Entity.datetime2Column;
-                    CheckValues[ChangeType.Update.ToString()].Item2.datetimeoffsetColumn = e.Entity.datetimeoffsetColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.DateColumn = e.Entity.DateColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.DatetimeColumn = e.Entity.DatetimeColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Datetime2Column = e.Entity.Datetime2Column;
+                    CheckValues[ChangeType.Update.ToString()].Item2.DatetimeoffsetColumn = e.Entity.DatetimeoffsetColumn;
                     break;
                 case ChangeType.Delete:
-                    CheckValues[ChangeType.Delete.ToString()].Item2.dateColumn = e.Entity.dateColumn;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.datetimeColumn = e.Entity.datetimeColumn;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.datetime2Column = e.Entity.datetime2Column;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.datetimeoffsetColumn = e.Entity.datetimeoffsetColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.DateColumn = e.Entity.DateColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.DatetimeColumn = e.Entity.DatetimeColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Datetime2Column = e.Entity.Datetime2Column;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.DatetimeoffsetColumn = e.Entity.DatetimeoffsetColumn;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { dateColumn =  DateTime.Now.AddDays(-1).Date, datetimeColumn = null, datetime2Column = DateTime.Now.AddDays(-3), datetimeoffsetColumn = DateTimeOffset.Now.AddDays(-4) }, new DateTypeTestModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { dateColumn = null, datetimeColumn = DateTime.Now, datetime2Column = null, datetimeoffsetColumn = DateTime.Now }, new DateTypeTestModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { dateColumn = null, datetimeColumn = DateTime.Now, datetime2Column = null, datetimeoffsetColumn = DateTime.Now }, new DateTypeTestModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { DateColumn =  DateTime.Now.AddDays(-1).Date, DatetimeColumn = null, Datetime2Column = DateTime.Now.AddDays(-3), DatetimeoffsetColumn = DateTimeOffset.Now.AddDays(-4) }, new DateTypeTestModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { DateColumn = null, DatetimeColumn = DateTime.Now, Datetime2Column = null, DatetimeoffsetColumn = DateTime.Now }, new DateTypeTestModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DateTypeTestModel, DateTypeTestModel>(new DateTypeTestModel { DateColumn = null, DatetimeColumn = DateTime.Now, Datetime2Column = null, DatetimeoffsetColumn = DateTime.Now }, new DateTypeTestModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([dateColumn], [datetimeColumn], [datetime2Column], [datetimeoffsetColumn]) VALUES(@dateColumn, NULL, @datetime2Column, @datetimeoffsetColumn)";
-                    sqlCommand.Parameters.Add(new SqlParameter("@dateColumn", SqlDbType.Date) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.dateColumn });
-                    sqlCommand.Parameters.Add(new SqlParameter("@datetime2Column", SqlDbType.DateTime2) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.datetime2Column });
-                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeoffsetColumn", SqlDbType.DateTimeOffset) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.datetimeoffsetColumn });
+                    sqlCommand.Parameters.Add(new SqlParameter("@dateColumn", SqlDbType.Date) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.DateColumn });
+                    sqlCommand.Parameters.Add(new SqlParameter("@datetime2Column", SqlDbType.DateTime2) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.Datetime2Column });
+                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeoffsetColumn", SqlDbType.DateTimeOffset) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.DatetimeoffsetColumn });
                     sqlCommand.ExecuteNonQuery();
                 }
 
@@ -160,8 +163,8 @@ namespace TableDependency.IntegrationTest.TypeChecks
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [dateColumn] = NULL, [datetimeColumn] = @datetimeColumn, [datetime2Column] = NULL, [datetimeoffsetColumn] = @datetimeoffsetColumn";
-                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeColumn", SqlDbType.DateTime) { Value = CheckValues[ChangeType.Update.ToString()].Item1.datetimeColumn });
-                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeoffsetColumn", SqlDbType.DateTimeOffset) { Value = CheckValues[ChangeType.Update.ToString()].Item1.datetimeoffsetColumn });
+                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeColumn", SqlDbType.DateTime) { Value = CheckValues[ChangeType.Update.ToString()].Item1.DatetimeColumn });
+                    sqlCommand.Parameters.Add(new SqlParameter("@datetimeoffsetColumn", SqlDbType.DateTimeOffset) { Value = CheckValues[ChangeType.Update.ToString()].Item1.DatetimeoffsetColumn });
                     sqlCommand.ExecuteNonQuery();
                 }
 

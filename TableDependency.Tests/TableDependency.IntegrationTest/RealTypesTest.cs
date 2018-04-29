@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
@@ -8,26 +7,26 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class CheckRealTypesModel
+    public class RealTypesTestSqlServerModel
     {
-        public float realColumn { get; set; }
+        public float RealColumn { get; set; }
     }
 
     [TestClass]
-    public class RealTypesTestSqlServer
+    public class RealTypesTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "Real";
-        private static Dictionary<string, Tuple<CheckRealTypesModel, CheckRealTypesModel>> _checkValues = new Dictionary<string, Tuple<CheckRealTypesModel, CheckRealTypesModel>>();
+        private const string TableName = "Real";
+        private static readonly Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -50,7 +49,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -65,12 +64,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<CheckRealTypesModel> tableDependency = null;
+            SqlTableDependency<RealTypesTestSqlServerModel> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<CheckRealTypesModel>(_connectionString, TableName);
+                tableDependency = new SqlTableDependency<RealTypesTestSqlServerModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -79,51 +78,53 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.realColumn, _checkValues[ChangeType.Insert.ToString()].Item1.realColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.RealColumn, CheckValues[ChangeType.Insert.ToString()].Item1.RealColumn);
 
-            Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.realColumn, _checkValues[ChangeType.Update.ToString()].Item1.realColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.RealColumn, CheckValues[ChangeType.Update.ToString()].Item1.RealColumn);
 
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.realColumn, _checkValues[ChangeType.Delete.ToString()].Item1.realColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.RealColumn, CheckValues[ChangeType.Delete.ToString()].Item1.RealColumn);
 
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<CheckRealTypesModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<RealTypesTestSqlServerModel> e)
         {
 
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    _checkValues[ChangeType.Insert.ToString()].Item2.realColumn = e.Entity.realColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.RealColumn = e.Entity.RealColumn;
                     break;
                 case ChangeType.Update:
-                    _checkValues[ChangeType.Update.ToString()].Item2.realColumn = e.Entity.realColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.RealColumn = e.Entity.RealColumn;
                     break;
                 case ChangeType.Delete:
-                    _checkValues[ChangeType.Delete.ToString()].Item2.realColumn = e.Entity.realColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.RealColumn = e.Entity.RealColumn;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<CheckRealTypesModel, CheckRealTypesModel>(new CheckRealTypesModel {realColumn = 13}, new CheckRealTypesModel()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<CheckRealTypesModel, CheckRealTypesModel>(new CheckRealTypesModel {realColumn = 12}, new CheckRealTypesModel()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<CheckRealTypesModel, CheckRealTypesModel>(new CheckRealTypesModel {realColumn = 12}, new CheckRealTypesModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>(new RealTypesTestSqlServerModel {RealColumn = 13}, new RealTypesTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>(new RealTypesTestSqlServerModel {RealColumn = 12}, new RealTypesTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>(new RealTypesTestSqlServerModel {RealColumn = 12}, new RealTypesTestSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([realColumn]) VALUES (@realColumn)";
-                    sqlCommand.Parameters.Add(new SqlParameter("@realColumn", SqlDbType.Real) {Value = _checkValues[ChangeType.Insert.ToString()].Item1.realColumn});
+                    sqlCommand.Parameters.Add(new SqlParameter("@realColumn", SqlDbType.Real) {Value = CheckValues[ChangeType.Insert.ToString()].Item1.RealColumn});
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }
@@ -131,7 +132,7 @@ namespace TableDependency.IntegrationTest
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [realColumn] = @realColumn";
-                    sqlCommand.Parameters.Add(new SqlParameter("@realColumn", SqlDbType.Real) {Value = _checkValues[ChangeType.Update.ToString()].Item1.realColumn});
+                    sqlCommand.Parameters.Add(new SqlParameter("@realColumn", SqlDbType.Real) {Value = CheckValues[ChangeType.Update.ToString()].Item1.RealColumn});
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
                 }

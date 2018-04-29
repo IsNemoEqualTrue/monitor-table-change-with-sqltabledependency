@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -20,15 +20,14 @@ namespace TableDependency.IntegrationTest
 
 #if DEBUG
     [TestClass]
-    public class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServer
+    public class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel";
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -50,7 +49,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -68,7 +67,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
@@ -84,8 +83,8 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000 * 60 * 4);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dbObjectsNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
 
         private void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel> e)
@@ -94,7 +93,7 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

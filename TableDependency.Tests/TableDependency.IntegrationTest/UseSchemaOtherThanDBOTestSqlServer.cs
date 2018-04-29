@@ -1,37 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [Table("Customers", Schema = "test_schema")]
-    public class SchemaNotDboTestSqlServerModel
+    public class UseSchemaOtherThanDboTestSqlServerModel
     {
         public string Name { get; set; }
     }
 
     [TestClass]
-    public class UseSchemaOtherThanDboTestSqlServer
+    public class UseSchemaOtherThanDboTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
         private const string TableName = "Customers";
         private const string SchemaName = "test_schema";
         private static int _counter;
-        private static Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>>();
+        private static readonly Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -56,7 +54,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -79,12 +77,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void TableWithTest()
         {
-            SqlTableDependency<SchemaNotDboTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<UseSchemaOtherThanDboTestSqlServerModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<SchemaNotDboTestSqlServerModel>(_connectionString);
+                tableDependency = new SqlTableDependency<UseSchemaOtherThanDboTestSqlServerModel>(ConnectionStringForSa);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -93,7 +91,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -101,46 +99,48 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 3);
-            Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, _checkValues[ChangeType.Insert.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Name, _checkValues[ChangeType.Update.ToString()].Item1.Name);
-            Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, CheckValues[ChangeType.Update.ToString()].Item1.Name);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<SchemaNotDboTestSqlServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<UseSchemaOtherThanDboTestSqlServerModel> e)
         {
             _counter++;
 
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    _checkValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
                     break;
                 case ChangeType.Update:
-                    _checkValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
+                    CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
                     break;
                 case ChangeType.Delete:
-                    _checkValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>(new SchemaNotDboTestSqlServerModel { Name = "Christian" }, new SchemaNotDboTestSqlServerModel()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>(new SchemaNotDboTestSqlServerModel { Name = "Velia" }, new SchemaNotDboTestSqlServerModel()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<SchemaNotDboTestSqlServerModel, SchemaNotDboTestSqlServerModel>(new SchemaNotDboTestSqlServerModel { Name = "Velia" }, new SchemaNotDboTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>(new UseSchemaOtherThanDboTestSqlServerModel { Name = "Christian" }, new UseSchemaOtherThanDboTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>(new UseSchemaOtherThanDboTestSqlServerModel { Name = "Velia" }, new UseSchemaOtherThanDboTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>(new UseSchemaOtherThanDboTestSqlServerModel { Name = "Velia" }, new UseSchemaOtherThanDboTestSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO {SchemaName}.{TableName} ([Name]) VALUES ('{_checkValues[ChangeType.Insert.ToString()].Item1.Name}')";
+                    sqlCommand.CommandText = $"INSERT INTO {SchemaName}.{TableName} ([Name]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE {SchemaName}.{TableName} SET [Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
+                    sqlCommand.CommandText = $"UPDATE {SchemaName}.{TableName} SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 

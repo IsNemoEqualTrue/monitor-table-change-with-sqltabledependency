@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency", "TableDependency\TableDependency.csproj", "{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}"
 EndProject
@@ -24,83 +24,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.IntegrationTest", "TableDependency.Tests\TableDependency.IntegrationTest\TableDependency.IntegrationTest.csproj", "{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "TableDependency.Tests\TableDependency.DevelopmentTests\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}"
-	ProjectSection(SolutionItems) = preProject
-		docs\audit-table-change-infrastructure.html = docs\audit-table-change-infrastructure.html
-		docs\DbObjects.png = docs\DbObjects.png
-		docs\favicon.ico = docs\favicon.ico
-		docs\font-awesome.min.css = docs\font-awesome.min.css
-		docs\github.png = docs\github.png
-		docs\googlead9d15621c6a850b.html = docs\googlead9d15621c6a850b.html
-		docs\ie10-viewport-bug-workaround.css = docs\ie10-viewport-bug-workaround.css
-		docs\ie10-viewport-bug-workaround.js = docs\ie10-viewport-bug-workaround.js
-		docs\index.html = docs\index.html
-		docs\NuGetSqlTableDependency.png = docs\NuGetSqlTableDependency.png
-		docs\NuGetSqlTableDependencyvs.png = docs\NuGetSqlTableDependencyvs.png
-		docs\receive-notifications-nuget-package.html = docs\receive-notifications-nuget-package.html
-		docs\robots.txt = docs\robots.txt
-		docs\rsz_notify.png = docs\rsz_notify.png
-		docs\site.css = docs\site.css
-		docs\site.min.css = docs\site.min.css
-		docs\sitemap.xml = docs\sitemap.xml
-		docs\socials\css\social-share-kit.css = docs\socials\css\social-share-kit.css
-		docs\table-change-infrastructure-dll.png = docs\table-change-infrastructure-dll.png
-		docs\table-change-infrastructure-nuget.png = docs\table-change-infrastructure-nuget.png
-		docs\table-change-infrastructure.png = docs\table-change-infrastructure.png
-		docs\table-change-notifications-examples.html = docs\table-change-notifications-examples.html
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bootstrap", "bootstrap", "{2A9986A0-BAF0-484B-AE88-F665FBDEC99A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{C8141439-8E51-4DF3-BFF5-218C5701C624}"
-	ProjectSection(SolutionItems) = preProject
-		docs\bootstrap\css\bootstrap-theme.css = docs\bootstrap\css\bootstrap-theme.css
-		docs\bootstrap\css\bootstrap-theme.css.map = docs\bootstrap\css\bootstrap-theme.css.map
-		docs\bootstrap\css\bootstrap-theme.min.css = docs\bootstrap\css\bootstrap-theme.min.css
-		docs\bootstrap\css\bootstrap-theme.min.css.map = docs\bootstrap\css\bootstrap-theme.min.css.map
-		docs\bootstrap\css\bootstrap.css = docs\bootstrap\css\bootstrap.css
-		docs\bootstrap\css\bootstrap.css.map = docs\bootstrap\css\bootstrap.css.map
-		docs\bootstrap\css\bootstrap.min.css = docs\bootstrap\css\bootstrap.min.css
-		docs\bootstrap\css\bootstrap.min.css.map = docs\bootstrap\css\bootstrap.min.css.map
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fonts", "fonts", "{501757C2-A08A-4312-A28D-63499FD9AA1A}"
-	ProjectSection(SolutionItems) = preProject
-		docs\bootstrap\fonts\glyphicons-halflings-regular.eot = docs\bootstrap\fonts\glyphicons-halflings-regular.eot
-		docs\bootstrap\fonts\glyphicons-halflings-regular.svg = docs\bootstrap\fonts\glyphicons-halflings-regular.svg
-		docs\bootstrap\fonts\glyphicons-halflings-regular.ttf = docs\bootstrap\fonts\glyphicons-halflings-regular.ttf
-		docs\bootstrap\fonts\glyphicons-halflings-regular.woff = docs\bootstrap\fonts\glyphicons-halflings-regular.woff
-		docs\bootstrap\fonts\glyphicons-halflings-regular.woff2 = docs\bootstrap\fonts\glyphicons-halflings-regular.woff2
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{BB8EFAAA-7D6D-416B-B95C-A3D927303654}"
-	ProjectSection(SolutionItems) = preProject
-		docs\bootstrap\js\bootstrap.js = docs\bootstrap\js\bootstrap.js
-		docs\bootstrap\js\bootstrap.min.js = docs\bootstrap\js\bootstrap.min.js
-		docs\bootstrap\js\npm.js = docs\bootstrap\js\npm.js
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "socials", "socials", "{936B2C51-CE28-4832-AF23-48BF86D78F0E}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{3BE6F1BF-459A-4315-8B4D-327E9DE590ED}"
-	ProjectSection(SolutionItems) = preProject
-		docs\socials\css\social-share-kit.css = docs\socials\css\social-share-kit.css
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fonts", "fonts", "{654FE58B-C906-40A6-92F7-F4F9B557B481}"
-	ProjectSection(SolutionItems) = preProject
-		docs\socials\fonts\social-share-kit.eot = docs\socials\fonts\social-share-kit.eot
-		docs\socials\fonts\social-share-kit.svg = docs\socials\fonts\social-share-kit.svg
-		docs\socials\fonts\social-share-kit.ttf = docs\socials\fonts\social-share-kit.ttf
-		docs\socials\fonts\social-share-kit.woff = docs\socials\fonts\social-share-kit.woff
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{079392EB-C573-4232-AD50-7C84D86D2679}"
-	ProjectSection(SolutionItems) = preProject
-		docs\socials\js\social-share-kit.js = docs\socials\js\social-share-kit.js
-		docs\socials\js\social-share-kit.min.js = docs\socials\js\social-share-kit.min.js
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -149,13 +72,8 @@ Global
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
 		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3} = {BE3F6738-85D8-46D0-928F-87085E19E9C0}
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
-		{2A9986A0-BAF0-484B-AE88-F665FBDEC99A} = {6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}
-		{C8141439-8E51-4DF3-BFF5-218C5701C624} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
-		{501757C2-A08A-4312-A28D-63499FD9AA1A} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
-		{BB8EFAAA-7D6D-416B-B95C-A3D927303654} = {2A9986A0-BAF0-484B-AE88-F665FBDEC99A}
-		{936B2C51-CE28-4832-AF23-48BF86D78F0E} = {6C9E1520-22CC-4C41-AF71-4DC4D08DA77B}
-		{3BE6F1BF-459A-4315-8B4D-327E9DE590ED} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
-		{654FE58B-C906-40A6-92F7-F4F9B557B481} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
-		{079392EB-C573-4232-AD50-7C84D86D2679} = {936B2C51-CE28-4832-AF23-48BF86D78F0E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C86745F1-F2BB-48A9-AA01-B03D7EDA5FBA}
 	EndGlobalSection
 EndGlobal

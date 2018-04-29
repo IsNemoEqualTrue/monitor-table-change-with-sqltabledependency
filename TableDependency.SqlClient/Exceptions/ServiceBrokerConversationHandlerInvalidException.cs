@@ -24,14 +24,14 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-namespace TableDependency.Exceptions
+using TableDependency.Exceptions;
+
+namespace TableDependency.SqlClient.Exceptions
 {
-    public class DmlTriggerTypeException : TableDependencyException
+    public class ServiceBrokerConversationHandlerInvalidException : TableDependencyException
     {
-        public DmlTriggerTypeException(string message = null)
-            : base(message)
-        {
-            
-        }
+        protected internal ServiceBrokerConversationHandlerInvalidException()
+            : base($"Conversation handle invalid.")
+        { }
     }
 }

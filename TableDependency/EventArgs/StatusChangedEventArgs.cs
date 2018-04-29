@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -38,8 +38,11 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal StatusChangedEventArgs(TableDependencyStatus status, string server, string database, string sender) 
-            : base(server, database, sender)
+        internal StatusChangedEventArgs(
+            TableDependencyStatus status, 
+            string server, 
+            string database, 
+            string sender) : base(server, database, sender)
         {
             this.Status = status;
         }

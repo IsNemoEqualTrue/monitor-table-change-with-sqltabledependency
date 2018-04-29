@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -37,7 +37,7 @@ namespace TableDependency.SqlClient.Extensions
 
         public static bool? ToBoolean(this string str)
         {
-            var cleanValue = (str ?? "").Trim();
+            var cleanValue = (str ?? string.Empty).Trim();
 
             if (string.Equals(cleanValue, "0", StringComparison.OrdinalIgnoreCase)) return false;
             if (string.Equals(cleanValue, "1", StringComparison.OrdinalIgnoreCase)) return true;

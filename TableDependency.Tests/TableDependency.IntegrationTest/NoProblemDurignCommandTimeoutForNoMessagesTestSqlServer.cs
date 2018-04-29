@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NoProblemDurignCommandTimeoutForNoMessagesModelSql
+    public class NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -20,17 +19,15 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class NoProblemDurignCommandTimeoutForNoMessagesSqlServer
+    public class NoProblemDurignCommandTimeoutForNoMessagesSqlServer : SqlTableDependencyBaseTest
     {
-
         private static string _dbObjectsNaming;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "Check_Model";
+        private static readonly string TableName = "Check_Model";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -53,20 +50,21 @@ namespace TableDependency.IntegrationTest
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("TableDependencyDomaing", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomainNoMessage) domain.CreateInstanceAndUnwrap(typeof (RunsInAnotherAppDomainNoMessage).Assembly.FullName, typeof (RunsInAnotherAppDomainNoMessage).FullName);
-            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, TableName);
             Thread.Sleep(4*60*1000);
             var status = otherDomainObject.GetTableDependencyStatus();
             AppDomain.Unload(domain);
             Thread.Sleep(3*60*1000);
 
             Assert.IsTrue(status != TableDependencyStatus.StopDueToError && status != TableDependencyStatus.StopDueToCancellation);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(_dbObjectsNaming) == 0);
         }
 
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -79,7 +77,7 @@ namespace TableDependency.IntegrationTest
 
         public class RunsInAnotherAppDomainNoMessage : MarshalByRefObject
         {
-            private SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModelSql> _tableDependency = null;
+            private SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel> _tableDependency = null;
 
             public TableDependencyStatus GetTableDependencyStatus()
             {
@@ -88,16 +86,17 @@ namespace TableDependency.IntegrationTest
 
             public string RunTableDependency(string connectionString, string tableName)
             {
-                var mapper = new ModelToTableMapper<NoProblemDurignCommandTimeoutForNoMessagesModelSql>();
+                var mapper = new ModelToTableMapper<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "First Name");
 
-                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesModelSql>(connectionString, tableName, mapper);
+                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel>(connectionString, tableName, mapper);
                 this._tableDependency.OnChanged += TableDependency_Changed;
                 this._tableDependency.Start(60, 120);
+
                 return this._tableDependency.DataBaseObjectsNamingConvention;
             }
 
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesModelSql> e)
+            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel> e)
             {
             }
         }

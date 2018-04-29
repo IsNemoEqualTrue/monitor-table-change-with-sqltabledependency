@@ -1,38 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NVarcharMaxAndVarcharMaxModel
+    public class NVarcharMaxAndVarcharMaxTypeModel
     {
         // *****************************************************
         // SQL Server Data Type Mappings: 
         // https://msdn.microsoft.com/en-us/library/cc716729%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
         // *****************************************************
-        public string varcharMAXColumn { get; set; }
-        public string nvarcharMAXColumn { get; set; }
+        public string VarcharMaxColumn { get; set; }
+        public string NvarcharMaxColumn { get; set; }
     }
 
     [TestClass]
-    public class NVarcharMaxAndVarcharMaxType
+    public class NVarcharMaxAndVarcharMaxType : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "TestvarcharMAXColumn";
-        private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel, NVarcharMaxAndVarcharMaxModel>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel, NVarcharMaxAndVarcharMaxModel>>();
+        private const string TableName = "TestvarcharMAXColumn";
+        private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -49,7 +47,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -64,12 +62,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void ColumnTypesTest1()
         {
-            SqlTableDependency<NVarcharMaxAndVarcharMaxModel> tableDependency = null;
+            SqlTableDependency<NVarcharMaxAndVarcharMaxTypeModel> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxModel>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxTypeModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -78,60 +76,60 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.VarcharMaxColumn, CheckValues[ChangeType.Insert.ToString()].Item1.VarcharMaxColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.NvarcharMaxColumn, CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
             
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Update.ToString()].Item1.varcharMAXColumn);
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Update.ToString()].Item1.nvarcharMAXColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.VarcharMaxColumn, CheckValues[ChangeType.Update.ToString()].Item1.VarcharMaxColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.NvarcharMaxColumn, CheckValues[ChangeType.Update.ToString()].Item1.NvarcharMaxColumn);
             
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Delete.ToString()].Item1.varcharMAXColumn);
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Delete.ToString()].Item1.nvarcharMAXColumn);
-            
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.VarcharMaxColumn, CheckValues[ChangeType.Delete.ToString()].Item1.VarcharMaxColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.NvarcharMaxColumn, CheckValues[ChangeType.Delete.ToString()].Item1.NvarcharMaxColumn);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxTypeModel> e)
         {
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.VarcharMaxColumn = e.Entity.VarcharMaxColumn;
+                    CheckValues[ChangeType.Insert.ToString()].Item2.NvarcharMaxColumn = e.Entity.NvarcharMaxColumn;
                     break;
                 case ChangeType.Update:
-                    CheckValues[ChangeType.Update.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
-                    CheckValues[ChangeType.Update.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.VarcharMaxColumn = e.Entity.VarcharMaxColumn;
+                    CheckValues[ChangeType.Update.ToString()].Item2.NvarcharMaxColumn = e.Entity.NvarcharMaxColumn;
                     break;
                 case ChangeType.Delete:
-                    CheckValues[ChangeType.Delete.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.VarcharMaxColumn = e.Entity.VarcharMaxColumn;
+                    CheckValues[ChangeType.Delete.ToString()].Item2.NvarcharMaxColumn = e.Entity.NvarcharMaxColumn;
                     break;
             }
         }
 
         private static void ModifyTableContent1()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<NVarcharMaxAndVarcharMaxModel, NVarcharMaxAndVarcharMaxModel>(new NVarcharMaxAndVarcharMaxModel { varcharMAXColumn = new string('*', 6000), nvarcharMAXColumn = new string('*', 8000) }, new NVarcharMaxAndVarcharMaxModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NVarcharMaxAndVarcharMaxModel, NVarcharMaxAndVarcharMaxModel>(new NVarcharMaxAndVarcharMaxModel { varcharMAXColumn = "111", nvarcharMAXColumn = "new byte[] { 1, 2, 3, 4, 5, 6 }" }, new NVarcharMaxAndVarcharMaxModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NVarcharMaxAndVarcharMaxModel, NVarcharMaxAndVarcharMaxModel>(new NVarcharMaxAndVarcharMaxModel { varcharMAXColumn = "111", nvarcharMAXColumn = "new byte[] { 1, 2, 3, 4, 5, 6 }" }, new NVarcharMaxAndVarcharMaxModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>(new NVarcharMaxAndVarcharMaxTypeModel { VarcharMaxColumn = new string('*', 6000), NvarcharMaxColumn = new string('*', 8000) }, new NVarcharMaxAndVarcharMaxTypeModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>(new NVarcharMaxAndVarcharMaxTypeModel { VarcharMaxColumn = "111", NvarcharMaxColumn = "new byte[] { 1, 2, 3, 4, 5, 6 }" }, new NVarcharMaxAndVarcharMaxTypeModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>(new NVarcharMaxAndVarcharMaxTypeModel { VarcharMaxColumn = "111", NvarcharMaxColumn = "new byte[] { 1, 2, 3, 4, 5, 6 }" }, new NVarcharMaxAndVarcharMaxTypeModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([varcharMAXColumn], [nvarcharMAXColumn]) VALUES(@varcharMAXColumn, @nvarcharMAXColumn)";
-                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
-                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
+                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.VarcharMaxColumn);
+                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
                 }
 
@@ -140,8 +138,8 @@ namespace TableDependency.IntegrationTest
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [varcharMAXColumn] = @varcharMAXColumn, [nvarcharMAXColumn] = @nvarcharMAXColumn";
-                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.varcharMAXColumn);
-                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.nvarcharMAXColumn);
+                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.VarcharMaxColumn);
+                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
                 }
 

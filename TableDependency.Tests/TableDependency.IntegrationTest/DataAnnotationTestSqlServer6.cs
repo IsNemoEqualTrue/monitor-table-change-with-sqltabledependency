@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,13 +8,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [Table("XXXX")]
-    public class DataAnnotationTestSelServerModel6
+    public class DataAnnotationTestSqlServer6Model
     {
         public long Id { get; set; }
         public string Name { get; set; }
@@ -23,17 +22,16 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer6
+    public class DataAnnotationTestSqlServer6 : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static readonly string TableName = "ANItemsTableSQL6";
+        private const string TableName = "ANItemsTableSQL6";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel6, DataAnnotationTestSelServerModel6>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel6, DataAnnotationTestSelServerModel6>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -55,7 +53,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -71,15 +69,15 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(NotExistingTableException))]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<DataAnnotationTestSelServerModel6> tableDependency = null;
+            SqlTableDependency<DataAnnotationTestSqlServer6Model> tableDependency = null;
             string naming = null;
 
             try
             {
-                var mapper = new ModelToTableMapper<DataAnnotationTestSelServerModel6>();
+                var mapper = new ModelToTableMapper<DataAnnotationTestSqlServer6Model>();
                 mapper.AddMapping(c => c.Description, "Long Description");
 
-                tableDependency = new SqlTableDependency<DataAnnotationTestSelServerModel6>(ConnectionString);
+                tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer6Model>(ConnectionStringForTestUser);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -88,7 +86,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -106,11 +104,11 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel6> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer6Model> e)
         {
             _counter++;
 
@@ -133,11 +131,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSelServerModel6, DataAnnotationTestSelServerModel6>(new DataAnnotationTestSelServerModel6 { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSelServerModel6()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSelServerModel6, DataAnnotationTestSelServerModel6>(new DataAnnotationTestSelServerModel6 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel6()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSelServerModel6, DataAnnotationTestSelServerModel6>(new DataAnnotationTestSelServerModel6 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel6()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>(new DataAnnotationTestSqlServer6Model { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSqlServer6Model()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>(new DataAnnotationTestSqlServer6Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer6Model()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>(new DataAnnotationTestSqlServer6Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer6Model()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

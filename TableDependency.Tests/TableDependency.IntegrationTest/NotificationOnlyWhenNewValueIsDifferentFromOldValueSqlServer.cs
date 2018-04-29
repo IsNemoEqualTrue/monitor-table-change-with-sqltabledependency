@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class ABCTableModel
+    public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -20,21 +19,19 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer
+    public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "ABCTableModel";
         private static int _counter1;
         private static int _counter2;
         private static int _counter3;
-        private static List<Tuple<ABCTableModel, ABCTableModel>> _checkValues1 = new List<Tuple<ABCTableModel, ABCTableModel>>();
-        private static List<Tuple<ABCTableModel, ABCTableModel>> _checkValues2 = new List<Tuple<ABCTableModel, ABCTableModel>>();
-        private static List<Tuple<ABCTableModel, ABCTableModel>> _checkValues3 = new List<Tuple<ABCTableModel, ABCTableModel>>();
+        private static readonly List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>> CheckValues1 = new List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>>();
+        private static readonly List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>> CheckValues2 = new List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -56,7 +53,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -73,15 +70,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void UpdateOneInterestedColumn()
         {
-            SqlTableDependency<ABCTableModel> tableDependency = null;
-            string naming = null;
+            SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> tableDependency = null;
+            string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<ABCTableModel>();
+                var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<ABCTableModel>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -90,7 +87,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -98,29 +95,31 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter1, 2);
-            Assert.AreEqual(_checkValues1[0].Item2.Name, _checkValues1[0].Item1.Name);
-            Assert.AreEqual(_checkValues1[0].Item2.Surname, _checkValues1[0].Item1.Surname);
-            Assert.AreEqual(_checkValues1[1].Item2.Name, _checkValues1[1].Item1.Name);
-            Assert.AreEqual(_checkValues1[1].Item2.Surname, _checkValues1[1].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.AreEqual(CheckValues1[0].Item2.Name, CheckValues1[0].Item1.Name);
+            Assert.AreEqual(CheckValues1[0].Item2.Surname, CheckValues1[0].Item1.Surname);
+            Assert.AreEqual(CheckValues1[1].Item2.Name, CheckValues1[1].Item1.Name);
+            Assert.AreEqual(CheckValues1[1].Item2.Surname, CheckValues1[1].Item1.Surname);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed1(object sender, RecordChangedEventArgs<ABCTableModel> e)
+        private static void TableDependency_Changed1(object sender, RecordChangedEventArgs<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> e)
         {
             if (e.ChangeType == ChangeType.Update)
             {
-                _checkValues1[_counter1].Item2.Name = e.Entity.Name;
-                _checkValues1[_counter1].Item2.Surname = e.Entity.Surname;
+                CheckValues1[_counter1].Item2.Name = e.Entity.Name;
+                CheckValues1[_counter1].Item2.Surname = e.Entity.Surname;
                 _counter1++;
             }
         }
 
         private static void ModifyTableContent1()
         {
-            _checkValues1.Add(new Tuple<ABCTableModel, ABCTableModel>(new ABCTableModel { Name = "Christian", Surname = "Del Bianco" }, new ABCTableModel()));
-            _checkValues1.Add(new Tuple<ABCTableModel, ABCTableModel>(new ABCTableModel { Name = "Velia", Surname = "Del Bianco" }, new ABCTableModel()));
+            CheckValues1.Add(new Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel()));
+            CheckValues1.Add(new Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -129,11 +128,11 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{_checkValues1[0].Item1.Name}', [Second Name] = '{_checkValues1[0].Item1.Surname}', [NickName] = 'xxsds'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues1[0].Item1.Name}', [Second Name] = '{CheckValues1[0].Item1.Surname}', [NickName] = 'xxsds'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{_checkValues1[1].Item1.Name}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues1[1].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
@@ -152,15 +151,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void UpdateTwoInterestedColumn()
         {
-            SqlTableDependency<ABCTableModel> tableDependency = null;
-            string naming = null;
+            SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> tableDependency = null;
+            string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<ABCTableModel>();
+                var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<ABCTableModel>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed2;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -169,7 +168,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent2);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -177,29 +176,31 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter2, 2);
-            Assert.AreEqual(_checkValues2[0].Item2.Name, _checkValues2[0].Item1.Name);
-            Assert.AreEqual(_checkValues2[0].Item2.Surname, _checkValues2[0].Item1.Surname);
-            Assert.AreEqual(_checkValues2[1].Item2.Name, _checkValues2[1].Item1.Name);
-            Assert.AreEqual(_checkValues2[1].Item2.Surname, _checkValues2[1].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.AreEqual(CheckValues2[0].Item2.Name, CheckValues2[0].Item1.Name);
+            Assert.AreEqual(CheckValues2[0].Item2.Surname, CheckValues2[0].Item1.Surname);
+            Assert.AreEqual(CheckValues2[1].Item2.Name, CheckValues2[1].Item1.Name);
+            Assert.AreEqual(CheckValues2[1].Item2.Surname, CheckValues2[1].Item1.Surname);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed2(object sender, RecordChangedEventArgs<ABCTableModel> e)
+        private static void TableDependency_Changed2(object sender, RecordChangedEventArgs<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> e)
         {
             if (e.ChangeType == ChangeType.Update)
             {
-                _checkValues2[_counter2].Item2.Name = e.Entity.Name;
-                _checkValues2[_counter2].Item2.Surname = e.Entity.Surname;
+                CheckValues2[_counter2].Item2.Name = e.Entity.Name;
+                CheckValues2[_counter2].Item2.Surname = e.Entity.Surname;
                 _counter2++;
             }
         }
 
         private static void ModifyTableContent2()
         {
-            _checkValues2.Add(new Tuple<ABCTableModel, ABCTableModel>(new ABCTableModel { Name = "Christian", Surname = "Del Bianco" }, new ABCTableModel()));
-            _checkValues2.Add(new Tuple<ABCTableModel, ABCTableModel>(new ABCTableModel { Name = "Velia", Surname = "Ceccarelli" }, new ABCTableModel()));
+            CheckValues2.Add(new Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel()));
+            CheckValues2.Add(new Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -208,11 +209,11 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{_checkValues2[0].Item1.Name}', [Second Name] = '{_checkValues2[0].Item1.Surname}', [NickName] = 'wswsw'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues2[0].Item1.Name}', [Second Name] = '{CheckValues2[0].Item1.Surname}', [NickName] = 'wswsw'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{_checkValues2[1].Item1.Name}', [Second Name] = '{_checkValues2[1].Item1.Surname}', [NickName] = 'xxxx'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues2[1].Item1.Name}', [Second Name] = '{CheckValues2[1].Item1.Surname}', [NickName] = 'xxxx'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
@@ -231,15 +232,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void UpdateNoInterestedColumn()
         {
-            SqlTableDependency<ABCTableModel> tableDependency = null;
-            string naming = null;
+            SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> tableDependency = null;
+            string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<ABCTableModel>();
+                var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<ABCTableModel>(_connectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed3;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -248,7 +249,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent3);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -256,10 +257,11 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter3, 0);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed3(object sender, RecordChangedEventArgs<ABCTableModel> e)
+        private static void TableDependency_Changed3(object sender, RecordChangedEventArgs<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel> e)
         {
             if (e.ChangeType == ChangeType.Update)
             {
@@ -269,7 +271,7 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent3()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

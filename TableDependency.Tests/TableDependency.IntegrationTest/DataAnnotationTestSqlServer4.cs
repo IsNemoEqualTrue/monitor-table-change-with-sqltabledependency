@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
     [Table("XXXX")]
-    public class DataAnnotationTestSelServerModel4
+    public class DataAnnotationTestSqlServer4Model
     {
         public long Id { get; set; }
 
@@ -25,16 +24,15 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer4
+    public class DataAnnotationTestSqlServer4 : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<DataAnnotationTestSelServerModel4, DataAnnotationTestSelServerModel4>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSelServerModel4, DataAnnotationTestSelServerModel4>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer4Model, DataAnnotationTestSqlServer4Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer4Model, DataAnnotationTestSqlServer4Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -56,12 +54,12 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('ANItemsTableSQL4', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL4];";
+                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL4', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL4];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -71,16 +69,16 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<DataAnnotationTestSelServerModel4> tableDependency = null;
+            SqlTableDependency<DataAnnotationTestSqlServer4Model> tableDependency = null;
             string naming = null;
 
 
-            var mapper = new ModelToTableMapper<DataAnnotationTestSelServerModel4>();
+            var mapper = new ModelToTableMapper<DataAnnotationTestSqlServer4Model>();
             mapper.AddMapping(c => c.Description, "Long Description");
 
             try
             {
-                tableDependency = new SqlTableDependency<DataAnnotationTestSelServerModel4>(ConnectionString, tableName: "ANItemsTableSQL4", mapper: mapper);
+                tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer4Model>(ConnectionStringForTestUser, tableName: "ANItemsTableSQL4", mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -89,7 +87,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -107,11 +105,11 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSelServerModel4> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer4Model> e)
         {
             _counter++;
 
@@ -134,11 +132,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSelServerModel4, DataAnnotationTestSelServerModel4>(new DataAnnotationTestSelServerModel4 { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSelServerModel4()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSelServerModel4, DataAnnotationTestSelServerModel4>(new DataAnnotationTestSelServerModel4 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel4()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSelServerModel4, DataAnnotationTestSelServerModel4>(new DataAnnotationTestSelServerModel4 { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSelServerModel4()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSqlServer4Model, DataAnnotationTestSqlServer4Model>(new DataAnnotationTestSqlServer4Model { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSqlServer4Model()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSqlServer4Model, DataAnnotationTestSqlServer4Model>(new DataAnnotationTestSqlServer4Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer4Model()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSqlServer4Model, DataAnnotationTestSqlServer4Model>(new DataAnnotationTestSqlServer4Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer4Model()));
             
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -151,7 +149,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [ANItemsTableSQL4]";
+                    sqlCommand.CommandText = "DELETE FROM [ANItemsTableSQL4]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }

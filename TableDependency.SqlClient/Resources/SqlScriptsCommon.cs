@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,122 +26,8 @@
 
 namespace TableDependency.SqlClient.Resources
 {
-    public static class SqlScripts
+    public static partial class SqlScripts
     {
-        public const string CreateProcedureQueueActivation = @"CREATE PROCEDURE [{2}].[{0}_QueueActivation] AS 
-BEGIN 
-    SET NOCOUNT ON;
-    DECLARE @h AS UNIQUEIDENTIFIER;
-
-    PRINT N'SqlTableDependency: Queue activation stored procedure {0} has been invoked.';
-    RECEIVE TOP(0) @h = [conversation_handle] FROM [{2}].[{0}];
-
-    IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE name = N'{0}')
-    BEGIN
-        IF ((SELECT COUNT(*) FROM [{2}].[{0}] WITH (NOLOCK) WHERE message_type_name = N'http://schemas.microsoft.com/SQL/ServiceBroker/DialogTimer' OR message_type_name = N'{3}') > 0)
-        BEGIN 
-            PRINT N'SqlTableDependency: Drop objects {0} started.';
-            {1}
-            PRINT N'SqlTableDependency: Drop objects {0} ended.';
-        END 
-    END
-END";
-
-        public const string CreateTrigger = @"CREATE TRIGGER [tr_{0}] ON {1} AFTER {13} AS 
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @rowsToProcess INT
-    DECLARE @currentRow INT
-    DECLARE @h AS UNIQUEIDENTIFIER
-    DECLARE @records XML
-    DECLARE @theMessageContainer NVARCHAR(MAX)
-    DECLARE @dmlType NVARCHAR(10)
-    DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
-    {5}
-    
-    IF NOT EXISTS(SELECT * FROM INSERTED)
-    BEGIN
-        SET @dmlType = '{12}'
-        INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED {14}
-    END
-    ELSE
-    BEGIN
-        IF NOT EXISTS(SELECT * FROM DELETED)
-        BEGIN
-            SET @dmlType = '{10}'
-            INSERT INTO @modifiedRecordsTable SELECT {3} FROM INSERTED {14}
-        END
-        ELSE
-        BEGIN
-            {4}
-        END
-    END
-
-    SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable    
-    IF @rowsToProcess < 1 RETURN
-    SET @currentRow = 0
-
-    BEGIN TRY
-        WHILE @currentRow < @rowsToProcess
-        BEGIN
-            SET @currentRow = @currentRow + 1
-
-            SELECT	{6}
-            FROM	@modifiedRecordsTable
-            WHERE	[RowNumber] = @currentRow
-                
-            IF @dmlType = '{10}' 
-            BEGIN
-                BEGIN DIALOG CONVERSATION @h
-                FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
-                WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
-
-                {7}
-
-                END CONVERSATION @h;
-            END
-        
-            IF @dmlType = '{11}'
-            BEGIN
-                BEGIN DIALOG CONVERSATION @h
-                FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
-                WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
-
-                {8}
-
-                END CONVERSATION @h;
-            END
-
-            IF @dmlType = '{12}'
-            BEGIN
-                BEGIN DIALOG CONVERSATION @h
-                FROM SERVICE [{0}] TO SERVICE '{0}', 'CURRENT DATABASE' ON CONTRACT [{0}]
-                WITH RELATED_CONVERSATION_GROUP = NEWID(), ENCRYPTION = OFF;
-
-                {9}
-
-                END CONVERSATION @h;
-            END            
-        END                       
-
-        {15}
-    END TRY
-    BEGIN CATCH
-        DECLARE @ErrorMessage NVARCHAR(4000)
-        DECLARE @ErrorSeverity INT
-        DECLARE @ErrorState INT
-
-        SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE()
-
-        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState) {16};
-    END CATCH
-END";
-
-        public const string DisposeMessage = @"DECLARE @conversation uniqueidentifier;
-BEGIN DIALOG @conversation FROM SERVICE [{0}] TO SERVICE '{0}' ON CONTRACT [{0}] WITH ENCRYPTION=OFF;
-SEND ON CONVERSATION @conversation MESSAGE TYPE [{1}] (0x);";
-
         public const string InformationSchemaColumns = @"SELECT DB_NAME() AS TABLE_CATALOG,
 SCHEMA_NAME(o.schema_id) AS TABLE_SCHEMA,
 o.name AS TABLE_NAME,
@@ -181,42 +67,6 @@ LEFT JOIN sys.types t ON c.user_type_id = t.user_type_id
 WHERE o.type IN ('U') and SCHEMA_NAME(o.schema_id) = '{0}' and o.name = '{1}'";
 
         public const string InformationSchemaTables = @"SELECT COUNT(*) FROM sys.objects o LEFT JOIN sys.schemas s ON s.schema_id = o.schema_id WHERE o.type IN ('U', 'V') and o.name = '{0}' and s.name = '{1}'";
-
-        public const string ScriptDropAll = @"DECLARE @schema_id INT;
-DECLARE @conversation_handle UNIQUEIDENTIFIER;
-
-SELECT @schema_id = schema_id FROM sys.schemas WITH (NOLOCK) WHERE name = N'{2}';
-
-PRINT N'SqlTableDependency: Dropping trigger [{2}].[tr_{0}].'; 
-IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'tr_{0}') DROP TRIGGER [{2}].[tr_{0}];
-PRINT N'SqlTableDependency: Deactivating queue [{2}].[{0}].';
-IF EXISTS (SELECT * FROM sys.service_queues WITH(NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') EXEC (N'ALTER QUEUE [{2}].[{0}] WITH ACTIVATION (STATUS = OFF)');
-
-PRINT N'SqlTableDependency: Ending conversations {0}.';
-SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service = N'{0}';
-DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations;
-OPEN conversation_cursor;
-FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
-WHILE @@FETCH_STATUS = 0 
-BEGIN
-    END CONVERSATION @conversation_handle WITH CLEANUP;
-    FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
-END
-CLOSE conversation_cursor;
-DEALLOCATE conversation_cursor;
-DROP TABLE #Conversations;
-
-PRINT N'SqlTableDependency: Dropping service broker {0}.';
-IF EXISTS (SELECT * FROM sys.services WITH (NOLOCK) WHERE name = N'{0}') DROP SERVICE [{0}];
-PRINT N'SqlTableDependency: Dropping queue {2}.[{0}].';
-IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}') DROP QUEUE [{2}].[{0}];
-PRINT N'SqlTableDependency: Dropping contract {0}.';
-IF EXISTS (SELECT * FROM sys.service_contracts WITH (NOLOCK) WHERE name = N'{0}') DROP CONTRACT [{0}];
-PRINT N'SqlTableDependency: Dropping messages.';
-{1}
-
-PRINT N'SqlTableDependency: Dropping activation procedure {0}_QueueActivation.';
-IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivation') DROP PROCEDURE [{2}].[{0}_QueueActivation];";
 
         /// <summary>
         /// Security Audit Report
@@ -334,20 +184,6 @@ ORDER BY
     perm.[permission_name],
     perm.[state_desc],
     obj.type_desc--perm.[class_desc]";
-
-        public const string TriggerUpdateWithColumns = @"IF ({0}) BEGIN
-    SET @dmlType = '{3}'
-    INSERT INTO @modifiedRecordsTable SELECT {2} FROM
-    {4}
-END
-ELSE BEGIN
-    RETURN
-END";
-
-        public const string TriggerUpdateWithoutColumns = @"
-SET @dmlType = '{2}'
-INSERT INTO @modifiedRecordsTable SELECT {1} FROM
-{3}";
 
     }
 }

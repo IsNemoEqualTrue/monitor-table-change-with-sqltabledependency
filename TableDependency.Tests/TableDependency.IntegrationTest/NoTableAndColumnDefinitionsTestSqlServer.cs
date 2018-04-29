@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NoTableAndColumnDefinitionsTestSqlServerModel
+    public class NoTableAndColumnDefinitionsTestSqlServerTestModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -22,17 +21,16 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class NoTableAndColumnDefinitionsTestSqlServerTest
+    public class NoTableAndColumnDefinitionsTestSqlServerTest : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private const string TableName = "NoTableAndColumnDefinitionsTestSqlServerModel";
+        private const string TableName = "NoTableAndColumnDefinitionsTestSqlServerTestModel";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>>();
+        private static readonly Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerTestModel, NoTableAndColumnDefinitionsTestSqlServerTestModel>> CheckValues = new Dictionary<string, Tuple<NoTableAndColumnDefinitionsTestSqlServerTestModel, NoTableAndColumnDefinitionsTestSqlServerTestModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -54,7 +52,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -69,12 +67,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerTestModel> tableDependency = null;
             string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerModel>(ConnectionString);
+                tableDependency = new SqlTableDependency<NoTableAndColumnDefinitionsTestSqlServerTestModel>(ConnectionStringForTestUser);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -83,7 +81,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -97,10 +95,12 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, CheckValues[ChangeType.Update.ToString()].Item1.Surname);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, CheckValues[ChangeType.Delete.ToString()].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoTableAndColumnDefinitionsTestSqlServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoTableAndColumnDefinitionsTestSqlServerTestModel> e)
         {
             _counter++;
 
@@ -123,11 +123,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>(new NoTableAndColumnDefinitionsTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new NoTableAndColumnDefinitionsTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>(new NoTableAndColumnDefinitionsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoTableAndColumnDefinitionsTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerModel, NoTableAndColumnDefinitionsTestSqlServerModel>(new NoTableAndColumnDefinitionsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new NoTableAndColumnDefinitionsTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerTestModel, NoTableAndColumnDefinitionsTestSqlServerTestModel>(new NoTableAndColumnDefinitionsTestSqlServerTestModel { Name = "Christian", Surname = "Del Bianco" }, new NoTableAndColumnDefinitionsTestSqlServerTestModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerTestModel, NoTableAndColumnDefinitionsTestSqlServerTestModel>(new NoTableAndColumnDefinitionsTestSqlServerTestModel { Name = "Velia", Surname = "Ceccarelli" }, new NoTableAndColumnDefinitionsTestSqlServerTestModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<NoTableAndColumnDefinitionsTestSqlServerTestModel, NoTableAndColumnDefinitionsTestSqlServerTestModel>(new NoTableAndColumnDefinitionsTestSqlServerTestModel { Name = "Velia", Surname = "Ceccarelli" }, new NoTableAndColumnDefinitionsTestSqlServerTestModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

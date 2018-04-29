@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,12 +7,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class ANItemsTableSQL8
+    public class DataAnnotationTestSqlServer8Model
     {
         public long IdNotExist { get; set; }
         public string NameNotExist { get; set; }
@@ -21,17 +20,16 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer8
+    public class DataAnnotationTestSqlServer8 : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static readonly string TableName = "ANItemsTableSQL8";
+        private const string TableName = "DataAnnotationTestSqlServer8Model";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<ANItemsTableSQL8, ANItemsTableSQL8>> CheckValues = new Dictionary<string, Tuple<ANItemsTableSQL8, ANItemsTableSQL8>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -53,7 +51,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -69,12 +67,12 @@ namespace TableDependency.IntegrationTest
         [ExpectedException(typeof(NoMatchBetweenModelAndTableColumns))]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<ANItemsTableSQL8> tableDependency = null;
-            string naming = null;
+            SqlTableDependency<DataAnnotationTestSqlServer8Model> tableDependency = null;
+            string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<ANItemsTableSQL8>(ConnectionString);
+                tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer8Model>(ConnectionStringForTestUser);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -83,7 +81,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -101,11 +99,11 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.NameNotExist, CheckValues[ChangeType.Delete.ToString()].Item1.NameNotExist);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.DescriptionNotExist, CheckValues[ChangeType.Delete.ToString()].Item1.DescriptionNotExist);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<ANItemsTableSQL8> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer8Model> e)
         {
             _counter++;
 
@@ -128,11 +126,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<ANItemsTableSQL8, ANItemsTableSQL8>(new ANItemsTableSQL8 { NameNotExist = "Christian", DescriptionNotExist = "Del Bianco" }, new ANItemsTableSQL8()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<ANItemsTableSQL8, ANItemsTableSQL8>(new ANItemsTableSQL8 { NameNotExist = "Velia", DescriptionNotExist = "Ceccarelli" }, new ANItemsTableSQL8()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<ANItemsTableSQL8, ANItemsTableSQL8>(new ANItemsTableSQL8 { NameNotExist = "Velia", DescriptionNotExist = "Ceccarelli" }, new ANItemsTableSQL8()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>(new DataAnnotationTestSqlServer8Model { NameNotExist = "Christian", DescriptionNotExist = "Del Bianco" }, new DataAnnotationTestSqlServer8Model()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>(new DataAnnotationTestSqlServer8Model { NameNotExist = "Velia", DescriptionNotExist = "Ceccarelli" }, new DataAnnotationTestSqlServer8Model()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>(new DataAnnotationTestSqlServer8Model { NameNotExist = "Velia", DescriptionNotExist = "Ceccarelli" }, new DataAnnotationTestSqlServer8Model()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

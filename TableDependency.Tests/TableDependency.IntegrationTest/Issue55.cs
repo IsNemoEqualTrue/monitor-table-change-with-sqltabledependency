@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -20,10 +19,9 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class Issue55
+    public class Issue55 : SqlTableDependencyBaseTest
     {
         private const string TableName = "BranchABC$Sales Invoice Header";
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static int _counter;
         private static Dictionary<string, Tuple<Issue55Model, Issue55Model>> _checkValues = new Dictionary<string, Tuple<Issue55Model, Issue55Model>>();
 
@@ -31,7 +29,7 @@ namespace TableDependency.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -47,7 +45,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -72,7 +70,7 @@ namespace TableDependency.IntegrationTest
             mapper.AddMapping(c => c.DocNo, "Applies-to Doc_ No_");
 
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue55Model>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<Issue55Model>(ConnectionStringForTestUser, TableName, mapper);
 
             try
             {
@@ -84,7 +82,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -104,8 +102,8 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.AllowQuantity, _checkValues[ChangeType.Delete.ToString()].Item1.AllowQuantity);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.PaymentDiscount, _checkValues[ChangeType.Delete.ToString()].Item1.PaymentDiscount);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(objectNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(objectNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue55Model> e)
@@ -138,7 +136,7 @@ namespace TableDependency.IntegrationTest
             _checkValues.Add(ChangeType.Update.ToString(), new Tuple<Issue55Model, Issue55Model>(new Issue55Model { DocNo = "Velia", AllowQuantity = 2, PaymentDiscount = 3}, new Issue55Model()));
             _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<Issue55Model, Issue55Model>(new Issue55Model { DocNo = "Velia", AllowQuantity = 2, PaymentDiscount = 3 }, new Issue55Model()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

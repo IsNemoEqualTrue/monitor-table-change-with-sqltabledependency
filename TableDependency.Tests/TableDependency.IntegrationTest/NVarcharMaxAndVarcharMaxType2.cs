@@ -1,41 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class NVarcharMaxAndVarcharMaxModel2
+    public class NVarcharMaxAndVarcharMaxType2Model
     {
         // *****************************************************
         // SQL Server Data Type Mappings: 
         // https://msdn.microsoft.com/en-us/library/cc716729%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
         // *****************************************************
-        public string varcharMAXColumn { get; set; }
-        public string nvarcharMAXColumn { get; set; }
+        public string VarcharMaxColumn { get; set; }
+        public string NvarcharMaxColumn { get; set; }
     }
 
     [TestClass]
-    public class NVarcharMaxAndVarcharMaxType2
+    public class NVarcharMaxAndVarcharMaxType2 : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "AXXTest";
-        private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>>();
+        private const string TableName = "AXXTest";
+        private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxType2Model, NVarcharMaxAndVarcharMaxType2Model>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxType2Model, NVarcharMaxAndVarcharMaxType2Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -52,7 +47,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -67,12 +62,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void ColumnTypesTest1()
         {
-            SqlTableDependency<NVarcharMaxAndVarcharMaxModel2> tableDependency = null;
+            SqlTableDependency<NVarcharMaxAndVarcharMaxType2Model> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxModel2>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxType2Model>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -81,41 +76,41 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
-                   
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.VarcharMaxColumn, CheckValues[ChangeType.Insert.ToString()].Item1.VarcharMaxColumn);
+            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.NvarcharMaxColumn, CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxModel2> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxType2Model> e)
         {
-            CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
-            CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;         
+            CheckValues[ChangeType.Insert.ToString()].Item2.VarcharMaxColumn = e.Entity.VarcharMaxColumn;
+            CheckValues[ChangeType.Insert.ToString()].Item2.NvarcharMaxColumn = e.Entity.NvarcharMaxColumn;         
         }
 
         private static void ModifyTableContent1()
         {
             CheckValues.Add(ChangeType.Insert.ToString(), 
-                new Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>(new NVarcharMaxAndVarcharMaxModel2
-                { varcharMAXColumn = new string('¢', 6000), nvarcharMAXColumn = "мы фантастические" }, new NVarcharMaxAndVarcharMaxModel2()));
+                new Tuple<NVarcharMaxAndVarcharMaxType2Model, NVarcharMaxAndVarcharMaxType2Model>(new NVarcharMaxAndVarcharMaxType2Model
+                { VarcharMaxColumn = new string('¢', 6000), NvarcharMaxColumn = "мы фантастические" }, new NVarcharMaxAndVarcharMaxType2Model()));
             
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([varcharMAXColumn], [nvarcharMAXColumn]) VALUES(@varcharMAXColumn, @nvarcharMAXColumn)";
-                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
-                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
+                    sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.VarcharMaxColumn);
+                    sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
                 }
 

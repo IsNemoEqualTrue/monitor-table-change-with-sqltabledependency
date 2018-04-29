@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -17,17 +17,15 @@ namespace TableDependency.IntegrationTest
         public int Quantity { get; set; }
     }
 
-#if DEBUG
     [TestClass]
-    public class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer
+    public class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -35,7 +33,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id][int], [First Name] [nvarchar](50), [Second Name] [nvarchar](50))";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int], [First Name] [nvarchar](50), [Second Name] [nvarchar](50))";
                     sqlCommand.ExecuteNonQuery();
                 }
                 sqlConnection.Close();
@@ -45,7 +43,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -64,7 +62,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>(ConnectionString, TableName, mapper);
+            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
@@ -75,7 +73,7 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000);
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -91,13 +89,12 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000 * 60 * 3);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(dbObjectsNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
 
         private static void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel> e)
         {
         }
     }
-#endif
 }

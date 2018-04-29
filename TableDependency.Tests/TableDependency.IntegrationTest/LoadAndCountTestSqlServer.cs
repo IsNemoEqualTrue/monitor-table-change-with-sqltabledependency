@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -20,16 +19,15 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class LoadAndCountTestSqlServer
+    public class LoadAndCountTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private static string TableName = "TestTable";
         private int _counter = 1;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -51,7 +49,7 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -65,7 +63,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -86,10 +84,10 @@ namespace TableDependency.IntegrationTest
             var counterUpTo = 1000;
             var mapper = new ModelToTableMapper<LoadAndCountTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
-            var listenerTask = Task.Factory.StartNew(() => new ListenerSlq(ConnectionString, TableName, mapper).Run(counterUpTo, token), token);
+            var listenerTask = Task.Factory.StartNew(() => new ListenerSlq(ConnectionStringForTestUser, TableName, mapper).Run(counterUpTo, token), token);
             Thread.Sleep(3000);
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -111,8 +109,9 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(listenerTask.Result != null);
             Assert.IsTrue(listenerTask.Result.Counter == counterUpTo);
             Assert.IsTrue(!listenerTask.Result.SequentialNotificationFailed);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(listenerTask.Result.ObjectNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(listenerTask.Result.ObjectNaming));
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(listenerTask.Result.ObjectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(listenerTask.Result.ObjectNaming) == 0);
         }
     }
 

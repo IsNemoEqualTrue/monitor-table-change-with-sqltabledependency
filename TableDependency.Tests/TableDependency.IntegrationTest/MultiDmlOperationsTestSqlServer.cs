@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -27,9 +27,8 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class MultiDmlOperationsTestSqlServer
+    public class MultiDmlOperationsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "MultiDmlOperations";
         private static readonly List<MultiDmlOperationsTestSqlServerModel> ModifiedValues = new List<MultiDmlOperationsTestSqlServerModel>();
         private static readonly List<MultiDmlOperationsTestSqlServerModel> InitialValues = new List<MultiDmlOperationsTestSqlServerModel>();
@@ -41,7 +40,7 @@ namespace TableDependency.IntegrationTest
             InitialValues.Add(new MultiDmlOperationsTestSqlServerModel() { Name = "VELIA", Surname = "CECCARELLI" });
             InitialValues.Add(new MultiDmlOperationsTestSqlServerModel() { Name = "ALFREDINA", Surname = "BRUSCHI" });
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -58,7 +57,7 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -72,7 +71,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -87,7 +86,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void MultiDeleteTest()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -109,7 +108,7 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -135,7 +134,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void TwoUpdateTest()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -157,7 +156,7 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -165,7 +164,8 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("VELIA"));
-                t.Wait(20000);
+                t.Start();
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -181,7 +181,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void ThreeUpdateTest()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -203,7 +203,7 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -211,7 +211,8 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("xxx"));
-                t.Wait(20000);
+                t.Start();
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -236,7 +237,7 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionString, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
@@ -245,7 +246,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(MultiInsertOperation);
                 t.Start();
-                t.Wait(40000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -270,7 +271,7 @@ namespace TableDependency.IntegrationTest
 
         private static void MultiInsertOperation()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -288,7 +289,7 @@ namespace TableDependency.IntegrationTest
 
         private static void MultiDeleteOperation()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -297,12 +298,13 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+
             Thread.Sleep(500);
         }
 
         private static void MultiUpdateOperation(string value)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -311,6 +313,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+
             Thread.Sleep(500);
         }
     }

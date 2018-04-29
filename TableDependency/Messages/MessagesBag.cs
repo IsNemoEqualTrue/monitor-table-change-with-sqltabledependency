@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -44,12 +44,12 @@ namespace TableDependency.Messages
         #endregion
 
         #region Properties
+
         public Encoding Encoding { get; }
         public ChangeType MessageType { get; private set; }
         public List<Message> Messages { get; private set; }
         public MessagesBagStatus Status { get; private set; }
         
-
         #endregion
 
         #region Constructors

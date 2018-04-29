@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -18,16 +18,15 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DatabaseObjectAutoCleanUpTestSqlServer
+    public class DatabaseObjectAutoCleanUpTestSqlServer : SqlTableDependencyBaseTest
     {
         private static string _dbObjectsNaming;
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "AAADCheck_Model";
+        private const string TableName = "AAADCheck_Model";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -49,7 +48,7 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -63,7 +62,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -78,25 +77,24 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {
-            var domaininfo = new AppDomainSetup();
-            domaininfo.ApplicationBase = Environment.CurrentDirectory;
+            var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp", adevidence, domaininfo);
-            var otherDomainObject = (RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp).Assembly.FullName, typeof(RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp).FullName);
-            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionString, TableName);
+            var otherDomainObject = (RunsInAnotherAppDomainCheckDatabaseObjectCleanUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).Assembly.FullName, typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).FullName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, TableName);
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
 
             SmallModifyTableContent();
 
             Thread.Sleep(3 * 60 * 1000);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(_dbObjectsNaming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(_dbObjectsNaming) == 0);
         }
 
         private static void SmallModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -108,7 +106,7 @@ namespace TableDependency.IntegrationTest
         }
     }
 
-    public class RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp : MarshalByRefObject
+    public class RunsInAnotherAppDomainCheckDatabaseObjectCleanUp : MarshalByRefObject
     {
         public string RunTableDependency(string connectionString, string tableName)
         {

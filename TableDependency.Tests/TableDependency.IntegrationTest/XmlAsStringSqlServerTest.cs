@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class XmlAsVarcharMaxSqlServerTestModell
+    public class XmlAsStringSqlServerTestModel
     {
         // *****************************************************
         // SQL Server Data Type Mappings: 
@@ -23,11 +22,10 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class XmlAsStringSqlServerTest
+    public class XmlAsStringSqlServerTest : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "XmlAsVarcharMaxSqlServerTestModell";
-        private static readonly Dictionary<string, Tuple<XmlAsVarcharMaxSqlServerTestModell, XmlAsVarcharMaxSqlServerTestModell>> CheckValues = new Dictionary<string, Tuple<XmlAsVarcharMaxSqlServerTestModell, XmlAsVarcharMaxSqlServerTestModell>>();
+        private static readonly Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>> CheckValues = new Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>>();
 
         private const string XmlForInsert = @"<?xml version=""1.0"" encoding=""utf-8""?><catalog><book id=""1""><author>Gambardella, Matthew</author><title>XML Developer's Guide</title></book></catalog>";
         private const string XmlForUpdate = @"<?xml version=""1.0"" encoding=""utf-8""?><catalog><book id=""2""><author>Ridley, Matthew</author><title>XML Developer's Guide</title></book></catalog>";
@@ -35,7 +33,7 @@ namespace TableDependency.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -52,7 +50,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -67,12 +65,12 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void XmlAsStringTest()
         {
-            SqlTableDependency<XmlAsVarcharMaxSqlServerTestModell> tableDependency = null;
+            SqlTableDependency<XmlAsStringSqlServerTestModel> tableDependency = null;
             string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<XmlAsVarcharMaxSqlServerTestModell>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<XmlAsStringSqlServerTestModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -81,7 +79,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                t.Wait(1000 * 10 * 1);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -99,11 +97,11 @@ namespace TableDependency.IntegrationTest
 
             Thread.Sleep(1000 * 10 * 1);
 
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(naming));
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<XmlAsVarcharMaxSqlServerTestModell> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<XmlAsStringSqlServerTestModel> e)
         {
             switch (e.ChangeType)
             {
@@ -126,11 +124,11 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent1()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<XmlAsVarcharMaxSqlServerTestModell, XmlAsVarcharMaxSqlServerTestModell>(new XmlAsVarcharMaxSqlServerTestModell { VarcharMaxColumn = XmlForInsert, NvarcharMaxColumn = XmlForInsert }, new XmlAsVarcharMaxSqlServerTestModell()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<XmlAsVarcharMaxSqlServerTestModell, XmlAsVarcharMaxSqlServerTestModell>(new XmlAsVarcharMaxSqlServerTestModell { VarcharMaxColumn = XmlForUpdate, NvarcharMaxColumn = XmlForUpdate }, new XmlAsVarcharMaxSqlServerTestModell()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<XmlAsVarcharMaxSqlServerTestModell, XmlAsVarcharMaxSqlServerTestModell>(new XmlAsVarcharMaxSqlServerTestModell { VarcharMaxColumn = XmlForUpdate, NvarcharMaxColumn = XmlForUpdate }, new XmlAsVarcharMaxSqlServerTestModell()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>(new XmlAsStringSqlServerTestModel { VarcharMaxColumn = XmlForInsert, NvarcharMaxColumn = XmlForInsert }, new XmlAsStringSqlServerTestModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>(new XmlAsStringSqlServerTestModel { VarcharMaxColumn = XmlForUpdate, NvarcharMaxColumn = XmlForUpdate }, new XmlAsStringSqlServerTestModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>(new XmlAsStringSqlServerTestModel { VarcharMaxColumn = XmlForUpdate, NvarcharMaxColumn = XmlForUpdate }, new XmlAsStringSqlServerTestModel()));
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
 

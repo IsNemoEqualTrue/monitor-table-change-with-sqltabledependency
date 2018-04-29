@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2017 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -40,12 +40,21 @@ namespace TableDependency.EventArgs
 
         #region Constructors
 
-        internal ErrorEventArgs(Exception e, string server, string database, string sender) : this("TableDependency stopped working", e, server, database, sender)
+        internal ErrorEventArgs(
+            Exception e, 
+            string server, 
+            string database, 
+            string sender) : this("TableDependency stopped working", e, server, database, sender)
         {
 
         }
 
-        internal ErrorEventArgs(string message, Exception e, string server, string database, string sender) : base(server, database, sender)
+        internal ErrorEventArgs(
+            string message, 
+            Exception e, 
+            string server, 
+            string database, 
+            string sender) : base(server, database, sender)
         {
             this.Message = message;
             this.Error = e;

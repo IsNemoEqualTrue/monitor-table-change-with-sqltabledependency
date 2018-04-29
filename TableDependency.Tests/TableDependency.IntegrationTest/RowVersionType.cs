@@ -1,15 +1,16 @@
-﻿using System.Configuration;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class RowVersioneModel
+    public class RowVersionTypeModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -18,17 +19,16 @@ namespace TableDependency.IntegrationTest
 }
 
     [TestClass]
-    public class RowVersionType
+    public class RowVersionType : SqlTableDependencyBaseTest
     {
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        private static string TableName = "RowVersionTest";
-        private byte[] RowVersionInsert = null;
-        private byte[] RowVersionUpdate = null;
+        private const string TableName = "RowVersionTest";
+        private byte[] _rowVersionInsert = null;
+        private byte[] _rowVersionUpdate = null;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -50,7 +50,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -65,11 +65,11 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<RowVersioneModel> tableDependency = null;
+            SqlTableDependency<RowVersionTypeModel> tableDependency = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<RowVersioneModel>(ConnectionString, TableName);
+                tableDependency = new SqlTableDependency<RowVersionTypeModel>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
 
@@ -77,34 +77,34 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
                 tableDependency?.Dispose();
             }
 
-            Assert.AreNotEqual(RowVersionInsert, RowVersionUpdate);
+            Assert.AreNotEqual(_rowVersionInsert, _rowVersionUpdate);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<RowVersioneModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<RowVersionTypeModel> e)
         {
 
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    RowVersionInsert = e.Entity.Version;
+                    _rowVersionInsert = e.Entity.Version;
                     break;
 
                 case ChangeType.Update:
-                    RowVersionUpdate = e.Entity.Version;
+                    _rowVersionUpdate = e.Entity.Version;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())

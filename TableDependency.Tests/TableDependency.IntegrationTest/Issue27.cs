@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -16,15 +15,14 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class Issue27
+    public class Issue27 : SqlTableDependencyBaseTest
     {
         private const string TableName = "Issue27Model";
-        private static readonly string ConnectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-
+        
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -40,7 +38,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -63,7 +61,7 @@ namespace TableDependency.IntegrationTest
             {
                 string objectNaming;
 
-                using (var tableDependency = new SqlTableDependency<Issue27Model>(ConnectionString, TableName))
+                using (var tableDependency = new SqlTableDependency<Issue27Model>(ConnectionStringForTestUser, TableName))
                 {
                     tableDependency.OnChanged += TableDependency_Changed;
                     tableDependency.Start();
@@ -72,8 +70,8 @@ namespace TableDependency.IntegrationTest
                     Thread.Sleep(5000);                    
                 }
 
-                Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(objectNaming));
-                Assert.IsTrue(SqlServerHelper.AreAllEndpointDisposed(objectNaming));
+                Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+                Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
             }
             catch (Exception exception)
             {

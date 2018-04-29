@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TableDependency.Enums;
 using TableDependency.EventArgs;
-using TableDependency.IntegrationTest.Helpers.SqlServer;
+using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
@@ -22,9 +21,8 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class EventForSpecificColumnsTestSqlServer
+    public class EventForSpecificColumnsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static string _connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         private const string TableName = "Check_Model";
         private static int _counter;
         private static Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>>();
@@ -32,7 +30,7 @@ namespace TableDependency.IntegrationTest
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -59,7 +57,7 @@ namespace TableDependency.IntegrationTest
         [ClassCleanup()]
         public static void ClassCleanup()
         {
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -86,7 +84,7 @@ namespace TableDependency.IntegrationTest
                 updateOf.Add(i => i.Surname);
 
                 tableDependency = new SqlTableDependency<EventForSpecificColumnsTestSqlServerModel>(
-                    _connectionString, 
+                    ConnectionStringForTestUser, 
                     tableName: TableName, 
                     mapper: mapper, 
                     updateOf: updateOf);
@@ -99,7 +97,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                t.Wait(20000);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -112,7 +110,9 @@ namespace TableDependency.IntegrationTest
 
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, _checkValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, _checkValues[ChangeType.Delete.ToString()].Item1.Surname);
-            Assert.IsTrue(SqlServerHelper.AreAllDbObjectDisposed(naming));
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForSpecificColumnsTestSqlServerModel> e)
@@ -138,7 +138,7 @@ namespace TableDependency.IntegrationTest
             _checkValues.Add(ChangeType.Update.ToString(), new Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>(new EventForSpecificColumnsTestSqlServerModel { Name = "Velia" }, new EventForSpecificColumnsTestSqlServerModel()));
             _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>(new EventForSpecificColumnsTestSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new EventForSpecificColumnsTestSqlServerModel()));
 
-            using (var sqlConnection = new SqlConnection(_connectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
