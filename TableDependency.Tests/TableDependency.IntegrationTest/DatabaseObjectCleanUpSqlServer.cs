@@ -7,6 +7,7 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+#if DEBUG
     public class DatabaseObjectCleanUpSqlServerModel
     {
         public int Id { get; set; }
@@ -71,4 +72,5 @@ namespace TableDependency.IntegrationTest
         {
         }
     }
+#endif
 }
