@@ -6,7 +6,7 @@
 
 For any record table change, as insert, update or delete operation, a notification **containing values for the record changed** is received from SqlTableDependency. This notification contains the update values from the database table.
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Workflow-min.png" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Workflow-min.png" />
 
 This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the updated table values record is delivered to you by notification.
 
@@ -15,11 +15,11 @@ If we want **get alert about record table changes** without paying attention to 
 
 Assuming we are interested to receive record changes for the following database table:
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/rsz_table.jpg" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
 
 Start installing SqlTableDependency using:
 
-[![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
+[![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
 We define a C# model object mapping table columns we are interested to be populated with the values from any INSERT, DELETE or UPDATE operation. We do not need to define all table columns but just the ones we are interested in:
 
@@ -78,7 +78,7 @@ public class Program
 
 Done! Now you are ready to receive notifications:
 
-[![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
+[![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ### Monitor table changes use cases and examples
 To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test).
@@ -127,9 +127,9 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 
 ![DatabaseObjects][DatabaseObjects]
 
-[DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/DbObjects-min.png "Database Object created for send notifications"
+[DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/DbObjects-min.png "Database Object created for send notifications"
 
-#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/if_exclamation-red_46014.png) Requirements 
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
 * Windows service using SqlTableDependency **must not goes to SLEEP mode or idle state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects (please see https://stackoverflow.com/questions/6302185/how-to-prevent-windows-from-entering-idle-state).
@@ -156,7 +156,7 @@ In case the user specified in the connection string is not database operator and
 
 It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
 
-#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
 To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
 
@@ -186,11 +186,11 @@ WHERE [Field] IN ('dbi_createversion','dbi_version')
 ```
 Executing this script on my Northwind database I get:
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/2018-04-20%20at%2010-40-04.png" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/2018-04-20%20at%2010-40-04.png" />
 
 Executing this script on DB created by SQL Server 2008 R2 instance (TableDependencyDB), the result is:
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/2018-04-20%20at%2011-51-49.png" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/2018-04-20%20at%2011-51-49.png" />
 
 Even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
 
