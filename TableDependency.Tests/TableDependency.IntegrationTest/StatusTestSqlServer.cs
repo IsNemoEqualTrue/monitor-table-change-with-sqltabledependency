@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.Enums;
@@ -25,7 +26,7 @@ namespace TableDependency.IntegrationTest
     public class StatusTestSqlServer : SqlTableDependencyBaseTest
     {
         private SqlTableDependency<StatusTestSqlServerModel> _tableDependency;
-        private const string TableName = "StatusCheckTest";
+        private static readonly string TableName = typeof(StatusTestSqlServerModel).Name;
         private static readonly IDictionary<TableDependencyStatus, bool> Statuses = new Dictionary<TableDependencyStatus, bool>();
 
         [ClassInitialize()]

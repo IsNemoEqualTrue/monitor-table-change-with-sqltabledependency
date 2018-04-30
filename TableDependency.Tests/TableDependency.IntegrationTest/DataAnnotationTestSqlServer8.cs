@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.Exceptions;
@@ -22,7 +24,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DataAnnotationTestSqlServer8 : SqlTableDependencyBaseTest
     {
-        private const string TableName = "DataAnnotationTestSqlServer8Model";
+        private static readonly string TableName = typeof(DataAnnotationTestSqlServer8Model).Name;
         private static int _counter;
         private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>>();
 

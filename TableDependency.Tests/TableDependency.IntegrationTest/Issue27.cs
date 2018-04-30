@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
@@ -17,8 +19,8 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class Issue27 : SqlTableDependencyBaseTest
     {
-        private const string TableName = "Issue27Model";
-        
+        private static readonly string TableName = typeof(Issue27Model).Name;
+
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
         {

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
@@ -20,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class TaskCancellationTestSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "Check_Model";
+        private static readonly string TableName = typeof(TaskCancellationTestSqlServerModel).Name;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

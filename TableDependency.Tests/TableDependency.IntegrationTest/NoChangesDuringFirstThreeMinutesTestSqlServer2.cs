@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -13,7 +15,7 @@ namespace TableDependency.IntegrationTest
 {
     public class NoChangesDuringFirstThreeMinutesTestSqlServer2Model
     {
-        public int Id { get; set; }
+        public int MenuId { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
     }
@@ -21,10 +23,11 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NoChangesDuringFirstThreeMinutesTestSqlServer2 : SqlTableDependencyBaseTest
     {
-        private static readonly string TableName = "NoChangesDuringFirstThreeMinutesTestSqlServer2Model";
-        private static Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>> _checkValues = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>>();
+        private static readonly string TableName = typeof(NoChangesDuringFirstThreeMinutesTestSqlServer2Model).Name;
+        private static Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>> _checkValues1 = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>>();
+        private static Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>> _checkValues2 = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>>();
+
         private static int _counter;
-        private static string _mal = "First Time";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -37,7 +40,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] NOT NULL PRIMARY KEY, [Name] [NVARCHAR](50) NULL, [Surname] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([MenuId] [INT] NULL, [Name] [NVARCHAR](30) NULL, [Surname] [NVARCHAR](30) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -60,46 +63,41 @@ namespace TableDependency.IntegrationTest
         [TestCategory("SqlServer")]
         [TestMethod]
         public void AfterThreeMinutesICanGetNotifications()
-        {            
+        {
             SqlTableDependency<NoChangesDuringFirstThreeMinutesTestSqlServer2Model> tableDependency = null;
             string dataBaseObjectsNamingConvention = null;
 
             try
             {
                 tableDependency = new SqlTableDependency<NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(ConnectionStringForTestUser);
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.Start();
                 dataBaseObjectsNamingConvention = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(4 * 60 * 1000);
-                Assert.IsTrue(base.AreAllDbObjectDisposed(dataBaseObjectsNamingConvention) == false);
-                Assert.IsTrue(base.CountConversationEndpoints(dataBaseObjectsNamingConvention) != 0);
-
-                var t = new Task(ModifyTableContent);
+                var t = new Task(ModifyTableContent1);
                 t.Start();
                 Thread.Sleep(1000 * 10 * 1);
 
                 Assert.AreEqual(_counter, 3);
-                Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
+                Assert.AreEqual(_checkValues1[ChangeType.Insert.ToString()].Item2.Name, _checkValues1[ChangeType.Insert.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues1[ChangeType.Insert.ToString()].Item2.Surname, _checkValues1[ChangeType.Insert.ToString()].Item1.Surname);
+                Assert.AreEqual(_checkValues1[ChangeType.Update.ToString()].Item2.Name, _checkValues1[ChangeType.Update.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues1[ChangeType.Update.ToString()].Item2.Surname, _checkValues1[ChangeType.Update.ToString()].Item1.Surname);
+                Assert.AreEqual(_checkValues1[ChangeType.Delete.ToString()].Item2.Name, _checkValues1[ChangeType.Delete.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues1[ChangeType.Delete.ToString()].Item2.Surname, _checkValues1[ChangeType.Delete.ToString()].Item1.Surname);
 
-                _mal = "Second round";
-                
-                Thread.Sleep(7 * 60 * 1000);
-                var f = new Task(ModifyTableContent);
+                Thread.Sleep(7 * 10 * 1000);
+                var f = new Task(ModifyTableContent2);
                 f.Start();
                 Thread.Sleep(1000 * 10 * 1);
 
-                Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Name, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Insert.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Name, "Pizza Funghi" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Update.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Name, "Pizza Funghi" + _mal);
-                Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.Surname, "Pizza Mergherita" + _mal);
+                Assert.AreEqual(_counter, 6);
+                Assert.AreEqual(_checkValues2[ChangeType.Insert.ToString()].Item2.Name, _checkValues2[ChangeType.Insert.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues2[ChangeType.Insert.ToString()].Item2.Surname, _checkValues2[ChangeType.Insert.ToString()].Item1.Surname);
+                Assert.AreEqual(_checkValues2[ChangeType.Update.ToString()].Item2.Name, _checkValues2[ChangeType.Update.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues2[ChangeType.Update.ToString()].Item2.Surname, _checkValues2[ChangeType.Update.ToString()].Item1.Surname);
+                Assert.AreEqual(_checkValues2[ChangeType.Delete.ToString()].Item2.Name, _checkValues2[ChangeType.Delete.ToString()].Item1.Name);
+                Assert.AreEqual(_checkValues2[ChangeType.Delete.ToString()].Item2.Surname, _checkValues2[ChangeType.Delete.ToString()].Item1.Surname);
             }
             finally
             {
@@ -112,51 +110,101 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(base.CountConversationEndpoints(dataBaseObjectsNamingConvention) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoChangesDuringFirstThreeMinutesTestSqlServer2Model> e)
+        private static void TableDependency_Changed1(object sender, RecordChangedEventArgs<NoChangesDuringFirstThreeMinutesTestSqlServer2Model> e)
         {
+            _counter++;
+
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    _counter++;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
-                    _checkValues[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
+                    if (e.Entity.MenuId == 1)
+                    {
+                        _checkValues1[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues1[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+                    else
+                    {
+                        _checkValues2[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues2[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+
                     break;
 
                 case ChangeType.Delete:
-                    _counter++;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
-                    _checkValues[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
+                    if (e.Entity.MenuId == 1)
+                    {
+                        _checkValues1[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues1[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+                    else
+                    {
+                        _checkValues2[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues2[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+
                     break;
 
                 case ChangeType.Update:
-                    _counter++;
-                    _checkValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
-                    _checkValues[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
+                    if (e.Entity.MenuId == 1)
+                    {
+                        _checkValues1[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues1[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+                    else
+                    {
+                        _checkValues2[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
+                        _checkValues2[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
+                    }
+
                     break;
             }
         }
 
-        private static void ModifyTableContent()
+        private static void ModifyTableContent1()
         {
-            _checkValues.Clear();
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { Id = 23, Name = "Pizza Mergherita" + _mal, Surname = "Pizza Mergherita" + _mal }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { Id = 23, Name = "Pizza Funghi" + _mal, Surname = "Pizza Mergherita" + _mal }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { Id = 23, Name = "Pizza Funghi" + _mal, Surname = "Pizza Funghi" + _mal }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+            _checkValues1.Add(ChangeType.Insert.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 1, Name = "Pizza Prosciutto", Surname = "Pizza Prosciutto" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+            _checkValues1.Add(ChangeType.Update.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 1, Name = "Pizza Napoletana", Surname = "Pizza Prosciutto" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+            _checkValues1.Add(ChangeType.Delete.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 1, Name = "Pizza Napoletana", Surname = "Pizza Prosciutto" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
 
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Id], [Name], [Surname]) VALUES ({_checkValues[ChangeType.Insert.ToString()].Item1.Id}, '{_checkValues[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues[ChangeType.Insert.ToString()].Item1.Surname}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([MenuId], [Name], [Surname]) VALUES ({_checkValues1[ChangeType.Insert.ToString()].Item1.MenuId}, '{_checkValues1[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues1[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{_checkValues[ChangeType.Update.ToString()].Item1.Name}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{_checkValues1[ChangeType.Update.ToString()].Item1.Name}' WHERE [MenuId] = " + _checkValues1[ChangeType.Update.ToString()].Item1.MenuId;
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(1000);
 
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}] WHERE [MenuId] = " + _checkValues1[ChangeType.Delete.ToString()].Item1.MenuId;
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static void ModifyTableContent2()
+        {
+            _checkValues2.Add(ChangeType.Insert.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 2, Name = "Pizza Mergherita", Surname = "Pizza Mergherita" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+            _checkValues2.Add(ChangeType.Update.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 2, Name = "Pizza Funghi", Surname = "Pizza Mergherita" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+            _checkValues2.Add(ChangeType.Delete.ToString(), new Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>(new NoChangesDuringFirstThreeMinutesTestSqlServer2Model { MenuId = 2, Name = "Pizza Funghi", Surname = "Pizza Mergherita" }, new NoChangesDuringFirstThreeMinutesTestSqlServer2Model()));
+
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([MenuId], [Name], [Surname]) VALUES ({_checkValues2[ChangeType.Insert.ToString()].Item1.MenuId}, '{_checkValues2[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues2[ChangeType.Insert.ToString()].Item1.Surname}')";
+                    sqlCommand.ExecuteNonQuery();
+                    Thread.Sleep(1000);
+
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{_checkValues2[ChangeType.Update.ToString()].Item1.Name}' WHERE [MenuId] = " + _checkValues2[ChangeType.Update.ToString()].Item1.MenuId;
+                    sqlCommand.ExecuteNonQuery();
+                    Thread.Sleep(1000);
+
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}] WHERE [MenuId] = " + _checkValues2[ChangeType.Delete.ToString()].Item1.MenuId;
                     sqlCommand.ExecuteNonQuery();
                 }
             }

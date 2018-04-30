@@ -4,7 +4,9 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
@@ -29,7 +31,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class MultiDmlOperationsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "MultiDmlOperations";
+        private static readonly string TableName = typeof(MultiDmlOperationsTestSqlServerModel).Name;
         private static readonly List<MultiDmlOperationsTestSqlServerModel> ModifiedValues = new List<MultiDmlOperationsTestSqlServerModel>();
         private static readonly List<MultiDmlOperationsTestSqlServerModel> InitialValues = new List<MultiDmlOperationsTestSqlServerModel>();
 

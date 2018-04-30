@@ -47,10 +47,10 @@ namespace TableDependency.IntegrationTest
     public class Issue53 : SqlTableDependencyBaseTest
     {
         public TestContext TestContext { get; set; }
-        private const string TableName1 = "Issue53Model1";
-        private const string TableName2 = "Issue53Model2";
-        private const string TableName3 = "Issue53Model3";
-        private const string TableName4 = "Issue53Model4";
+        private static readonly string TableName1 = typeof(Issue53Model1).Name;
+        private static readonly string TableName2 = typeof(Issue53Model2).Name;
+        private static readonly string TableName3 = typeof(Issue53Model3).Name;
+        private static readonly string TableName4 = typeof(Issue53Model4).Name;
         private static Dictionary<string, Tuple<Issue53Model1, Issue53Model1>> _checkValues1 = new Dictionary<string, Tuple<Issue53Model1, Issue53Model1>>();
         private static Dictionary<string, Tuple<Issue53Model2, Issue53Model2>> _checkValues2 = new Dictionary<string, Tuple<Issue53Model2, Issue53Model2>>();
         private static Dictionary<string, Tuple<Issue53Model3, Issue53Model3>> _checkValues3 = new Dictionary<string, Tuple<Issue53Model3, Issue53Model3>>();

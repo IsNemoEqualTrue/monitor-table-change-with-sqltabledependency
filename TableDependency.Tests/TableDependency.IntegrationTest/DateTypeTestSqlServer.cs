@@ -25,7 +25,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DateTypeTest : SqlTableDependencyBaseTest
     {
-        private const string TableName = "Test";
+        private static readonly string TableName = typeof(DateTypeTestModel).Name;
         private static readonly Dictionary<string, Tuple<DateTypeTestModel, DateTypeTestModel>> CheckValues = new Dictionary<string, Tuple<DateTypeTestModel, DateTypeTestModel>>();
 
         [ClassInitialize()]

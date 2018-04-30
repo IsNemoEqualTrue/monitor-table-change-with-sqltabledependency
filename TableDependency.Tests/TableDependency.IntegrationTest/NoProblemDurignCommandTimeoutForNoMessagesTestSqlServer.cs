@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -22,7 +24,7 @@ namespace TableDependency.IntegrationTest
     public class NoProblemDurignCommandTimeoutForNoMessagesSqlServer : SqlTableDependencyBaseTest
     {
         private static string _dbObjectsNaming;
-        private static readonly string TableName = "Check_Model";
+        private static readonly string TableName = typeof(NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel).Name;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

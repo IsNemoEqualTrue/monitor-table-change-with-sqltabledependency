@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.IntegrationTest.Base;

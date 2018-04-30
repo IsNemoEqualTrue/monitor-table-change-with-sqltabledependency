@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;

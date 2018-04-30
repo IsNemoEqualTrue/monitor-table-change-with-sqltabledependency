@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data.SqlClient;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Exceptions;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
@@ -20,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class PreliminaryTestSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "PreliminaryCheckTest";
+        private static readonly string TableName = typeof(PreliminaryTestSqlServerModel).Name;
         private const string InvalidValidConnectionString = "data source=.;initial catalog=NotExistingDB;integrated security=True";
         private const string InvalidTableName = "NotExistingTable";
 

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -21,7 +23,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "ABCTableModel";
+        private static readonly string TableName = typeof(NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel).Name;
         private static int _counter1;
         private static int _counter2;
         private static int _counter3;

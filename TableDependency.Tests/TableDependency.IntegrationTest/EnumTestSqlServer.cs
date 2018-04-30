@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -28,7 +30,7 @@ namespace TableDependency.IntegrationTest
     public class EnumTestSqlServer : SqlTableDependencyBaseTest
     {
         private static readonly string TableName = typeof(EnumTestSqlServerModel).Name.ToUpper();
-        private static int _counter = 0;
+        private static int _counter;
         private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>>();
 
         [ClassInitialize()]

@@ -2,7 +2,9 @@
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
@@ -21,7 +23,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class LoadAndCountTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static string TableName = "TestTable";
+        private static readonly string TableName = typeof(LoadAndCountTestSqlServerModel).Name;
         private int _counter = 1;
 
         [ClassInitialize()]

@@ -4,7 +4,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -20,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class RealTypesTestSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "Real";
+        private static readonly string TableName = typeof(RealTypesTestSqlServerModel).Name;
         private static readonly Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>>();
 
         [ClassInitialize()]

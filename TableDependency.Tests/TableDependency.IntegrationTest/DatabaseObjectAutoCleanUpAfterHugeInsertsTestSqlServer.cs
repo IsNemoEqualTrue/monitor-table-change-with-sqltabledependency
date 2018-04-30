@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.IntegrationTest.Base;
@@ -21,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static string TableName = "DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel";
+        private static readonly string TableName = typeof(DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel).Name;
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

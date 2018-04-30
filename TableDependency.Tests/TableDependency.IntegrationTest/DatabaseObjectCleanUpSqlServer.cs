@@ -1,5 +1,6 @@
 ﻿using System.Data.SqlClient;
 using System.Threading;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.IntegrationTest.Base;
@@ -17,7 +18,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DatabaseObjectCleanUpSqlServer : SqlTableDependencyBaseTest
     {
-        private const string TableName = "DatabaseObjectCleanUpSqlServerModel";
+        private static readonly string TableName = typeof(DatabaseObjectCleanUpSqlServerModel).Name;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)

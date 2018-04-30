@@ -4,7 +4,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -22,8 +24,8 @@ namespace TableDependency.IntegrationTest
 
     [TestClass]
     public class BigIntDecimalAndFloatTypesTestSqlServer : SqlTableDependencyBaseTest
-    {       
-        private static readonly string TableName = "BigIntDecimalAndFloatTypesTestSqlServerModel";
+    {
+        private static readonly string TableName = typeof(BigIntDecimalAndFloatTypesTestSqlServerModel).Name;
         private static readonly Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>>();
 
         [ClassInitialize()]

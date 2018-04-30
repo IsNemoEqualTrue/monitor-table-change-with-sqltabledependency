@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -24,7 +26,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class XmlAsStringSqlServerTest : SqlTableDependencyBaseTest
     {
-        private const string TableName = "XmlAsVarcharMaxSqlServerTestModell";
+        private static readonly string TableName = typeof(XmlAsStringSqlServerTestModel).Name;
         private static readonly Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>> CheckValues = new Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>>();
 
         private const string XmlForInsert = @"<?xml version=""1.0"" encoding=""utf-8""?><catalog><book id=""1""><author>Gambardella, Matthew</author><title>XML Developer's Guide</title></book></catalog>";

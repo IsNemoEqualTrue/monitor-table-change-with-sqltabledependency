@@ -1,6 +1,8 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.IntegrationTest.Base;
@@ -8,10 +10,19 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string TableName = "DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer";
+        private static readonly string TableName = typeof(DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel).Name;
         public static string DbObjectsNaming;
 
         [ClassInitialize]

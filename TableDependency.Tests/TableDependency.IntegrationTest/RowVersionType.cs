@@ -1,6 +1,7 @@
 ﻿using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.Enums;
@@ -21,7 +22,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class RowVersionType : SqlTableDependencyBaseTest
     {
-        private const string TableName = "RowVersionTest";
+        private static readonly string TableName = typeof(RowVersionTypeModel).Name;
         private byte[] _rowVersionInsert = null;
         private byte[] _rowVersionUpdate = null;
 

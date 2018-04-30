@@ -1,17 +1,29 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
+    public class TransactionTestSqlServer3Model
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class TransactionTestSqlServer3 : SqlTableDependencyBaseTest
     {
-        private const string TableName = "CheModel";
+        private static readonly string TableName = typeof(TransactionTestSqlServer3Model).Name;
         private int _counter;
 
         [ClassInitialize()]
@@ -54,15 +66,15 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<EventForAllColumnsTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<TransactionTestSqlServer3Model> tableDependency = null;
             string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
+                var mapper = new ModelToTableMapper<TransactionTestSqlServer3Model>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<TransactionTestSqlServer3Model>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -84,7 +96,7 @@ namespace TableDependency.IntegrationTest
             Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)
+        private void TableDependency_Changed(object sender, RecordChangedEventArgs<TransactionTestSqlServer3Model> e)
         {
             _counter++;
         }

@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -15,7 +17,9 @@ namespace TableDependency.IntegrationTest
     public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel
     {
         public long Id { get; set; }
+
         public string Name { get; set; }
+
         [Column("Long Description")]
         public string Infos { get; set; }
     }
@@ -23,7 +27,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer : SqlTableDependencyBaseTest
     {
-        private static readonly string TableName = "AAAA";
+        private static readonly string TableName = typeof(ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel).Name;
         private static int _counter;
         private static readonly Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> CheckValues = new Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();
 

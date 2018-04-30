@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using TableDependency.Enums;
 using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
@@ -24,7 +26,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class NVarcharMaxAndVarcharMaxType : SqlTableDependencyBaseTest
     {
-        private const string TableName = "TestvarcharMAXColumn";
+        private static readonly string TableName = typeof(NVarcharMaxAndVarcharMaxTypeModel).Name;
         private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>>();
 
         [ClassInitialize()]
