@@ -43,7 +43,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](50) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -89,7 +89,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 60 * 1);
             }
             finally
             {
@@ -108,7 +108,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer1Model> e)

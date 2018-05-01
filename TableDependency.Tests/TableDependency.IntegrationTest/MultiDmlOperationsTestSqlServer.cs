@@ -166,7 +166,6 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("VELIA"));
-                t.Start();
                 Thread.Sleep(1000 * 10 * 1);
             }
             finally
@@ -213,7 +212,6 @@ namespace TableDependency.IntegrationTest
                 Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("xxx"));
-                t.Start();
                 Thread.Sleep(1000 * 10 * 1);
             }
             finally

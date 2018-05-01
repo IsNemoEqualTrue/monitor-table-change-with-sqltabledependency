@@ -63,7 +63,7 @@ namespace ConsoleApplicationSqlServer
                 Console.WriteLine("Waiting for receiving notifications (db objects naming: " + dep.DataBaseObjectsNamingConvention + ")");
                 Console.WriteLine("Press a key to stop");
                 Console.ReadKey();
-            }
+            }            
         }
 
         private static void OnError(object sender, ErrorEventArgs e)
@@ -80,7 +80,6 @@ namespace ConsoleApplicationSqlServer
             {
                 var changedEntity = e.Entity;
                 Console.WriteLine("DML operation: " + e.ChangeType);
-                Console.WriteLine("CustomerID:    " + changedEntity.Id);                
                 Console.WriteLine("CompanyName:   " + changedEntity.CompanyName);
                 Console.WriteLine("ContactName:   " + changedEntity.ContactName);
             }

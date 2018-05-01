@@ -86,7 +86,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 35 * 1);
             }
             finally
             {
@@ -148,6 +148,7 @@ namespace TableDependency.IntegrationTest
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
+
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([BigintColumn], [Decimal18Column], [Decimal54Column], [FloatColumn]) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.BigintColumn}, @decimal18Column, null, null)";
@@ -172,6 +173,8 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();                    
                 }
+
+                Thread.Sleep(5000);
             }
         }
     }

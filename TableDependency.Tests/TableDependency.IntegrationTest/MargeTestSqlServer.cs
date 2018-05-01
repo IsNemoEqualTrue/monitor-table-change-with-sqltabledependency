@@ -122,7 +122,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(MergeOperation);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 60 * 1);
             }
             finally
             {
@@ -136,7 +136,7 @@ namespace TableDependency.IntegrationTest
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)
         {
-            throw e.Error;
+            Assert.Fail(e.Error.Message);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<MargeTestSqlServerModel> e)
@@ -165,10 +165,11 @@ namespace TableDependency.IntegrationTest
                     // Synchronize source data with target
                     sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
                     sqlCommand.CommandText = "testMerge";
-                    sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
+                    sqlCommand.ExecuteNonQuery();                    
                 }
             }
+
+            Thread.Sleep(500);
         }
     }
 }

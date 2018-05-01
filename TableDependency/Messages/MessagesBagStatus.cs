@@ -28,9 +28,8 @@ namespace TableDependency.Messages
 {
     public enum MessagesBagStatus
     {
-        None,
-        Open,
+        Empty,
         Collecting,
-        Closed
+        Ready
     }
 }

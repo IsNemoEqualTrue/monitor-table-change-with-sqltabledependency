@@ -76,6 +76,7 @@ namespace TableDependency.IntegrationTest
 
                 tableDependency = new SqlTableDependency<TransactionTestSqlServer3Model>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -84,7 +85,7 @@ namespace TableDependency.IntegrationTest
                 var t = new Task(ModifyTableContent);
                 t.Start();
 
-                Thread.Sleep(1000 * 60 * 1);
+                Thread.Sleep(1000 * 30 * 1);
             }
             finally
             {
@@ -93,12 +94,17 @@ namespace TableDependency.IntegrationTest
 
             Assert.AreEqual(_counter, 2);
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<TransactionTestSqlServer3Model> e)
         {
             _counter++;
+        }
+
+        private void TableDependency_OnError(object sender, ErrorEventArgs e)
+        {
+            Assert.Fail(e.Error.Message);
         }
 
         private static void ModifyTableContent()
@@ -115,6 +121,7 @@ namespace TableDependency.IntegrationTest
 
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('AAAA', 'aaaa');";
                     sqlCommand.ExecuteNonQuery();
+                    Thread.Sleep(1000);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
@@ -122,6 +129,8 @@ namespace TableDependency.IntegrationTest
                     transaction.Commit();
                 }
             }
+
+            Thread.Sleep(1000);
         }
     }
 }

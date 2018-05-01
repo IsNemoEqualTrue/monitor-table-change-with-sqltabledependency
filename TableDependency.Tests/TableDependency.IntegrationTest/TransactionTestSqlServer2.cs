@@ -77,6 +77,7 @@ namespace TableDependency.IntegrationTest
 
                 tableDependency = new SqlTableDependency<TransactionTestSqlServer2Model>(ConnectionStringForTestUser, TableName, mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -98,6 +99,11 @@ namespace TableDependency.IntegrationTest
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<TransactionTestSqlServer2Model> e)
         {
             _counter++;
+        }
+
+        private void TableDependency_OnError(object sender, ErrorEventArgs e)
+        {
+            Assert.Fail(e.Error.Message);
         }
 
         private static void ModifyTableContent()

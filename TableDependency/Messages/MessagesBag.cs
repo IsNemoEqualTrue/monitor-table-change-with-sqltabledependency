@@ -49,6 +49,7 @@ namespace TableDependency.Messages
         public ChangeType MessageType { get; private set; }
         public List<Message> Messages { get; private set; }
         public MessagesBagStatus Status { get; private set; }
+        public bool Ready => this.Status == MessagesBagStatus.Collecting;
         
         #endregion
 
@@ -57,7 +58,7 @@ namespace TableDependency.Messages
         public MessagesBag(Encoding encoding, IList<string> startMessagesSignature, string endMessageSignature, ICollection<string> processableMessages)
         {            
             this.Messages = new List<Message>();
-            this.Status = MessagesBagStatus.None;
+            this.Status = MessagesBagStatus.Empty;
             this.Encoding = encoding;
 
             _endMessageSignature = endMessageSignature;
@@ -71,30 +72,28 @@ namespace TableDependency.Messages
 
         public void Reset()
         {            
-            this.Status = MessagesBagStatus.None;
+            this.Status = MessagesBagStatus.Empty;
         }
 
         public MessagesBagStatus AddMessage(Message message)
         {
             if (_startMessagesSignature.Contains(message.Recipient))
             {
-                if (this.Status != MessagesBagStatus.None) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}.");
-
+                if (this.Status != MessagesBagStatus.Empty) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}.");
                 this.MessageType = MessagesBag.GetMessageType(message.Recipient);
                 this.Messages.Clear();
-
-                return this.Status = MessagesBagStatus.Open;
+                return this.Status = MessagesBagStatus.Collecting;
             }
 
             if (message.Recipient == _endMessageSignature)
             {
                 if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}.");
-                return this.Status = MessagesBagStatus.Closed;
+                return this.Status = MessagesBagStatus.Ready;
             }
 
-            if (this.Status == MessagesBagStatus.Closed)
+            if (this.Status == MessagesBagStatus.Ready)
             {
-                throw new MessageMisalignedException($"Received {message.Recipient} message while current status is {MessagesBagStatus.Closed}.");
+                throw new MessageMisalignedException($"Received {message.Recipient} message while current status is {MessagesBagStatus.Ready}.");
             }
 
             if (_processableMessages.Contains(message.Recipient) == false)

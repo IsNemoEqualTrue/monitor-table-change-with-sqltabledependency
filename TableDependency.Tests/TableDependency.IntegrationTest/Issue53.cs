@@ -45,8 +45,7 @@ namespace TableDependency.IntegrationTest
 
     [TestClass]
     public class Issue53 : SqlTableDependencyBaseTest
-    {
-        public TestContext TestContext { get; set; }
+    {        
         private static readonly string TableName1 = typeof(Issue53Model1).Name;
         private static readonly string TableName2 = typeof(Issue53Model2).Name;
         private static readonly string TableName3 = typeof(Issue53Model3).Name;

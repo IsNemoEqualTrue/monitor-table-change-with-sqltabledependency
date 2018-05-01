@@ -91,7 +91,7 @@
     <Compile Include="NoTableAndColumnDefinitionsTestSqlServer.cs" />
     <Compile Include="EventForAllColumnsTestSqlServer.cs" />
     <Compile Include="EventForSpecificColumnsTestSqlServer.cs" />
-    <Compile Include="LoadAndCountTestSqlServer.cs" />
+    <Compile Include="CancellationTokenTest.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTestSqlServer.cs" />
     <Compile Include="MargeTestSqlServer.cs" />
     <Compile Include="MultiDmlOperationsTestSqlServer.cs" />

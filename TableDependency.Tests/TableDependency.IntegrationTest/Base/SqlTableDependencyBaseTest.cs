@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Threading;
 
-using TableDependency.IntegrationTest.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace TableDependency.IntegrationTest.Base
 {
     public abstract class SqlTableDependencyBaseTest
     {
+        public TestContext TestContext { get; set; }
         protected static readonly string ConnectionStringForTestUser = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
         protected static readonly string ConnectionStringForSa = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
 

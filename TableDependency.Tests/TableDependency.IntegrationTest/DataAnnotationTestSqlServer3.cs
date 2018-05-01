@@ -29,6 +29,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DataAnnotationTestSqlServer3 : SqlTableDependencyBaseTest
     {
+        private const string TableName = "ANItemsTableSQL3";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer3Model, DataAnnotationTestSqlServer3Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer3Model, DataAnnotationTestSqlServer3Model>>();
 
@@ -40,10 +41,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = "CREATE TABLE [ANItemsTableSQL3]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -62,7 +63,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL3', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL3];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -79,7 +80,7 @@ namespace TableDependency.IntegrationTest
             try
             {
                 tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer3Model>(ConnectionStringForTestUser);
-                tableDependency.OnChanged += TableDependency_Changed;                
+                tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -106,7 +107,7 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer3Model> e)
@@ -141,15 +142,15 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [ANItemsTableSQL3] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [ANItemsTableSQL3] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = "DELETE FROM [ANItemsTableSQL3]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }

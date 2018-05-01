@@ -28,6 +28,7 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class DataAnnotationTestSqlServer2 : SqlTableDependencyBaseTest
     {
+        private const string TableName = "ANItemsTableSQL2";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>>();
 
@@ -39,10 +40,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL2', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL2];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = "CREATE TABLE [ANItemsTableSQL2]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Id] [int] IDENTITY(1, 1) NOT NULL, [Name] [NVARCHAR](50) NULL, [Long Description] [NVARCHAR](MAX) NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -61,7 +62,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('ANItemsTableSQL2', 'U') IS NOT NULL DROP TABLE [ANItemsTableSQL2];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -72,7 +73,7 @@ namespace TableDependency.IntegrationTest
         public void EventForAllColumnsTest()
         {
             SqlTableDependency<DataAnnotationTestSqlServer2Model> tableDependency = null;
-            string naming = null;
+            string naming;
 
             var mapper = new ModelToTableMapper<DataAnnotationTestSqlServer2Model>();
             mapper.AddMapping(c => c.Description, "Long Description");
@@ -142,15 +143,15 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [ANItemsTableSQL2] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [Long Description]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Description}')";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"UPDATE [ANItemsTableSQL2] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Long Description] = '{CheckValues[ChangeType.Update.ToString()].Item1.Description}'";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
 
-                    sqlCommand.CommandText = $"DELETE FROM [ANItemsTableSQL2]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
                     Thread.Sleep(500);
                 }
