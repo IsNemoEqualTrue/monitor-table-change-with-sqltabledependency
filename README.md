@@ -10,6 +10,7 @@ For any record table change, as insert, update or delete operation, a notificati
 
 This tracking change system has the advantage to avoid a database select to retrieve updated table record, because the updated table values record is delivered to you by notification.
 
+[Ready, set, GO!](#ready-set-go)
 ## Track record table changes
 If we want **get alert about record table changes** without paying attention to the underlying SQL Server infrastructure then SqlTableDependency's record table change notifications will do that for us. Using notifications, an application can **detect table record changes** saving us from having to continuously re-query the database to get new values: for any record change, SqlTableDependency's event handler will get a notification containing modified table record values as well as the INSERT, UPDATE, DELETE operation type executed on our table.
 
