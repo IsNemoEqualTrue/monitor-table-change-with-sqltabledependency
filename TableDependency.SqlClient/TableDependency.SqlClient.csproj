@@ -47,6 +47,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enumerations\ConversationEndpointState.cs" />
     <Compile Include="Enumerations\SqlServerRequiredPermission.cs" />
     <Compile Include="Enumerations\SqlServerVersion.cs" />
     <Compile Include="EventArgs\SqlRecordChangedEventArgs.cs" />

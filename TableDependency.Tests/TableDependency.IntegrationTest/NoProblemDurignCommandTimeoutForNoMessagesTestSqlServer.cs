@@ -47,8 +47,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod()]
         public void Test()
         {
-            var domaininfo = new AppDomainSetup();
-            domaininfo.ApplicationBase = Environment.CurrentDirectory;
+            var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("TableDependencyDomaing", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomainNoMessage) domain.CreateInstanceAndUnwrap(typeof (RunsInAnotherAppDomainNoMessage).Assembly.FullName, typeof (RunsInAnotherAppDomainNoMessage).FullName);

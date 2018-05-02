@@ -29,47 +29,29 @@ using System.ComponentModel;
 namespace TableDependency.SqlClient.Enumerations
 {
     /// <summary>
-    /// https://msdn.microsoft.com/en-us/library/ms178569.aspx
+    /// https://docs.microsoft.com/en-us/sql/relational-databases/system-catalog-views/sys-conversation-endpoints-transact-sql?view=sql-server-2017
     /// </summary>
-    internal enum SqlServerRequiredPermission
+    public enum ConversationEndpointState
     {
-        [Description("ALTER")]
-        Alter,
+        [Description("STARTED_OUTBOUND")]
+        SO,
 
-        [Description("CONNECT")]
-        Connect,
+        [Description("STARTED_INBOUND")]
+        SI,
 
-        [Description("CONTROL")]
-        Control,
+        [Description("CONVERSING")]
+        CO,
 
-        [Description("CREATE CONTRACT")]
-        CreateContract,
+        [Description("DISCONNECTED_INBOUND")]
+        DI,
 
-        [Description("CREATE MESSAGE TYPE")]
-        CreateMessageType,
+        [Description("DISCONNECTED_OUTBOUND")]
+        DO,
 
-        [Description("CREATE PROCEDURE")]
-        CreateProcedure,
+        [Description("ERROR")]
+        ER,
 
-        [Description("CREATE QUEUE")]
-        CreateQueue,
-
-        [Description("CREATE SERVICE")]
-        CreateService,
-
-        [Description("EXECUTE")]
-        Execute,
-
-        [Description("SELECT")]
-        Select,
-
-        [Description("SUBSCRIBE QUERY NOTIFICATIONS")]
-        SubscribeForQueryNotifications,
-
-        [Description("VIEW DATABASE STATE")]
-        ViewDatabaseState,
-
-        [Description("VIEW DEFINITION")]
-        ViewDefinition
+        [Description("CLOSED")]
+        CD
     }
 }

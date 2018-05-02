@@ -59,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Base\SqlTableDependencyBaseTest.cs" />
+    <Compile Include="EndpointsStatusTest.cs" />
     <Compile Include="DataAnnotationTestSqlServer5.cs" />
     <Compile Include="DataAnnotationTestSqlServer3.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
