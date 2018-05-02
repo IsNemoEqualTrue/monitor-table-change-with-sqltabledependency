@@ -78,12 +78,10 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<NoMapperUseTestSqlServerModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<NoMapperUseTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

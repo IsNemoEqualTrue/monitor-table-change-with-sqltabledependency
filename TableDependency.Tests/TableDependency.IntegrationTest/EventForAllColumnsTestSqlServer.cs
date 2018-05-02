@@ -75,18 +75,15 @@ namespace TableDependency.IntegrationTest
         public void EventForAllColumnsTest()
         {
             SqlTableDependency<EventForAllColumnsTestSqlServerModel> tableDependency = null;
-            string naming = null;
 
             try
             {
                 var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

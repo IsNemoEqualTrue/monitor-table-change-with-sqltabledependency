@@ -76,12 +76,9 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<DateTypeTestModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<DateTypeTestModel>(ConnectionStringForTestUser);
                 tableDependency.OnChanged += this.TableDependency_Changed;
-                tableDependency.Start();
-              
-
-                Thread.Sleep(5000);
+                tableDependency.Start();             
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

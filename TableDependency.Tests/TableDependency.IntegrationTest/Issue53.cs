@@ -114,15 +114,13 @@ namespace TableDependency.IntegrationTest
         public void TestTable1()
         {
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue53Model1>(ConnectionStringForTestUser, TableName1);
+            var tableDependency = new SqlTableDependency<Issue53Model1>(ConnectionStringForTestUser, tableName: TableName1);
 
             try
             {              
                 tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.Start();
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
@@ -149,15 +147,13 @@ namespace TableDependency.IntegrationTest
         public void TestTable2()
         {
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue53Model2>(ConnectionStringForTestUser, TableName2);
+            var tableDependency = new SqlTableDependency<Issue53Model2>(ConnectionStringForTestUser, tableName: TableName2);
 
             try
             {
                 tableDependency.OnChanged += TableDependency_Changed2;
                 tableDependency.Start();
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent2);
                 t.Start();
@@ -184,15 +180,13 @@ namespace TableDependency.IntegrationTest
         public void TestTable3()
         {
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue53Model3>(ConnectionStringForTestUser, TableName3);
+            var tableDependency = new SqlTableDependency<Issue53Model3>(ConnectionStringForTestUser, tableName: TableName3);
 
             try
             {
                 tableDependency.OnChanged += TableDependency_Changed3;
                 tableDependency.Start();
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent3);
                 t.Start();
@@ -219,15 +213,13 @@ namespace TableDependency.IntegrationTest
         public void TestTable4()
         {
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue53Model4>(ConnectionStringForTestUser, TableName4);
+            var tableDependency = new SqlTableDependency<Issue53Model4>(ConnectionStringForTestUser, tableName: TableName4);
 
             try
             {
                 tableDependency.OnChanged += TableDependency_Changed4;
                 tableDependency.Start();
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent4);
                 t.Start();

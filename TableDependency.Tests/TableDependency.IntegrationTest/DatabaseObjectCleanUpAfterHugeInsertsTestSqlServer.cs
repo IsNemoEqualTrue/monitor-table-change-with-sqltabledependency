@@ -63,12 +63,10 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             DbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
-
-            Thread.Sleep(50);
 
             var t = new Task(BigModifyTableContent);
             t.Start();

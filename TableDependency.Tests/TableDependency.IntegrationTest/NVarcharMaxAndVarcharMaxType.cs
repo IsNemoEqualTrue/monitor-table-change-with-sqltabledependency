@@ -69,12 +69,10 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxTypeModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<NVarcharMaxAndVarcharMaxTypeModel>(ConnectionStringForTestUser, tableName: TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();

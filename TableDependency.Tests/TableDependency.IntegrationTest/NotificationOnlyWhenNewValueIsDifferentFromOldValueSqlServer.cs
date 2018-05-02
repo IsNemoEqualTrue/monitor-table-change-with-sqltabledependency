@@ -80,12 +80,10 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
@@ -161,12 +159,10 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed2;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent2);
                 t.Start();
@@ -242,12 +238,10 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second NAME");
 
-                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed3;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent3);
                 t.Start();

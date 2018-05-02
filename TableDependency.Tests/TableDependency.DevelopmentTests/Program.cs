@@ -53,7 +53,7 @@ namespace ConsoleApplicationSqlServer
             var mapper = new ModelToTableMapper<Customer>();
             mapper.AddMapping(c => c.Id, "CustomerID");
 
-            using (var dep = new SqlTableDependency<Customer>(connectionString, "Customers", mapper))
+            using (var dep = new SqlTableDependency<Customer>(connectionString, "Customers", mapper: mapper))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;

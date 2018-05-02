@@ -6,7 +6,6 @@ using System.Transactions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.EventArgs;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
@@ -75,12 +74,10 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<TransactionTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<TransactionTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency = new SqlTableDependency<TransactionTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
+                tableDependency.OnChanged += (o, args) => _counter++;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(500);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
@@ -95,11 +92,6 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(_counter, 0);
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
-        }
-
-        private void TableDependency_Changed(object sender, RecordChangedEventArgs<TransactionTestSqlServerModel> e)
-        {
-            _counter++;
         }
 
         private static void ModifyTableContent()

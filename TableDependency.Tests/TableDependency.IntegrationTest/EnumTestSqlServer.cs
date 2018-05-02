@@ -72,11 +72,9 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<EnumTestSqlServerModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<EnumTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

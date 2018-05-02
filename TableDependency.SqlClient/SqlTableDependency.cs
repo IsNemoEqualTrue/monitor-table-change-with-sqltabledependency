@@ -120,6 +120,7 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
+        /// <param name="schemaName">Name of the schema.</param>
         /// <param name="tableName">Name of the table.</param>
         /// <param name="mapper">The model to database table column mapper.</param>
         /// <param name="updateOf">List of columns that need to monitor for changing on order to receive notifications.</param>
@@ -128,12 +129,13 @@ namespace TableDependency.SqlClient
         /// <param name="executeUserPermissionCheck">if set to <c>true</c> [skip user permission check].</param>
         public SqlTableDependency(
             string connectionString,
+            string schemaName = null,
             string tableName = null,
             IModelToTableMapper<T> mapper = null,
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType notifyOn = DmlTriggerType.All,
-            bool executeUserPermissionCheck = true) : base(connectionString, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
+            bool executeUserPermissionCheck = true) : base(connectionString, schemaName, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
         {
         }
 
@@ -223,14 +225,15 @@ namespace TableDependency.SqlClient
             return !string.IsNullOrWhiteSpace(tableNameFromDataAnotation) ? tableNameFromDataAnotation : typeof(T).Name;
         }
 
-        protected override string GetSchemaName()
+        protected override string GetSchemaName(string schemaName)
         {
-            // If no default schema is defined for a user account, SQL Server will assume dbo is the default schema. 
-            // It is important note that if the user is authenticated by SQL Server via the Windows operating system, no default schema will be associated with the user. 
-            // Therefore if the user creates an object, a new schema will be created and named the same as the user, 
-            // and the object will be associated with that user schema, though not directly with the user.
-            var schemaName = GetSchemaNameFromDataAnnotation();
-            return !string.IsNullOrWhiteSpace(schemaName) ? schemaName : "dbo";
+            if (!string.IsNullOrWhiteSpace(schemaName))
+            {
+                return schemaName.Replace("[", string.Empty).Replace("]", string.Empty);
+            }
+
+            var schemaNameFromDataAnnotation = GetSchemaNameFromDataAnnotation();
+            return !string.IsNullOrWhiteSpace(schemaNameFromDataAnnotation) ? schemaNameFromDataAnnotation : "dbo";
         }
 
         protected virtual int GetSchemaId(string schemaName, string connectionString)

@@ -163,6 +163,7 @@ namespace TableDependency
 
         protected TableDependency(
             string connectionString,
+            string schemaName = null,
             string tableName = null,
             IModelToTableMapper<T> mapper = null,
             IUpdateOfModel<T> updateOf = null,
@@ -179,7 +180,7 @@ namespace TableDependency
 
             _connectionString = connectionString;
             _tableName = this.GetTableName(tableName);
-            _schemaName = this.GetSchemaName();
+            _schemaName = this.GetSchemaName(schemaName);
             _server = this.GetServerName(connectionString);
             _database = this.GetDataBaseName(connectionString);
 
@@ -500,7 +501,7 @@ namespace TableDependency
             return ((TableAttribute)attribute)?.Name;
         }
 
-        protected abstract string GetSchemaName();
+        protected abstract string GetSchemaName(string schemaName);
 
         protected virtual string GetSchemaNameFromDataAnnotation()
         {

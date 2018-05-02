@@ -104,7 +104,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, null);
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper))
             {
             }
         }
@@ -117,7 +117,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, string.Empty);
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper))
             {
             }
         }
@@ -130,7 +130,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<PreliminaryTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Not Exist");
 
-            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper))
+            using (new SqlTableDependency<PreliminaryTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper))
             {
             }
         }

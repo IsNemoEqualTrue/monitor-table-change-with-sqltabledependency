@@ -51,7 +51,7 @@ namespace TableDependency.IntegrationTest
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("TableDependencyDomaing", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomainNoMessage) domain.CreateInstanceAndUnwrap(typeof (RunsInAnotherAppDomainNoMessage).Assembly.FullName, typeof (RunsInAnotherAppDomainNoMessage).FullName);
-            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, TableName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
             Thread.Sleep(4*60*1000);
             var status = otherDomainObject.GetTableDependencyStatus();
             AppDomain.Unload(domain);
@@ -90,15 +90,11 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "First Name");
 
-                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel>(connectionString, tableName, mapper);
-                this._tableDependency.OnChanged += TableDependency_Changed;
+                this._tableDependency = new SqlTableDependency<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel>(connectionString, tableName: tableName, mapper: mapper);
+                this._tableDependency.OnChanged += (o, args) => { };
                 this._tableDependency.Start(60, 120);
 
                 return this._tableDependency.DataBaseObjectsNamingConvention;
-            }
-
-            private static void TableDependency_Changed(object sender, RecordChangedEventArgs<NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel> e)
-            {
             }
         }
     }

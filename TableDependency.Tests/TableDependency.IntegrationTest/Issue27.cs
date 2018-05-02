@@ -52,9 +52,6 @@ namespace TableDependency.IntegrationTest
         }
 
 
-        public TestContext TestContext { get; set; }
-
-
         [TestCategory("SqlServer")]
         [TestMethod]
         public void Issue27Tesst()
@@ -63,7 +60,7 @@ namespace TableDependency.IntegrationTest
             {
                 string objectNaming;
 
-                using (var tableDependency = new SqlTableDependency<Issue27Model>(ConnectionStringForTestUser, TableName))
+                using (var tableDependency = new SqlTableDependency<Issue27Model>(ConnectionStringForTestUser, tableName: TableName))
                 {
                     tableDependency.OnChanged += TableDependency_Changed;
                     tableDependency.Start();

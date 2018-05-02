@@ -55,7 +55,7 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void DatabaseObjectCleanUpTest()
         {
-            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpSqlServerModel>(ConnectionStringForTestUser, TableName);
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpSqlServerModel>(ConnectionStringForTestUser, tableName: TableName);
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;

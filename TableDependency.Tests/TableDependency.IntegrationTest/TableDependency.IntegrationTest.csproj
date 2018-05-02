@@ -59,20 +59,24 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Base\SqlTableDependencyBaseTest.cs" />
+    <Compile Include="MassiveChangesInSingleCommand.cs" />
+    <Compile Include="MassiveChanges.cs" />
+    <Compile Include="DataAnnotationTestSqlServer10.cs" />
+    <Compile Include="DataAnnotationTestSqlServer09.cs" />
     <Compile Include="EndpointsStatusTest.cs" />
-    <Compile Include="DataAnnotationTestSqlServer5.cs" />
-    <Compile Include="DataAnnotationTestSqlServer3.cs" />
+    <Compile Include="DataAnnotationTestSqlServer05.cs" />
+    <Compile Include="DataAnnotationTestSqlServer03.cs" />
     <Compile Include="DatabaseObjectCleanUpSqlServer.cs" />
     <Compile Include="Issue53.cs" />
     <Compile Include="Models\ConversationEndpoint.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer2.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTestSqlServer.cs" />
-    <Compile Include="DataAnnotationTestSqlServer8.cs" />
-    <Compile Include="DataAnnotationTestSqlServer7.cs" />
-    <Compile Include="DataAnnotationTestSqlServer6.cs" />
-    <Compile Include="DataAnnotationTestSqlServer4.cs" />
-    <Compile Include="DataAnnotationTestSqlServer2.cs" />
-    <Compile Include="DataAnnotationTestSqlServer1.cs" />
+    <Compile Include="DataAnnotationTestSqlServer08.cs" />
+    <Compile Include="DataAnnotationTestSqlServer07.cs" />
+    <Compile Include="DataAnnotationTestSqlServer06.cs" />
+    <Compile Include="DataAnnotationTestSqlServer04.cs" />
+    <Compile Include="DataAnnotationTestSqlServer02.cs" />
+    <Compile Include="DataAnnotationTestSqlServer01.cs" />
     <Compile Include="DatabaseObjectCleanUpAfterHugeInsertsTestSqlServer.cs" />
     <Compile Include="DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServer.cs" />
     <Compile Include="DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServer.cs" />

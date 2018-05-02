@@ -74,13 +74,11 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<TransactionTestSqlServer3Model>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<TransactionTestSqlServer3Model>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<TransactionTestSqlServer3Model>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(500);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

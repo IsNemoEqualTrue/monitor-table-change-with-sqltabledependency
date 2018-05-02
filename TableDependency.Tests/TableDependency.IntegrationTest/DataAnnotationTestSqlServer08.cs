@@ -22,7 +22,7 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer8 : SqlTableDependencyBaseTest
+    public class DataAnnotationTestSqlServer08 : SqlTableDependencyBaseTest
     {
         private static readonly string TableName = typeof(DataAnnotationTestSqlServer8Model).Name;
         private static int _counter;
@@ -78,8 +78,6 @@ namespace TableDependency.IntegrationTest
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

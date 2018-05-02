@@ -110,12 +110,10 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-
-                Thread.Sleep(10000);
 
                 var t = new Task(MultiDeleteOperation);
                 t.Start();
@@ -158,12 +156,10 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-
-                Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("VELIA"));
                 Thread.Sleep(1000 * 10 * 1);
@@ -204,12 +200,10 @@ namespace TableDependency.IntegrationTest
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-
-                Thread.Sleep(10000);
 
                 var t = Task.Factory.StartNew(() => MultiUpdateOperation("xxx"));
                 Thread.Sleep(1000 * 10 * 1);
@@ -237,12 +231,10 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<MultiDmlOperationsTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<MultiDmlOperationsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();
-
-                Thread.Sleep(10000);
 
                 var t = new Task(MultiInsertOperation);
                 t.Start();

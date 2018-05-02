@@ -82,7 +82,7 @@ namespace TableDependency.IntegrationTest
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomainCheckDatabaseObjectCleanUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).Assembly.FullName, typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).FullName);
-            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, TableName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
 
@@ -114,7 +114,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(connectionString, tableName, mapper);
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(connectionString, tableName: tableName, mapper: mapper);
             tableDependency.OnChanged += (sender, e) => { };
             tableDependency.Start(60, 120);
             return tableDependency.DataBaseObjectsNamingConvention;

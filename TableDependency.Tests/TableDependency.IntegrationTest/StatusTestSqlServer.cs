@@ -84,15 +84,13 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<StatusTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "FIRST name");
                 mapper.AddMapping(c => c.Surname, "Second Name");
-                this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                this._tableDependency = new SqlTableDependency<StatusTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 this._tableDependency.OnChanged += this.TableDependency_Changed;
                 this._tableDependency.OnStatusChanged += this.TableDependency_OnStatusChanged;
                 this._tableDependency.OnError += this.TableDependency_OnError;
                 var dataBaseObjectsNamingConvention = _tableDependency.DataBaseObjectsNamingConvention;
 
                 this._tableDependency.Start();
-
-                Thread.Sleep(1 * 60 * 1000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

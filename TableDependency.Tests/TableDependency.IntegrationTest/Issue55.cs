@@ -58,10 +58,6 @@ namespace TableDependency.IntegrationTest
             }
         }
 
-
-        public TestContext TestContext { get; set; }
-
-
         [TestCategory("SqlServer")]
         [TestMethod]
         public void Issue27Tesst()
@@ -72,7 +68,7 @@ namespace TableDependency.IntegrationTest
             mapper.AddMapping(c => c.DocNo, "Applies-to Doc_ No_");
 
             string objectNaming;
-            var tableDependency = new SqlTableDependency<Issue55Model>(ConnectionStringForTestUser, TableName, mapper);
+            var tableDependency = new SqlTableDependency<Issue55Model>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
 
             try
             {

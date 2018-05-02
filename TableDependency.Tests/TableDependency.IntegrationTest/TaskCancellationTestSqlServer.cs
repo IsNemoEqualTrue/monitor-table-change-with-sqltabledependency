@@ -86,13 +86,12 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<TaskCancellationTestSqlServerModel>();
                 mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<TaskCancellationTestSqlServerModel>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<TaskCancellationTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
                 Thread.Sleep(5000);
-
                 tableDependency.Stop();
 
                 Thread.Sleep(5000);

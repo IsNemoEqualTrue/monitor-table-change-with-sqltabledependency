@@ -113,7 +113,7 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<MargeTestSqlServerModel>(ConnectionStringForTestUser, TargetTableName);
+                tableDependency = new SqlTableDependency<MargeTestSqlServerModel>(ConnectionStringForTestUser, tableName: TargetTableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.OnError += this.TableDependency_OnError;
                 tableDependency.Start();

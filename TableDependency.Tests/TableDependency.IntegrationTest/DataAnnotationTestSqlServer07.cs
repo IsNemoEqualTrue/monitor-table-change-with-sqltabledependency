@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,28 +8,25 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.Exceptions;
 using TableDependency.IntegrationTest.Base;
 using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    [Table("ANItemsTableSQL2")]
-    public class DataAnnotationTestSqlServer2Model
+    public class DataAnnotationTestSqlServer7Model
     {
         public long Id { get; set; }
-
         public string Name { get; set; }
-
-        [Column("Long")]
         public string Description { get; set; }
     }
 
     [TestClass]
-    public class DataAnnotationTestSqlServer2 : SqlTableDependencyBaseTest
+    public class DataAnnotationTestSqlServer07 : SqlTableDependencyBaseTest
     {
-        private const string TableName = "ANItemsTableSQL2";
+        private const string TableName = "ANItemsTableSQL7";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>>();
+        private static readonly Dictionary<string, Tuple<DataAnnotationTestSqlServer7Model, DataAnnotationTestSqlServer7Model>> CheckValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer7Model, DataAnnotationTestSqlServer7Model>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -70,18 +66,19 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
+        [ExpectedException(typeof(NotExistingTableException))]
         public void EventForAllColumnsTest()
         {
-            SqlTableDependency<DataAnnotationTestSqlServer2Model> tableDependency = null;
-            string naming;
-
-            var mapper = new ModelToTableMapper<DataAnnotationTestSqlServer2Model>();
-            mapper.AddMapping(c => c.Description, "Long Description");
+            SqlTableDependency<DataAnnotationTestSqlServer7Model> tableDependency = null;
+            string naming = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer2Model>(ConnectionStringForTestUser, mapper: mapper);
-                tableDependency.OnChanged += TableDependency_Changed;                
+                var mapper = new ModelToTableMapper<DataAnnotationTestSqlServer7Model>();
+                mapper.AddMapping(c => c.Description, "Long Description");
+
+                tableDependency = new SqlTableDependency<DataAnnotationTestSqlServer7Model>(ConnectionStringForTestUser);
+                tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -108,10 +105,10 @@ namespace TableDependency.IntegrationTest
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Description, CheckValues[ChangeType.Delete.ToString()].Item1.Description);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
-            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer2Model> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<DataAnnotationTestSqlServer7Model> e)
         {
             _counter++;
 
@@ -134,9 +131,9 @@ namespace TableDependency.IntegrationTest
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>(new DataAnnotationTestSqlServer2Model { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSqlServer2Model()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>(new DataAnnotationTestSqlServer2Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer2Model()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSqlServer2Model, DataAnnotationTestSqlServer2Model>(new DataAnnotationTestSqlServer2Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer2Model()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<DataAnnotationTestSqlServer7Model, DataAnnotationTestSqlServer7Model>(new DataAnnotationTestSqlServer7Model { Name = "Christian", Description = "Del Bianco" }, new DataAnnotationTestSqlServer7Model()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<DataAnnotationTestSqlServer7Model, DataAnnotationTestSqlServer7Model>(new DataAnnotationTestSqlServer7Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer7Model()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<DataAnnotationTestSqlServer7Model, DataAnnotationTestSqlServer7Model>(new DataAnnotationTestSqlServer7Model { Name = "Velia", Description = "Ceccarelli" }, new DataAnnotationTestSqlServer7Model()));
 
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {

@@ -121,7 +121,7 @@ namespace TableDependency.IntegrationTest
             var mapper = new ModelToTableMapper<LoadAndCountTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            _tableDependency = new SqlTableDependency<LoadAndCountTestSqlServerModel>(ConnectionStringForTestUser, tableName, mapper);
+            _tableDependency = new SqlTableDependency<LoadAndCountTestSqlServerModel>(ConnectionStringForTestUser, mapper: mapper);
             _tableDependency.OnChanged += (o, args) => { Debug.WriteLine("Received:" + args.Entity.Name); };
             _tableDependency.Start(60, 120);
             this.ObjectNaming = this._tableDependency.DataBaseObjectsNamingConvention;

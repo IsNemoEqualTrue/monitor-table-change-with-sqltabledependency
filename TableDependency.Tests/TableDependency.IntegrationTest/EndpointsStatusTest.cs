@@ -63,7 +63,7 @@ namespace TableDependency.IntegrationTest
         {
             bool startReceivingMessages = false;
 
-            var tableDependency = new SqlTableDependency<EndpointsStatusModel>(ConnectionStringForTestUser, TableName);
+            var tableDependency = new SqlTableDependency<EndpointsStatusModel>(ConnectionStringForTestUser);
             tableDependency.OnChanged += (o, args) => { startReceivingMessages = true; };
             tableDependency.Start();
             var naming = tableDependency.DataBaseObjectsNamingConvention;

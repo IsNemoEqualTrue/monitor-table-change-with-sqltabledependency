@@ -70,11 +70,9 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<RowVersionTypeModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<RowVersionTypeModel>(ConnectionStringForTestUser);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();

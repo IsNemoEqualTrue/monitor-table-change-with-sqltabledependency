@@ -75,7 +75,7 @@ namespace TableDependency.IntegrationTest
                 var mapper = new ModelToTableMapper<TransactionTestSqlServer2Model>();
                 mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<TransactionTestSqlServer2Model>(ConnectionStringForTestUser, TableName, mapper);
+                tableDependency = new SqlTableDependency<TransactionTestSqlServer2Model>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.OnError += TableDependency_OnError;
                 tableDependency.Start();

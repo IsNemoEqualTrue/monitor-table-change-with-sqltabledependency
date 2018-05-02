@@ -78,12 +78,10 @@ namespace TableDependency.IntegrationTest
 
             try
             {
-                tableDependency = new SqlTableDependency<GuidSmallMoneyTypesModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<GuidSmallMoneyTypesModel>(ConnectionStringForTestUser, tableName: TableName);
                 tableDependency.OnChanged += this.TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-
-                Thread.Sleep(5000);
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
