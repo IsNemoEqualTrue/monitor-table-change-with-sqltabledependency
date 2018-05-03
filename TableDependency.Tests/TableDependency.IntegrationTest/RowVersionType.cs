@@ -110,7 +110,6 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Id], [Name]) VALUES (1, 'AA')";                   
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())

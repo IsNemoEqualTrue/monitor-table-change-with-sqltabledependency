@@ -390,15 +390,12 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{tableName}] ([Id], [Gender]) VALUES ({idInsert}, {genderInsert})";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
 
                     sqlCommand.CommandText = $"UPDATE [{tableName}] SET [Id] = {idUpdate}, [Gender] = {genderUpdate}";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
 
                     sqlCommand.CommandText = $"DELETE FROM [{tableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
             }
         }

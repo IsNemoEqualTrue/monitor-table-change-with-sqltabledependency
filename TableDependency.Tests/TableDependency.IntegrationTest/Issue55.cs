@@ -141,15 +141,12 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Payment Discount %], [Allow Quantity Disc_], [Applies-to Doc_ No_]) VALUES ({_checkValues[ChangeType.Insert.ToString()].Item1.PaymentDiscount}, {_checkValues[ChangeType.Insert.ToString()].Item1.AllowQuantity}, '{_checkValues[ChangeType.Insert.ToString()].Item1.DocNo}')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                     
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Payment Discount %] = {_checkValues[ChangeType.Update.ToString()].Item1.PaymentDiscount}, [Allow Quantity Disc_] = {_checkValues[ChangeType.Update.ToString()].Item1.AllowQuantity}, [Applies-to Doc_ No_] = '{_checkValues[ChangeType.Update.ToString()].Item1.DocNo}'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }

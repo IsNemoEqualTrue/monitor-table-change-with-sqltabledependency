@@ -168,7 +168,7 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.Add(new SqlParameter("@bitColumn", SqlDbType.Bit) { Value = _checkValues[ChangeType.Insert.ToString()].Item1.BitColumn.GetValueOrDefault() });
                     sqlCommand.Parameters.Add(new SqlParameter("@varbinary50Column", SqlDbType.VarBinary) { Size = 50, Value = _checkValues[ChangeType.Insert.ToString()].Item1.Varbinary50Column });
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -179,14 +179,13 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.Add(new SqlParameter("@char10Column", SqlDbType.Char) { Size = 10, Value = _checkValues[ChangeType.Update.ToString()].Item1.Char10Column });
                     sqlCommand.Parameters.Add(new SqlParameter("@varbinaryMAXColumn", SqlDbType.VarBinary) { Value = _checkValues[ChangeType.Update.ToString()].Item1.VarbinaryMaxColumn });
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
             }
         }

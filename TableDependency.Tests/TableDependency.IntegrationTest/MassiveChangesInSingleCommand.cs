@@ -138,7 +138,6 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = commandText.ToString();
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(100);
                 }
             }
         }
@@ -160,7 +159,6 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = commandText.ToString();
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(100);
                 }
             }
         }

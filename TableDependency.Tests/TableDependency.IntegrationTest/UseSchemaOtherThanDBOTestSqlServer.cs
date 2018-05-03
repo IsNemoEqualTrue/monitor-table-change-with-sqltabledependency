@@ -138,15 +138,12 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO {SchemaName}.{TableName} ([Name]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE {SchemaName}.{TableName} SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM {SchemaName}.{TableName}";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }

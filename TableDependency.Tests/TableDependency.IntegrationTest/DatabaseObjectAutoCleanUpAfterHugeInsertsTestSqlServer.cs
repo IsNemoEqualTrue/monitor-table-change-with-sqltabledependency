@@ -65,7 +65,7 @@ namespace TableDependency.IntegrationTest
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
             var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
-            tableDependency.OnChanged += TableDependency_OnChanged;
+            tableDependency.OnChanged += (o, args) => { };
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -93,10 +93,6 @@ namespace TableDependency.IntegrationTest
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
             Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
-        }
-
-        private static void TableDependency_OnChanged(object sender, EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel> e)
-        {
         }
     }
 #endif

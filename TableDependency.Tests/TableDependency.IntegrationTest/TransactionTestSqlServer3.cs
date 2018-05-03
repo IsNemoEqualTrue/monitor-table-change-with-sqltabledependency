@@ -127,8 +127,6 @@ namespace TableDependency.IntegrationTest
                     transaction.Commit();
                 }
             }
-
-            Thread.Sleep(1000);
         }
     }
 }

@@ -180,7 +180,6 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.Add(new SqlParameter("@smallmoneyColumn", SqlDbType.SmallMoney) { Value = CheckValues[ChangeType.Insert.ToString()].Item1.SmallmoneyColumn });
 
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -196,14 +195,12 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.Add(new SqlParameter("@smallmoneyColumn", SqlDbType.SmallMoney) { Value = CheckValues[ChangeType.Update.ToString()].Item1.SmallmoneyColumn });
 
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
             }
         }

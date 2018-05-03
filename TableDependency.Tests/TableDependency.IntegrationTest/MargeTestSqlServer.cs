@@ -168,8 +168,6 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();                    
                 }
             }
-
-            Thread.Sleep(500);
         }
     }
 }

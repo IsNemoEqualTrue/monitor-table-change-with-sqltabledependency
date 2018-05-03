@@ -113,8 +113,6 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
                 }
-
-                Thread.Sleep(1000);            
             }
         }
     }

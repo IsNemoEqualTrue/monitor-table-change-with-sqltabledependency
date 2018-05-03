@@ -126,19 +126,15 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name], [NickName]) VALUES ('xx', 'cc', 'xxxx')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues1[0].Item1.Name}', [Second Name] = '{CheckValues1[0].Item1.Surname}', [NickName] = 'xxsds'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues1[1].Item1.Name}'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }
@@ -205,19 +201,15 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name], [NickName]) VALUES ('Name', 'Surname', 'sasasa')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues2[0].Item1.Name}', [Second Name] = '{CheckValues2[0].Item1.Surname}', [NickName] = 'wswsw'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues2[1].Item1.Name}', [Second Name] = '{CheckValues2[1].Item1.Surname}', [NickName] = 'xxxx'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }
@@ -274,15 +266,12 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name], [NickName]) VALUES ('Name', 'Surname', 'baba')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [NickName] = 'xxxxx'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }

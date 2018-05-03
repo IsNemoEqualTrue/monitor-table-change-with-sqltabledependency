@@ -139,15 +139,12 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('Ismano', 'Del Bianco')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = 'Dina', [Second Name] = 'Bruschi'";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(500);
                 }
             }
         }

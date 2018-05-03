@@ -23,7 +23,7 @@ namespace TableDependency.IntegrationTest
     public class MassiveChanges : SqlTableDependencyBaseTest
     {
         private static readonly string TableName = typeof(MassiveChangesModel).Name;
-        private static Dictionary<string, IList<MassiveChangesModel>> CheckValues = new Dictionary<string, IList<MassiveChangesModel>>();
+        private static readonly Dictionary<string, IList<MassiveChangesModel>> CheckValues = new Dictionary<string, IList<MassiveChangesModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)

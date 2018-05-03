@@ -96,8 +96,6 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Id]) VALUES ({DateTime.Now.Ticks})"; sqlCommand.ExecuteNonQuery();
                 }
-
-                Thread.Sleep(2500);
             }
         }
 

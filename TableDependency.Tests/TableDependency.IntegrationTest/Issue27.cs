@@ -62,7 +62,7 @@ namespace TableDependency.IntegrationTest
 
                 using (var tableDependency = new SqlTableDependency<Issue27Model>(ConnectionStringForTestUser, tableName: TableName))
                 {
-                    tableDependency.OnChanged += TableDependency_Changed;
+                    tableDependency.OnChanged += (o, args) => { };
                     tableDependency.Start();
                     objectNaming = tableDependency.DataBaseObjectsNamingConvention;
 
@@ -77,11 +77,6 @@ namespace TableDependency.IntegrationTest
                 TestContext.WriteLine(exception.Message);
                 Assert.Fail();
             }
-        }
-
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue27Model> e)
-        {
-
         }
     }
 }

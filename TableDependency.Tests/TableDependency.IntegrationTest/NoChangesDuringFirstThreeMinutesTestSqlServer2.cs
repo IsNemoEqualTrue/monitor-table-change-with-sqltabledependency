@@ -198,11 +198,9 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([MenuId], [Name], [Surname]) VALUES ({_checkValues2[ChangeType.Insert.ToString()].Item1.MenuId}, '{_checkValues2[ChangeType.Insert.ToString()].Item1.Name}', '{_checkValues2[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
 
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{_checkValues2[ChangeType.Update.ToString()].Item1.Name}' WHERE [MenuId] = " + _checkValues2[ChangeType.Update.ToString()].Item1.MenuId;
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(1000);
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}] WHERE [MenuId] = " + _checkValues2[ChangeType.Delete.ToString()].Item1.MenuId;
                     sqlCommand.ExecuteNonQuery();

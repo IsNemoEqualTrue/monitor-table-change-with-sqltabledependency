@@ -97,7 +97,7 @@ namespace TableDependency.IntegrationTest
                         sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{DateTime.Now.Ticks}')";
                         sqlCommand.ExecuteNonQuery();
 
-                        Thread.Sleep(1000 * 10 * 1);
+                        Thread.Sleep(1000 * 1 * 1);
                     }
                 }
             }

@@ -139,21 +139,15 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Insert.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
 
-                    Thread.Sleep(1000);
-
                     sqlCommand.Parameters.Clear();
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [VarcharMAXColumn] = @varcharMAXColumn, [NvarcharMAXColumn] = @nvarcharMAXColumn";
                     sqlCommand.Parameters.AddWithValue("@varcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.VarcharMaxColumn);
                     sqlCommand.Parameters.AddWithValue("@nvarcharMAXColumn", CheckValues[ChangeType.Update.ToString()].Item1.NvarcharMaxColumn);
                     sqlCommand.ExecuteNonQuery();
 
-                    Thread.Sleep(1000);
-
                     sqlCommand.Parameters.Clear();
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
                     sqlCommand.ExecuteNonQuery();
-
-                    Thread.Sleep(1000);
                 }
             }
         }
