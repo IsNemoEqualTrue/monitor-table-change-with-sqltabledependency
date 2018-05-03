@@ -53,7 +53,7 @@ public class Program
 
        // Here - as second parameter - we pass table name: this is necessary because the model name is 
        // different from table name (Customer vs Customers)
-       using (var dep = new SqlTableDependency<Customer>(_con, "Customers", mapper))
+       using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
        {
            dep.OnChanged += Changed;
            dep.Start();
