@@ -84,7 +84,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 15 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {
@@ -154,8 +154,6 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.ExecuteNonQuery();                    
                 }
 
-                Thread.Sleep(5000);
-
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"UPDATE [{TableName}] SET [BigintColumn] = null, [Decimal18Column] = null, [Decimal54Column] = @decimal54Column, [FloatColumn] = @floatColumn";
@@ -163,8 +161,6 @@ namespace TableDependency.IntegrationTest
                     sqlCommand.Parameters.Add(new SqlParameter("@floatColumn", SqlDbType.Float) { Value = CheckValues[ChangeType.Update.ToString()].Item1.FloatColumn });
                     sqlCommand.ExecuteNonQuery();                    
                 }
-
-                Thread.Sleep(5000);
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {

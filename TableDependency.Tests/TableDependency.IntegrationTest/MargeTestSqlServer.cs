@@ -122,7 +122,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(MergeOperation);
                 t.Start();
-                Thread.Sleep(1000 * 60 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {
@@ -162,7 +162,6 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    // Synchronize source data with target
                     sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
                     sqlCommand.CommandText = "testMerge";
                     sqlCommand.ExecuteNonQuery();                    

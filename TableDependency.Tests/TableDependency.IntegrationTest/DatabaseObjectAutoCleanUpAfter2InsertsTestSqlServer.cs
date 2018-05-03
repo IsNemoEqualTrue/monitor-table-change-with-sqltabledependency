@@ -101,13 +101,10 @@ namespace TableDependency.IntegrationTest
                 {
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('AAAA', 'aaaa')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(100);
 
                     sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('BBBB', 'bbbb')";
                     sqlCommand.ExecuteNonQuery();
-                    Thread.Sleep(100);
                 }
-                sqlConnection.Close();
             }
         }
     }

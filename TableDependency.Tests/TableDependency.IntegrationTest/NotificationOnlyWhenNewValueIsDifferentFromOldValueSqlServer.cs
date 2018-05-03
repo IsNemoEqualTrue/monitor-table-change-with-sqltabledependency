@@ -87,7 +87,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {
@@ -162,7 +162,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent2);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {
@@ -237,7 +237,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent3);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {

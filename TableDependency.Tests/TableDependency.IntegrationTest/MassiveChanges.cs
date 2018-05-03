@@ -81,7 +81,7 @@ namespace TableDependency.IntegrationTest
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 30 * 1);
+                Thread.Sleep(1000 * 60 * 1);
             }
             finally
             {
@@ -89,11 +89,11 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.IsTrue(CheckValues[ChangeType.Insert.ToString()].All(m => m.Id == 1 && m.Name == "Luciano Bruschi"));
-            Assert.IsTrue(CheckValues[ChangeType.Insert.ToString()].Count == 100);
+            Assert.IsTrue(CheckValues[ChangeType.Insert.ToString()].Count == 1000);
             Assert.IsTrue(CheckValues[ChangeType.Update.ToString()].All(m => m.Id == 2 && m.Name == "Ceccarelli Velia"));
-            Assert.IsTrue(CheckValues[ChangeType.Update.ToString()].Count == 100);
+            Assert.IsTrue(CheckValues[ChangeType.Update.ToString()].Count == 1000);
             Assert.IsTrue(CheckValues[ChangeType.Delete.ToString()].All(m => m.Id == 2 && m.Name == "Ceccarelli Velia"));
-            Assert.IsTrue(CheckValues[ChangeType.Delete.ToString()].Count == 100);
+            Assert.IsTrue(CheckValues[ChangeType.Delete.ToString()].Count == 1000);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
@@ -122,7 +122,7 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 1000; i++)
                     {
                         sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Id], [Name]) VALUES (1, 'Luciano Bruschi')";
                         sqlCommand.ExecuteNonQuery();

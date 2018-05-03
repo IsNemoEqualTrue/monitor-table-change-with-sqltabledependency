@@ -84,7 +84,7 @@ namespace TableDependency.IntegrationTest
                 var t = new Task(ModifyTableContent);
                 t.Start();
 
-                Thread.Sleep(500 * 60 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {

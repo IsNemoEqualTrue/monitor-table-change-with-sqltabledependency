@@ -59,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Base\SqlTableDependencyBaseTest.cs" />
+    <Compile Include="TwoIntances.cs" />
     <Compile Include="MassiveChangesInSingleCommand.cs" />
     <Compile Include="MassiveChanges.cs" />
     <Compile Include="DataAnnotationTestSqlServer10.cs" />
