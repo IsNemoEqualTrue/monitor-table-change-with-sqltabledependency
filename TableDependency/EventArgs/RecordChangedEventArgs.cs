@@ -162,7 +162,7 @@ namespace TableDependency.EventArgs
 
         protected virtual T MaterializeEntity(List<Message> messages, IModelToTableMapper<T> mapper)
         {
-            var entity = (T)Activator.CreateInstance(typeof(T));
+            var entity = new T();
 
             foreach (var entityPropertyInfo in this.EntiyProperiesInfo)
             {
