@@ -64,7 +64,6 @@
     <Compile Include="Exceptions\ColumnTypeNotSupportedException.cs" />
     <Compile Include="Exceptions\DmlTriggerTypeException.cs" />
     <Compile Include="Exceptions\MessageMisalignedException.cs" />
-    <Compile Include="Exceptions\ModelWithoutParameterlessConstructor.cs" />
     <Compile Include="Exceptions\NoColumnsException.cs" />
     <Compile Include="Exceptions\UpdateOfException.cs" />
     <Compile Include="Exceptions\ModelToTableMapperException.cs" />
