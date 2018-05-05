@@ -175,7 +175,6 @@ namespace TableDependency
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
 
             this.CheckIfConnectionStringIsValid(connectionString);
-            this.CheckIfParameterlessConstructorExistsForModel();
             if (executeUserPermissionCheck) this.CheckIfUserHasPermissions(connectionString);
 
             _connectionString = connectionString;
@@ -373,14 +372,6 @@ namespace TableDependency
 
         protected abstract void CheckIfUserHasPermissions(string connectionString);
 
-        protected virtual void CheckIfParameterlessConstructorExistsForModel()
-        {
-            if (typeof(T).GetConstructor(Type.EmptyTypes) == null)
-            {
-                throw new ModelWithoutParameterlessConstructor("Your model needs a parameterless constructor.");
-            }
-        }
-
         protected abstract void CheckIfConnectionStringIsValid(string connectionString);
 
         #endregion
@@ -517,7 +508,7 @@ namespace TableDependency
                 _userInterestedColumns,
                 _server,
                 _database,
-                _dataBaseObjectsNamingConvention, 
+                _dataBaseObjectsNamingConvention,
                 this.CultureInfo);
         }
 
