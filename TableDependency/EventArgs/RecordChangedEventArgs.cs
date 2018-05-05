@@ -36,7 +36,7 @@ using TableDependency.Utilities;
 
 namespace TableDependency.EventArgs
 {
-    public class RecordChangedEventArgs<T> : BaseEventArgs where T : class
+    public class RecordChangedEventArgs<T> : BaseEventArgs where T : class, new()
     {
         #region Instance variables
 
@@ -190,12 +190,12 @@ namespace TableDependency.EventArgs
             {
                 Type propertyType = propertyInfo.PropertyType;
 
-                var targetType = this.IsNullableType(propertyType) 
-                    ? Nullable.GetUnderlyingType(propertyType) 
+                var targetType = this.IsNullableType(propertyType)
+                    ? Nullable.GetUnderlyingType(propertyType)
                     : propertyType;
 
-                propertyVal = targetType.IsEnum 
-                    ? Enum.ToObject(targetType, propertyVal) 
+                propertyVal = targetType.IsEnum
+                    ? Enum.ToObject(targetType, propertyVal)
                     : Convert.ChangeType(propertyVal, targetType);
             }
 

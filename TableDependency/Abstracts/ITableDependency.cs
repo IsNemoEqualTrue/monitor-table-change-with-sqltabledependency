@@ -32,7 +32,7 @@ using TableDependency.Enums;
 
 namespace TableDependency.Abstracts
 {
-    public interface ITableDependency<T> where T : class
+    public interface ITableDependency<T> where T : class, new()
     {
         #region Events
 
@@ -56,7 +56,7 @@ namespace TableDependency.Abstracts
         TableDependencyStatus Status { get; }
         Encoding Encoding { get; set; }
         CultureInfo CultureInfo { get; set; }
-        string DataBaseObjectsNamingConvention { get; }        
+        string DataBaseObjectsNamingConvention { get; }
         string TableName { get; }
         string SchemaName { get; }
 
