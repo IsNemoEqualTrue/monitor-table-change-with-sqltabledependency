@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,7 +9,7 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public class LoadAndCountTestSqlServerModel
+    public class DatabaseObjectCleanUpTestSqlServerModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -21,9 +19,10 @@ namespace TableDependency.IntegrationTest
     }
 
     [TestClass]
-    public class CancellationTokenTest : SqlTableDependencyBaseTest
+    public class DatabaseObjectAutoCleanUpTest : SqlTableDependencyBaseTest
     {
-        private static readonly string TableName = typeof(LoadAndCountTestSqlServerModel).Name;
+        private static string _dbObjectsNaming;
+        private const string TableName = "SpiderManTable";
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -79,65 +78,46 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-            var token = cts.Token;
+            var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
+            var adevidence = AppDomain.CurrentDomain.Evidence;
+            var domain = AppDomain.CreateDomain("RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp", adevidence, domaininfo);
+            var otherDomainObject = (RunsInAnotherAppDomainCheckDatabaseObjectCleanUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).Assembly.FullName, typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).FullName);
+            _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
+            Thread.Sleep(5000);
+            AppDomain.Unload(domain);
 
-            var listenerSlq = new ListenerSlq(TableName);
-            var objectNaming = listenerSlq.ObjectNaming;
-            Task.Factory.StartNew(() => listenerSlq.Run(token), token);
-            Thread.Sleep(1000 * 10 * 1);
+            SmallModifyTableContent();
 
+            Thread.Sleep(3 * 60 * 1000);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(_dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(_dbObjectsNaming) == 0);
+        }
+
+        private static void SmallModifyTableContent()
+        {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    while (token.IsCancellationRequested == false)
-                    {
-                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{DateTime.Now.Ticks}', '{DateTime.Now.Ticks}')";
-                        sqlCommand.ExecuteNonQuery();
-
-                        Thread.Sleep(1000 * 1 * 1);
-                    }
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('allora', 'mah')";
+                    sqlCommand.ExecuteNonQuery();
                 }
             }
-
-            listenerSlq.Dispose();
-            listenerSlq = null;
-
-            Thread.Sleep(1000 * 30 * 1);
-            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
-            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
         }
     }
 
-    public class ListenerSlq : SqlTableDependencyBaseTest, IDisposable
+    public class RunsInAnotherAppDomainCheckDatabaseObjectCleanUp : MarshalByRefObject
     {
-        private readonly SqlTableDependency<LoadAndCountTestSqlServerModel> _tableDependency;    
-        public string ObjectNaming { get; }
-
-        public ListenerSlq(string tableName)
+        public string RunTableDependency(string connectionString, string tableName)
         {
-            var mapper = new ModelToTableMapper<LoadAndCountTestSqlServerModel>();
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            _tableDependency = new SqlTableDependency<LoadAndCountTestSqlServerModel>(ConnectionStringForTestUser, mapper: mapper);
-            _tableDependency.OnChanged += (o, args) => { Debug.WriteLine("Received:" + args.Entity.Name); };
-            _tableDependency.Start(60, 120);
-            this.ObjectNaming = this._tableDependency.DataBaseObjectsNamingConvention;
-        }
-
-        public void Run(CancellationToken token)
-        {
-            while (token.IsCancellationRequested == false)
-            {
-                Thread.Sleep(1000 * 5 * 1);
-            }
-        }
-
-        public void Dispose()
-        {
-            _tableDependency.Dispose();
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(connectionString, tableName: tableName, mapper: mapper);
+            tableDependency.OnChanged += (sender, e) => { };
+            tableDependency.Start(60, 120);
+            return tableDependency.DataBaseObjectsNamingConvention;
         }
     }
 }

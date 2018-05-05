@@ -13,25 +13,19 @@ using TableDependency.SqlClient;
 
 namespace TableDependency.IntegrationTest
 {
-    public enum TypeEnum : byte
+    public class TableWithSpacesModel
     {
-        Genitore = 1,
-        Figlio = 2
-    }
-
-    public class EnumTestSqlServerModel
-    {      
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
-        public TypeEnum Tipo { get; set; }
     }
 
     [TestClass]
-    public class EnumTestSqlServer : SqlTableDependencyBaseTest
+    public class TableWithSpacesTest : SqlTableDependencyBaseTest
     {
-        private static readonly string TableName = typeof(EnumTestSqlServerModel).Name.ToUpper();
+        private const string TableName = "BranchABC$Sales Invoice Header";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>>();
+        private static readonly Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -41,13 +35,22 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}]";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Tipo] [TINYINT] NULL, [Name] [NVARCHAR](50) NULL, [Surname] [NVARCHAR](50) NULL)";
+                    sqlCommand.CommandText =
+                        $"CREATE TABLE [{TableName}]( " +
+                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[First Name] [nvarchar](50) NOT NULL, " +
+                        "[Second Name] [nvarchar](50) NOT NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+        }
+
+        [TestInitialize()]
+        public void TestInitialize()
+        {
         }
 
         [ClassCleanup()]
@@ -68,13 +71,18 @@ namespace TableDependency.IntegrationTest
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<EnumTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<EventForAllColumnsTestSqlServerModel> tableDependency = null;
+            string naming;
 
             try
             {
-                tableDependency = new SqlTableDependency<EnumTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName);
+                var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
+                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+
+                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
+                naming = tableDependency.DataBaseObjectsNamingConvention;
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
@@ -86,24 +94,18 @@ namespace TableDependency.IntegrationTest
             }
 
             Assert.AreEqual(_counter, 3);
-
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Name, CheckValues[ChangeType.Insert.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Surname, CheckValues[ChangeType.Insert.ToString()].Item1.Surname);
-            Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.Tipo, CheckValues[ChangeType.Insert.ToString()].Item1.Tipo);
-
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Name, CheckValues[ChangeType.Update.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Surname, CheckValues[ChangeType.Update.ToString()].Item1.Surname);
-            Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.Tipo, CheckValues[ChangeType.Update.ToString()].Item1.Tipo);
-
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Name, CheckValues[ChangeType.Delete.ToString()].Item1.Name);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Surname, CheckValues[ChangeType.Delete.ToString()].Item1.Surname);
-            Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.Tipo, CheckValues[ChangeType.Delete.ToString()].Item1.Tipo);
 
-            Assert.IsTrue(base.AreAllDbObjectDisposed(tableDependency.DataBaseObjectsNamingConvention));
-            Assert.IsTrue(base.CountConversationEndpoints(tableDependency.DataBaseObjectsNamingConvention) == 0);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming)== 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EnumTestSqlServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)
         {
             _counter++;
 
@@ -112,36 +114,33 @@ namespace TableDependency.IntegrationTest
                 case ChangeType.Insert:
                     CheckValues[ChangeType.Insert.ToString()].Item2.Name = e.Entity.Name;
                     CheckValues[ChangeType.Insert.ToString()].Item2.Surname = e.Entity.Surname;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.Tipo = e.Entity.Tipo;
                     break;
                 case ChangeType.Update:
                     CheckValues[ChangeType.Update.ToString()].Item2.Name = e.Entity.Name;
                     CheckValues[ChangeType.Update.ToString()].Item2.Surname = e.Entity.Surname;
-                    CheckValues[ChangeType.Update.ToString()].Item2.Tipo = e.Entity.Tipo;
                     break;
                 case ChangeType.Delete:
                     CheckValues[ChangeType.Delete.ToString()].Item2.Name = e.Entity.Name;
                     CheckValues[ChangeType.Delete.ToString()].Item2.Surname = e.Entity.Surname;
-                    CheckValues[ChangeType.Delete.ToString()].Item2.Tipo = e.Entity.Tipo;
                     break;
             }
         }
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Figlio, Name = "Christian", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new EventForAllColumnsTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
 
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Tipo], [Name], [Surname]) VALUES ({CheckValues[ChangeType.Insert.ToString()].Item1.Tipo.GetHashCode().ToString()}, '{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}')";
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{CheckValues[ChangeType.Insert.ToString()].Item1.Name}', '{CheckValues[ChangeType.Insert.ToString()].Item1.Surname}')";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Tipo] = {CheckValues[ChangeType.Update.ToString()].Item1.Tipo.GetHashCode()}";
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [First Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Name}', [Second Name] = '{CheckValues[ChangeType.Update.ToString()].Item1.Surname}'";
                     sqlCommand.ExecuteNonQuery();
 
                     sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
