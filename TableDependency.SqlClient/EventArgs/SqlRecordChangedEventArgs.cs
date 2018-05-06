@@ -37,7 +37,7 @@ using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
 {
-    public sealed class SqlRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class
+    public sealed class SqlRecordChangedEventArgs<T> : RecordChangedEventArgs<T> where T : class, new()
     {
         public SqlRecordChangedEventArgs(
             MessagesBag messagesBag,

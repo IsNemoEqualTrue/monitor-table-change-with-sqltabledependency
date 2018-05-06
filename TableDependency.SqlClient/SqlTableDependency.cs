@@ -41,9 +41,9 @@ using TableDependency.EventArgs;
 using TableDependency.Exceptions;
 using TableDependency.Messages;
 using TableDependency.SqlClient.Enumerations;
-using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.EventArgs;
 using TableDependency.SqlClient.Exceptions;
+using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.SqlClient.Utilities;
@@ -55,7 +55,7 @@ namespace TableDependency.SqlClient
     /// <summary>
     /// SqlTableDependency class.
     /// </summary>
-    public class SqlTableDependency<T> : TableDependency<T> where T : class
+    public class SqlTableDependency<T> : TableDependency<T> where T : class, new()
     {
         #region Private variables
 
