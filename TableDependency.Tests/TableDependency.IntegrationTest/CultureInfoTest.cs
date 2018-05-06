@@ -26,12 +26,12 @@ namespace TableDependency.IntegrationTest
     [TestClass]
     public class CultureInfoTest : SqlTableDependencyBaseTest
     {
-        private static DateTime _dt1;
-        private static DateTime _dt2;
-        private static DateTime _dt3;
-        private static readonly string TableName = typeof(CultureInfoTestModel).Name;
-        private static int _counter;
-        private static readonly Dictionary<string, CultureInfoTestModel> CheckValues = new Dictionary<string, CultureInfoTestModel>();
+        private static readonly string TableName1 = typeof(CultureInfoTestModel).Name + "1";
+        private static readonly string TableName2 = typeof(CultureInfoTestModel).Name + "2";
+        private static int _counter1;
+        private static int _counter2;
+        private static readonly Dictionary<string, CultureInfoTestModel> CheckValues1 = new Dictionary<string, CultureInfoTestModel>();
+        private static readonly Dictionary<string, CultureInfoTestModel> CheckValues2 = new Dictionary<string, CultureInfoTestModel>();
 
         [ClassInitialize()]
         public static void ClassInitialize(TestContext testContext)
@@ -41,10 +41,16 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName1}', 'U') IS NOT NULL DROP TABLE [{TableName1}];";
                     sqlCommand.ExecuteNonQuery();
 
-                    sqlCommand.CommandText = $"CREATE TABLE [{TableName}]([Name] [NVARCHAR](50) NULL, [BirthDate] [DATETIME] NULL)";
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName1}]([Name] [NVARCHAR](50) NULL, [BirthDate] [DATETIME] NULL)";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName2}', 'U') IS NOT NULL DROP TABLE [{TableName2}];";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"CREATE TABLE [{TableName2}]([Name] [NVARCHAR](50) NULL, [BirthDate] [DATETIME] NULL)";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -53,13 +59,6 @@ namespace TableDependency.IntegrationTest
         [TestInitialize()]
         public void TestInitialize()
         {
-            _dt1 = DateTime.ParseExact("2009-05-08", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-            _dt2 = DateTime.ParseExact("2009-08-05", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-            _dt3 = DateTime.ParseExact("2009-08-05", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-
-            CheckValues.Add(ChangeType.Insert.ToString(), new CultureInfoTestModel());
-            CheckValues.Add(ChangeType.Update.ToString(), new CultureInfoTestModel());
-            CheckValues.Add(ChangeType.Delete.ToString(), new CultureInfoTestModel());
         }
 
         [ClassCleanup()]
@@ -70,7 +69,10 @@ namespace TableDependency.IntegrationTest
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName}', 'U') IS NOT NULL DROP TABLE [{TableName}];";
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName1}', 'U') IS NOT NULL DROP TABLE [{TableName1}];";
+                    sqlCommand.ExecuteNonQuery();
+
+                    sqlCommand.CommandText = $"IF OBJECT_ID('{TableName2}', 'U') IS NOT NULL DROP TABLE [{TableName2}];";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
@@ -78,22 +80,24 @@ namespace TableDependency.IntegrationTest
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void Test()
+        public void Test1()
         {
             SqlTableDependency<CultureInfoTestModel> tableDependency = null;
             string naming;
 
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("it-IT");
+            CheckValues1.Add(ChangeType.Insert.ToString(), new CultureInfoTestModel());
+            CheckValues1.Add(ChangeType.Update.ToString(), new CultureInfoTestModel());
+            CheckValues1.Add(ChangeType.Delete.ToString(), new CultureInfoTestModel());
 
             try
             {
-                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser);
+                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, tableName: TableName1);
                 naming = tableDependency.DataBaseObjectsNamingConvention;
-                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.CultureInfo = new CultureInfo("it-IT");
 
                 tableDependency.Start();
-                var t = new Task(ModifyTableContent);
+                var t = new Task(ModifyTableContent1);
                 t.Start();
                 Thread.Sleep(1000 * 5 * 1);
             }
@@ -102,43 +106,107 @@ namespace TableDependency.IntegrationTest
                 tableDependency?.Dispose();
             }
 
-            Assert.AreEqual(_counter, 3);
+            Assert.AreEqual(_counter1, 3);
            
-            Assert.AreEqual("Christian", CheckValues[ChangeType.Insert.ToString()].Name);
-            Assert.AreEqual(_dt1, CheckValues[ChangeType.Insert.ToString()].BirthDate);
+            Assert.AreEqual("Christian", CheckValues1[ChangeType.Insert.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-08-05", "yyyy-MM-dd", new CultureInfo("it-IT")), CheckValues1[ChangeType.Insert.ToString()].BirthDate);
 
-            Assert.AreEqual("Valentina", CheckValues[ChangeType.Update.ToString()].Name);
-            Assert.AreEqual(_dt2, CheckValues[ChangeType.Update.ToString()].BirthDate);
+            Assert.AreEqual("Valentina", CheckValues1[ChangeType.Update.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-05-08", "yyyy-MM-dd", new CultureInfo("it-IT")), CheckValues1[ChangeType.Update.ToString()].BirthDate);
             
-            Assert.AreEqual("Valentina", CheckValues[ChangeType.Delete.ToString()].Name);
-            Assert.AreEqual(_dt3, CheckValues[ChangeType.Delete.ToString()].BirthDate);
+            Assert.AreEqual("Valentina", CheckValues1[ChangeType.Delete.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-05-08", "yyyy-MM-dd", new CultureInfo("it-IT")), CheckValues1[ChangeType.Delete.ToString()].BirthDate);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<CultureInfoTestModel> e)
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void Test2()
         {
-            _counter++;
+            SqlTableDependency<CultureInfoTestModel> tableDependency = null;
+            string naming;
+
+            CheckValues2.Add(ChangeType.Insert.ToString(), new CultureInfoTestModel());
+            CheckValues2.Add(ChangeType.Update.ToString(), new CultureInfoTestModel());
+            CheckValues2.Add(ChangeType.Delete.ToString(), new CultureInfoTestModel());
+
+            try
+            {
+                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, tableName: TableName2);
+                naming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.OnChanged += TableDependency_Changed2;
+                tableDependency.CultureInfo = new CultureInfo("en-US");
+
+                tableDependency.Start();
+                var t = new Task(ModifyTableContent2);
+                t.Start();
+                Thread.Sleep(1000 * 5 * 1);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
+
+            Assert.AreEqual(_counter2, 3);
+
+            Assert.AreEqual("Christian", CheckValues2[ChangeType.Insert.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-08-05", "yyyy-MM-dd", new CultureInfo("en-US")), CheckValues2[ChangeType.Insert.ToString()].BirthDate);
+
+            Assert.AreEqual("Valentina", CheckValues2[ChangeType.Update.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-05-08", "yyyy-MM-dd", new CultureInfo("en-US")), CheckValues2[ChangeType.Update.ToString()].BirthDate);
+
+            Assert.AreEqual("Valentina", CheckValues2[ChangeType.Delete.ToString()].Name);
+            Assert.AreEqual(DateTime.ParseExact("2009-05-08", "yyyy-MM-dd", new CultureInfo("en-US")), CheckValues2[ChangeType.Delete.ToString()].BirthDate);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
+        }
+
+        private static void TableDependency_Changed1(object sender, RecordChangedEventArgs<CultureInfoTestModel> e)
+        {
+            _counter1++;
 
             switch (e.ChangeType)
             {
                 case ChangeType.Insert:
-                    CheckValues[ChangeType.Insert.ToString()].Name = e.Entity.Name;
-                    CheckValues[ChangeType.Insert.ToString()].BirthDate = e.Entity.BirthDate;
+                    CheckValues1[ChangeType.Insert.ToString()].Name = e.Entity.Name;
+                    CheckValues1[ChangeType.Insert.ToString()].BirthDate = e.Entity.BirthDate;
                     break;
                 case ChangeType.Update:
-                    CheckValues[ChangeType.Update.ToString()].Name = e.Entity.Name;
-                    CheckValues[ChangeType.Update.ToString()].BirthDate = e.Entity.BirthDate;
+                    CheckValues1[ChangeType.Update.ToString()].Name = e.Entity.Name;
+                    CheckValues1[ChangeType.Update.ToString()].BirthDate = e.Entity.BirthDate;
                     break;
                 case ChangeType.Delete:
-                    CheckValues[ChangeType.Delete.ToString()].Name = e.Entity.Name;
-                    CheckValues[ChangeType.Delete.ToString()].BirthDate = e.Entity.BirthDate;
+                    CheckValues1[ChangeType.Delete.ToString()].Name = e.Entity.Name;
+                    CheckValues1[ChangeType.Delete.ToString()].BirthDate = e.Entity.BirthDate;
                     break;
             }
         }
 
-        private static void ModifyTableContent()
+        private static void TableDependency_Changed2(object sender, RecordChangedEventArgs<CultureInfoTestModel> e)
+        {
+            _counter2++;
+
+            switch (e.ChangeType)
+            {
+                case ChangeType.Insert:
+                    CheckValues2[ChangeType.Insert.ToString()].Name = e.Entity.Name;
+                    CheckValues2[ChangeType.Insert.ToString()].BirthDate = e.Entity.BirthDate;
+                    break;
+                case ChangeType.Update:
+                    CheckValues2[ChangeType.Update.ToString()].Name = e.Entity.Name;
+                    CheckValues2[ChangeType.Update.ToString()].BirthDate = e.Entity.BirthDate;
+                    break;
+                case ChangeType.Delete:
+                    CheckValues2[ChangeType.Delete.ToString()].Name = e.Entity.Name;
+                    CheckValues2[ChangeType.Delete.ToString()].BirthDate = e.Entity.BirthDate;
+                    break;
+            }
+        }
+
+        private static void ModifyTableContent1()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
@@ -146,23 +214,45 @@ namespace TableDependency.IntegrationTest
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Name], [BirthDate]) VALUES (@name, @birth)";
-                    sqlCommand.Parameters.Add(new SqlParameter("@name", SqlDbType.VarChar) { Value = "Christian" });
-                    sqlCommand.Parameters.Add(new SqlParameter("@birth", SqlDbType.Date) { Value = _dt1 });
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName1}] ([Name], [BirthDate]) VALUES ('Christian', '2009-08-05')";
                     sqlCommand.ExecuteNonQuery();
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Name] = @name, [BirthDate] = @birth";
-                    sqlCommand.Parameters.Add(new SqlParameter("@name", SqlDbType.VarChar) { Value = "Valentina" });
-                    sqlCommand.Parameters.Add(new SqlParameter("@birth", SqlDbType.Date) { Value = _dt2 });
+                    sqlCommand.CommandText = $"UPDATE [{TableName1}] SET [Name] = 'Valentina', [BirthDate] = '2009-05-08'";
                     sqlCommand.ExecuteNonQuery();
                 }
 
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName1}]";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static void ModifyTableContent2()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName2}] ([Name], [BirthDate]) VALUES ('Christian', '2009-08-05')";
+                    sqlCommand.ExecuteNonQuery();
+                }
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"UPDATE [{TableName2}] SET [Name] = 'Valentina', [BirthDate] = '2009-05-08'";
+                    sqlCommand.ExecuteNonQuery();
+                }
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName2}]";
                     sqlCommand.ExecuteNonQuery();
                 }
             }
