@@ -46,7 +46,7 @@ namespace TableDependency.Messages
 
         public Encoding Encoding { get; }
         public ChangeType MessageType { get; private set; }
-        public List<Message> Messages { get; private set; }
+        public List<Message> Messages { get; }
         public MessagesBagStatus Status { get; private set; }
         public bool Ready => this.Status == MessagesBagStatus.Collecting;
         

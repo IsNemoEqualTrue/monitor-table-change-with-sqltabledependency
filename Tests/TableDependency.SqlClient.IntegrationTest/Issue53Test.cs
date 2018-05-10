@@ -54,7 +54,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<Issue53Model3, Issue53Model3>> _checkValues3 = new Dictionary<string, Tuple<Issue53Model3, Issue53Model3>>();
         private static Dictionary<string, Tuple<Issue53Model4, Issue53Model4>> _checkValues4 = new Dictionary<string, Tuple<Issue53Model4, Issue53Model4>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -85,7 +85,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

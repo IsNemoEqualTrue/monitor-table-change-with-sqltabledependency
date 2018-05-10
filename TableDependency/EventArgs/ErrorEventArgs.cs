@@ -32,7 +32,7 @@ namespace TableDependency.EventArgs
     {
         #region Properties
 
-        public string Message { get; private set; }
+        public string Message { get; }
 
         public Exception Error { get; protected set; }
 

@@ -31,7 +31,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<BinaryBitCharVarbinaryTypesModel, BinaryBitCharVarbinaryTypesModel>> _checkValues = new Dictionary<string, Tuple<BinaryBitCharVarbinaryTypesModel, BinaryBitCharVarbinaryTypesModel>>();
         private static Dictionary<string, Tuple<BinaryBitCharVarbinaryTypesModel, BinaryBitCharVarbinaryTypesModel>> _checkValuesOld = new Dictionary<string, Tuple<BinaryBitCharVarbinaryTypesModel, BinaryBitCharVarbinaryTypesModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -53,7 +53,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -78,7 +78,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<BinaryBitCharVarbinaryTypesModel, BinaryBitCharVarbinaryTypesModel>(new BinaryBitCharVarbinaryTypesModel { Binary50Column = GetBytes("Valentina", 50), Bit2Column = true, Bit3Column = true, BitColumn = true, Char10Column = new char[] { 'A' }, Varbinary50Column = null, VarbinaryMaxColumn = GetBytes("Velia") }, new BinaryBitCharVarbinaryTypesModel()));
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

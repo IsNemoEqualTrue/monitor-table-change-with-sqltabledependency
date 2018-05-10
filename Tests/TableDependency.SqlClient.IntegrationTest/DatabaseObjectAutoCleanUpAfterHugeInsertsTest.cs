@@ -23,7 +23,7 @@ namespace TableDependency.SqlClient.IntegrationTests
     {
         private static readonly string TableName = typeof(DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel).Name;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

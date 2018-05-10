@@ -32,7 +32,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<DataAnnotationTestSqlServer1Model, DataAnnotationTestSqlServer1Model>> _checkValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer1Model, DataAnnotationTestSqlServer1Model>>();
         private static Dictionary<string, Tuple<DataAnnotationTestSqlServer1Model, DataAnnotationTestSqlServer1Model>> _checkValuesOld = new Dictionary<string, Tuple<DataAnnotationTestSqlServer1Model, DataAnnotationTestSqlServer1Model>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -49,7 +49,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -77,7 +77,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

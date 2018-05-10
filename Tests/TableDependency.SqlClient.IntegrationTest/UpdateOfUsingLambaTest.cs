@@ -29,7 +29,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>>();
         private static Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>> _checkValuesOld = new Dictionary<string, Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -51,7 +51,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -78,7 +78,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<UpdateOfUsingLambaTestSqlServerModel, UpdateOfUsingLambaTestSqlServerModel>(new UpdateOfUsingLambaTestSqlServerModel { Name = "Velia", Surname = "Del Bianco" }, new UpdateOfUsingLambaTestSqlServerModel()));
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

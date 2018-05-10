@@ -24,7 +24,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static string _dbObjectsNaming;
         private static readonly string TableName = typeof(NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel).Name;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -42,7 +42,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         }
 
         [TestCategory("SqlServer")]
-        [TestMethod()]
+        [TestMethod]
         public void Test()
         {
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
@@ -60,7 +60,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             Assert.IsTrue(base.CountConversationEndpoints(_dbObjectsNaming) == 0);
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

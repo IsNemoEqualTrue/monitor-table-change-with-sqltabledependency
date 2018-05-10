@@ -27,7 +27,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static int _counter;
         private static readonly Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<UseSchemaOtherThanDboTestSqlServerModel, UseSchemaOtherThanDboTestSqlServerModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
@@ -52,7 +52,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForSa))

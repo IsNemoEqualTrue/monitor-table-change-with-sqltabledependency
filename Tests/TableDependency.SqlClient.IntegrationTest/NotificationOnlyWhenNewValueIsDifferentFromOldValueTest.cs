@@ -29,7 +29,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>> CheckValues1 = new List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>>();
         private static readonly List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>> CheckValues2 = new List<Tuple<NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel, NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -46,12 +46,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

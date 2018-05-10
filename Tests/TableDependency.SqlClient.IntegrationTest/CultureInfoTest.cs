@@ -30,7 +30,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly Dictionary<string, CultureInfoTestModel> CheckValues1 = new Dictionary<string, CultureInfoTestModel>();
         private static readonly Dictionary<string, CultureInfoTestModel> CheckValues2 = new Dictionary<string, CultureInfoTestModel>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -53,12 +53,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

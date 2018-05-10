@@ -26,7 +26,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServerModel, NoChangesDuringFirstThreeMinutesTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServerModel, NoChangesDuringFirstThreeMinutesTestSqlServerModel>>();
         private static int _counter;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -43,7 +43,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

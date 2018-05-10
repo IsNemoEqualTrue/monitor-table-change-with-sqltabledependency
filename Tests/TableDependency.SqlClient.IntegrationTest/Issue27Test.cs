@@ -19,7 +19,7 @@ namespace TableDependency.SqlClient.IntegrationTests
     {
         private static readonly string TableName = typeof(Issue27Model).Name;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -35,7 +35,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

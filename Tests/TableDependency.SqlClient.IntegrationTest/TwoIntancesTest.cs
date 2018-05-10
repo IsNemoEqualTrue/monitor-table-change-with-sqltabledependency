@@ -26,7 +26,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly Dictionary<string, IList<TwoIntancesModel>> CheckValues1 = new Dictionary<string, IList<TwoIntancesModel>>();
         private static readonly Dictionary<string, IList<TwoIntancesModel>> CheckValues2 = new Dictionary<string, IList<TwoIntancesModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -57,12 +57,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             CheckValues2.Add(ChangeType.Delete.ToString(), new List<TwoIntancesModel>());
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

@@ -28,7 +28,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly string TableName = typeof(NVarcharMaxAndVarcharMaxTypeModel).Name;
         private static readonly Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>> CheckValues = new Dictionary<string, Tuple<NVarcharMaxAndVarcharMaxTypeModel, NVarcharMaxAndVarcharMaxTypeModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -45,7 +45,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

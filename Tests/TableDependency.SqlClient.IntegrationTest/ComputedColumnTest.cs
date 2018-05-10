@@ -32,7 +32,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<ComputedColumnModel, ComputedColumnModel>> _checkValues = new Dictionary<string, Tuple<ComputedColumnModel, ComputedColumnModel>>();
         private static Dictionary<string, Tuple<ComputedColumnModel, ComputedColumnModel>> _checkValuesOld = new Dictionary<string, Tuple<ComputedColumnModel, ComputedColumnModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -52,7 +52,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -79,7 +79,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<ComputedColumnModel, ComputedColumnModel>(new ComputedColumnModel { Name = "Nonna Velia", BirthDate = DateTime.Now.AddYears(-95).Date, CalculatedAge = 95 }, new ComputedColumnModel()));
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

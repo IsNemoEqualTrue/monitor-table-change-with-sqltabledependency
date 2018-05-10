@@ -24,7 +24,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly string TableName = typeof(RealTypesTestSqlServerModel).Name;
         private static readonly Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<RealTypesTestSqlServerModel, RealTypesTestSqlServerModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -42,12 +42,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

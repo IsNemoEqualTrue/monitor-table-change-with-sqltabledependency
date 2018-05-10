@@ -28,7 +28,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly string TableName = typeof(MassiveChangesModel).Name;
         private static readonly Dictionary<string, IList<MassiveChangesModel>> CheckValues = new Dictionary<string, IList<MassiveChangesModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -49,12 +49,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             CheckValues.Add(ChangeType.Delete.ToString(), new List<MassiveChangesModel>());
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

@@ -28,7 +28,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static readonly string TableName = typeof(StatusTestSqlServerModel).Name;
         private static readonly IDictionary<TableDependencyStatus, bool> Statuses = new Dictionary<TableDependencyStatus, bool>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -50,7 +50,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             Statuses.Add(TableDependencyStatus.Starting, false);
@@ -60,7 +60,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             Statuses.Add(TableDependencyStatus.StopDueToError, false);
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

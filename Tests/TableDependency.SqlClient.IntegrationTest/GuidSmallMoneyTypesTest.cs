@@ -31,7 +31,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<GuidSmallMoneyTypesModel, GuidSmallMoneyTypesModel>> _checkValues = new Dictionary<string, Tuple<GuidSmallMoneyTypesModel, GuidSmallMoneyTypesModel>>();
         private static Dictionary<string, Tuple<GuidSmallMoneyTypesModel, GuidSmallMoneyTypesModel>> _checkValuesOld = new Dictionary<string, Tuple<GuidSmallMoneyTypesModel, GuidSmallMoneyTypesModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -55,7 +55,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -81,7 +81,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<GuidSmallMoneyTypesModel, GuidSmallMoneyTypesModel>(new GuidSmallMoneyTypesModel { UniqueidentifierColumn = _checkValues[ChangeType.Update.ToString()].Item2.UniqueidentifierColumn, Time7Column = DateTime.Parse("13:59:59").TimeOfDay, TinyintColumn = 2, SmalldatetimeColumn = DateTime.Now.Date.AddDays(1), SmallintColumn = 1, MoneyColumn = 23.77M, SmallmoneyColumn = 1.3M }, new GuidSmallMoneyTypesModel()));
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))

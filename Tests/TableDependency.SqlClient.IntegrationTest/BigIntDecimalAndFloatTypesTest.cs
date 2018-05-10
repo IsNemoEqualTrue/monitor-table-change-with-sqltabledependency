@@ -28,7 +28,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private static Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>>();
         private static Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>> _checkValuesOld = new Dictionary<string, Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>>();
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForSa))
@@ -49,7 +49,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -74,7 +74,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<BigIntDecimalAndFloatTypesTestSqlServerModel, BigIntDecimalAndFloatTypesTestSqlServerModel>(new BigIntDecimalAndFloatTypesTestSqlServerModel { BigintColumn = null, Decimal18Column = null, Decimal54Column = 6.77M, FloatColumn = 7.55F }, new BigIntDecimalAndFloatTypesTestSqlServerModel()));
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForSa))

@@ -27,7 +27,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         private byte[] _rowVersionInsertOld;
         private byte[] _rowVersionUpdateOld;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -44,7 +44,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void TestInitialize()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -63,7 +63,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             _rowVersionUpdateOld = null;
         }
 
-        [ClassCleanup()]
+        [ClassCleanup]
         public static void ClassCleanup()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
@@ -135,30 +135,12 @@ namespace TableDependency.SqlClient.IntegrationTests
             {
                 case ChangeType.Insert:
                     _rowVersionInsert = e.Entity.Version;
-
-                    if (e.EntityOldValues != null)
-                    {
-                        _rowVersionInsertOld = e.EntityOldValues.Version;
-                    }
-                    else
-                    {
-                        _rowVersionInsertOld = null;
-                    }
-
+                    _rowVersionInsertOld = e.EntityOldValues?.Version;
                     break;
 
                 case ChangeType.Update:
                     _rowVersionUpdate = e.Entity.Version;
-
-                    if (e.EntityOldValues != null)
-                    {
-                        _rowVersionUpdateOld = e.EntityOldValues.Version;
-                    }
-                    else
-                    {
-                        _rowVersionUpdateOld = null;
-                    }
-
+                    _rowVersionUpdateOld = e.EntityOldValues?.Version;
                     break;
             }
         }

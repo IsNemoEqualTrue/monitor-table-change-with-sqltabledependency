@@ -80,6 +80,10 @@
       <Project>{0a46a45a-be9b-455f-a6d1-183c07fef4bc}</Project>
       <Name>TableDependency</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TableDependency.SqlClient.BaseTests\TableDependency.SqlClient.BaseTests.csproj">
+      <Project>{F3AC3B55-3A32-4291-BC92-986882AD98ED}</Project>
+      <Name>TableDependency.SqlClient.BaseTests</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
