@@ -32,14 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\ParameterHelper.cs" />
@@ -47,10 +40,6 @@
     <Compile Include="SqlTableDependencyFilter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
-      <Project>{3b201820-cb8f-41a1-8430-0c806bcf7494}</Project>
-      <Name>TableDependency.SqlClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\TableDependency\TableDependency.csproj">
       <Project>{0a46a45a-be9b-455f-a6d1-183c07fef4bc}</Project>
       <Name>TableDependency</Name>
