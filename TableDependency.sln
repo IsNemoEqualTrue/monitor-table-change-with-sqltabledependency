@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTests", "LoadTests", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Development", "Development", "{BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F3FCBF55-12B9-4137-8287-FB600C26C509}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F3FCBF55-12B9-4137-8287-FB600C26C509}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Development", "Developments\TableDependency.SqlClient\TableDependency.SqlClient.Development.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject

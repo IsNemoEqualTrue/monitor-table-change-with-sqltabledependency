@@ -40,7 +40,7 @@
     <Compile Include="SqlTableDependencyFilter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TableDependency\TableDependency.csproj">
+    <ProjectReference Include="..\TableDependency\TableDependency.csproj">
       <Project>{0a46a45a-be9b-455f-a6d1-183c07fef4bc}</Project>
       <Name>TableDependency</Name>
     </ProjectReference>

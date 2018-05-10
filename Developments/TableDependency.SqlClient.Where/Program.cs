@@ -13,15 +13,20 @@ namespace TableDependency.SqlClient.Where.Development
     {
         private static void Main()
         {
+            // Get Connection string
             var connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-            var mapper = new ModelToTableMapper<Filter>();
-            mapper.AddMapping(c => c.Surname, "Last Name");
-            mapper.AddMapping(c => c.Id, "Identificator");
 
-            Expression<Func<Filter, bool>> expression = p => p.Id == 2;
-            ITableDependencyFilter filterExpression = new SqlTableDependencyFilter<Filter>(expression, mapper);
+            // Because our model has a property that does not match table column name, we need a mapper C# Model PROPERTY <--> Database Table Column Name
+            var mapper = new ModelToTableMapper<Product>();
+            mapper.AddMapping(c => c.ItemsInStock, "Quantity");
 
-            using (var dep = new SqlTableDependency<Filter>(connectionString, "Filter", mapper: mapper, filter: filterExpression))
+            // Define WHERE filter specifing the WHERE condition
+            // We also pass the mapper defined above as last contructor's parameter
+            Expression<Func<Product, bool>> expression = p => (p.CategoryId == (int)CategorysEnum.Food || p.CategoryId == (int)CategorysEnum.Drink) && p.ItemsInStock <= 10;
+            ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Product>(expression, mapper);
+
+            // Create SqlTableDependency and pass filter condition, as weel as mapper
+            using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, filter: whereCondition))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
@@ -42,7 +47,7 @@ namespace TableDependency.SqlClient.Where.Development
             Console.WriteLine(e.Error.Message);
         }
 
-        private static void Changed(object sender, RecordChangedEventArgs<Filter> e)
+        private static void Changed(object sender, RecordChangedEventArgs<Product> e)
         {
             Console.WriteLine(Environment.NewLine);
 
@@ -51,8 +56,9 @@ namespace TableDependency.SqlClient.Where.Development
                 var changedEntity = e.Entity;
                 Console.WriteLine(@"DML operation: " + e.ChangeType);
                 Console.WriteLine(@"CustomerID:    " + changedEntity.Id);
-                Console.WriteLine(@"CategoryId:    " + changedEntity.Name);
-                Console.WriteLine(@"Name:          " + changedEntity.Surname);
+                Console.WriteLine(@"CategoryId:    " + changedEntity.CategoryId);
+                Console.WriteLine(@"Name:          " + changedEntity.Name);
+                Console.WriteLine(@"Quantity:      " + changedEntity.ItemsInStock);
             }
         }
     }

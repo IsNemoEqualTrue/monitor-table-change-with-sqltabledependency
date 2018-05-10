@@ -40,10 +40,8 @@
   <ItemGroup>
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\CategorysEnum.cs" />
-    <Compile Include="Models\Filter.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="ProgramOLD.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\ClassVisitor.cs" />
   </ItemGroup>
@@ -53,8 +51,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
-      <Project>{F3FCBF55-12B9-4137-8287-FB600C26C509}</Project>
+    <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
+      <Project>{f3fcbf55-12b9-4137-8287-fb600c26c509}</Project>
       <Name>TableDependency.SqlClient.Where</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
