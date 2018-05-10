@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.SqlClient.Where.Tests.Models;
+
+using TableDependency.SqlClient.Where.UnitTests.Models;
+
 using Expression = NCalc.Expression;
 
-namespace TableDependency.SqlClient.Where.Tests
+namespace TableDependency.SqlClient.Where.UnitTests
 {
     [TestClass]
     public class UnitTestMoreCondition

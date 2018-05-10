@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.IntegrationTests", "Tests\TableDependency.SqlClient.IntegrationTest\TableDependency.SqlClient.IntegrationTests.csproj", "{30C250EC-9E55-4896-82D8-058510EF2708}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.Tests", "Tests\TableDependency.SqlClient.Where.UnitTests\TableDependency.SqlClient.Where.Tests.csproj", "{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.UnitTests", "Tests\TableDependency.SqlClient.Where.UnitTests\TableDependency.SqlClient.Where.UnitTests.csproj", "{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.BaseTests", "Tests\TableDependency.SqlClient.BaseTests\TableDependency.SqlClient.BaseTests.csproj", "{F3AC3B55-3A32-4291-BC92-986882AD98ED}"
 EndProject

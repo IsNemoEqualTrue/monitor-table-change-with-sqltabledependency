@@ -6,8 +6,8 @@
     <ProjectGuid>{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TableDependency.SqlClient.Where.Tests</RootNamespace>
-    <AssemblyName>TableDependency.SqlClient.Where.Tests</AssemblyName>
+    <RootNamespace>TableDependency.SqlClient.Where.UnitTests</RootNamespace>
+    <AssemblyName>TableDependency.SqlClient.Where.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>

@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.SqlClient.Where.Tests.Models;
+using TableDependency.SqlClient.Where.UnitTests.Models;
 
-namespace TableDependency.SqlClient.Where.Tests
+namespace TableDependency.SqlClient.Where.UnitTests
 {
     [TestClass]
     public class UnitTestMapper

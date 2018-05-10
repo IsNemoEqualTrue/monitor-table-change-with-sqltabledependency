@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TableDependency.SqlClient.Where.Tests.Models
+namespace TableDependency.SqlClient.Where.UnitTests.Models
 {
     public class Category
     {

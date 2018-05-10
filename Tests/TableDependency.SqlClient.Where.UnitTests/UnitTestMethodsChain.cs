@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TableDependency.SqlClient.Where.Tests.Models;
 
-namespace TableDependency.SqlClient.Where.Tests
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using TableDependency.SqlClient.Where.UnitTests.Models;
+
+namespace TableDependency.SqlClient.Where.UnitTests
 {
     [TestClass]
     public class UnitTestMethodsChain
