@@ -68,6 +68,14 @@ namespace TableDependency.SqlClient
         #region Properties
 
         /// <summary>
+        /// Set if notification must contains the old value too.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [include modified values]; otherwise, <c>false</c>.
+        /// </value>
+        public bool IncludeOldValues { get; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether activate database loging and event viewer loging.
         /// </summary>
         /// <remarks>
@@ -120,23 +128,26 @@ namespace TableDependency.SqlClient
         /// Initializes a new instance of the <see cref="SqlTableDependency{T}" /> class.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <param name="schemaName">Name of the schema.</param>
         /// <param name="tableName">Name of the table.</param>
+        /// <param name="schemaName">Name of the schema.</param>
         /// <param name="mapper">The model to database table column mapper.</param>
         /// <param name="updateOf">List of columns that need to monitor for changing on order to receive notifications.</param>
         /// <param name="filter">The filter condition translated in WHERE.</param>
         /// <param name="notifyOn">The notify on Insert, Delete, Update operation.</param>
         /// <param name="executeUserPermissionCheck">if set to <c>true</c> [skip user permission check].</param>
+        /// <param name="includeOldValues">if set to <c>true</c> [include old values].</param>
         public SqlTableDependency(
             string connectionString,
-            string schemaName = null,
             string tableName = null,
+            string schemaName = null,            
             IModelToTableMapper<T> mapper = null,
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
             DmlTriggerType notifyOn = DmlTriggerType.All,
-            bool executeUserPermissionCheck = true) : base(connectionString, schemaName, tableName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
+            bool executeUserPermissionCheck = true,
+            bool includeOldValues = false) : base(connectionString, tableName, schemaName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck)
         {
+            this.IncludeOldValues = includeOldValues;
         }
 
         #endregion
@@ -171,16 +182,8 @@ namespace TableDependency.SqlClient
                     onChangedSubscribedList,
                     onErrorSubscribedList,
                     onStatusChangedSubscribedList,
-                    this.ConversationHandle,
-                    _connectionString,
-                    _schemaName,
-                    _dataBaseObjectsNamingConvention,
                     timeOut,
-                    watchDogTimeOut,
-                    _processableMessages,
-                    _mapper,
-                    _userInterestedColumns,
-                    this.Encoding),
+                    watchDogTimeOut),
                 _cancellationTokenSource.Token);
 
             this.WriteTraceMessage(TraceLevel.Info, $"Waiting for receiving {_tableName}'s records change notifications.");
@@ -189,6 +192,13 @@ namespace TableDependency.SqlClient
         #endregion
 
         #region protected virtual methods
+
+        protected virtual string Spacer(int numberOrSpaces)
+        {
+            var stringBuilder = new StringBuilder();
+            for (int i = 1; i <= numberOrSpaces; i++) stringBuilder.Append(' ');
+            return stringBuilder.ToString();
+        }
 
         protected override RecordChangedEventArgs<T> GetRecordChangedEventArgs(MessagesBag messagesBag)
         {
@@ -199,18 +209,19 @@ namespace TableDependency.SqlClient
                 _server,
                 _database,
                 _dataBaseObjectsNamingConvention,
-                base.CultureInfo);
+                base.CultureInfo,
+                this.IncludeOldValues);
         }
 
-        protected override string GetDataBaseName(string connectionString)
+        protected override string GetDataBaseName()
         {
-            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(_connectionString);
             return sqlConnectionStringBuilder.InitialCatalog;
         }
 
-        protected override string GetServerName(string connectionString)
+        protected override string GetServerName()
         {
-            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+            var sqlConnectionStringBuilder = new SqlConnectionStringBuilder(_connectionString);
             return sqlConnectionStringBuilder.DataSource;
         }
 
@@ -236,31 +247,33 @@ namespace TableDependency.SqlClient
             return !string.IsNullOrWhiteSpace(schemaNameFromDataAnnotation) ? schemaNameFromDataAnnotation : "dbo";
         }
 
-        protected virtual int GetSchemaId(string schemaName, string connectionString)
+        protected virtual int GetSchemaId()
         {
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"SELECT [schema_id] FROM [sys].[schemas] WITH (NOLOCK) WHERE [name] = '{schemaName}'";
+                    sqlCommand.CommandText = $"SELECT [schema_id] FROM [sys].[schemas] WITH (NOLOCK) WHERE [name] = '{_schemaName}'";
                     return (int)sqlCommand.ExecuteScalar();
                 }
             }
         }
 
-        protected virtual SqlServerVersion GetSqlServerVersion(string connectionString)
+        protected virtual SqlServerVersion GetSqlServerVersion()
         {
-            var sqlConnection = new SqlConnection(connectionString);
+            var sqlConnection = new SqlConnection(_connectionString);
 
             try
             {
                 sqlConnection.Open();
 
                 var serverVersion = sqlConnection.ServerVersion;
-                var serverVersionDetails = serverVersion.Split(new[] { "." }, StringSplitOptions.None);
+                if (string.IsNullOrWhiteSpace(serverVersion)) return SqlServerVersion.Unknown;
 
+                var serverVersionDetails = serverVersion.Split(new[] { "." }, StringSplitOptions.None);
                 var versionNumber = int.Parse(serverVersionDetails[0]);
+
                 if (versionNumber < 8) return SqlServerVersion.Unknown;
                 if (versionNumber == 8) return SqlServerVersion.SqlServer2000;
                 if (versionNumber == 9) return SqlServerVersion.SqlServer2005;
@@ -279,11 +292,11 @@ namespace TableDependency.SqlClient
             return SqlServerVersion.SqlServerLatest;
         }
 
-        protected override IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString)
+        protected override IEnumerable<ColumnInfo> GetTableColumnsList()
         {
             var columnsList = new List<ColumnInfo>();
 
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -309,11 +322,11 @@ namespace TableDependency.SqlClient
             return columnsList;
         }
 
-        protected virtual bool CheckIfDatabaseObjectExists(string connectionString)
+        protected virtual bool CheckIfDatabaseObjectExists()
         {
             bool result;
 
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name = N'{_dataBaseObjectsNamingConvention}';", sqlConnection);
@@ -324,18 +337,16 @@ namespace TableDependency.SqlClient
             return result;
         }
 
-        protected override IList<string> CreateDatabaseObjects(string connectionString, string tableName, string dataBaseObjectsNamingConvention, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut)
+        protected override IList<string> CreateDatabaseObjects(int timeOut, int watchDogTimeOut)
         {
             IList<string> processableMessages;
 
-            var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
+            var interestedColumns = _userInterestedColumns as ColumnInfo[] ?? _userInterestedColumns.ToArray();
 
-            if (this.CheckIfDatabaseObjectExists(connectionString) == false)
+            if (this.CheckIfDatabaseObjectExists() == false)
             {
-                var columnsForTableVariable = this.PrepareColumnListForTableVariable(interestedColumns);
-                var columnsForSelect = string.Join(",", interestedColumns.Select(c => $"[{c.Name}]").ToList());
                 var columnsForUpdateOf = _updateOf != null ? string.Join(" OR ", _updateOf.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct(StringComparer.CurrentCultureIgnoreCase).Select(c => $"UPDATE([{c}])").ToList()) : null;
-                processableMessages = this.CreateSqlServerDatabaseObjects(connectionString, dataBaseObjectsNamingConvention, interestedColumns, columnsForTableVariable, columnsForSelect, columnsForUpdateOf, watchDogTimeOut);
+                processableMessages = this.CreateSqlServerDatabaseObjects(interestedColumns, columnsForUpdateOf, watchDogTimeOut);
             }
             else
             {
@@ -351,35 +362,31 @@ namespace TableDependency.SqlClient
             return $"{name}_{Guid.NewGuid()}";
         }
 
-        protected override void DropDatabaseObjects(string connectionString, string databaseObjectsNaming)
+        protected override void DropDatabaseObjects()
         {
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
-                this.DropDatabaseObjects(sqlConnection, databaseObjectsNaming);
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
+                    var dropAllScript = this.PrepareScriptDropAll(dropMessages);
+
+                    sqlCommand.CommandType = CommandType.Text;
+                    sqlCommand.CommandText = dropAllScript;
+                    sqlCommand.ExecuteNonQuery();
+                }
             }
 
-            this.WriteTraceMessage(TraceLevel.Info, "DropDatabaseObjects done.");
+            this.WriteTraceMessage(TraceLevel.Info, "DropDatabaseObjects method executed.");
         }
 
-        protected virtual void DropDatabaseObjects(SqlConnection sqlConnection, string databaseObjectsNaming)
+        protected override void CheckRdbmsDependentImplementation()
         {
-            using (var sqlCommand = sqlConnection.CreateCommand())
-            {
-                var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
-                var dropAllScript = this.PrepareScriptDropAll(databaseObjectsNaming, dropMessages);
+            this.CheckIfServiceBrokerIsEnabled();
 
-                sqlCommand.CommandType = CommandType.Text;
-                sqlCommand.CommandText = dropAllScript;
-                sqlCommand.ExecuteNonQuery();
-            }
-        }
-
-        protected override void CheckRdbmsDependentImplementation(string connectionString)
-        {
-            this.CheckIfServiceBrokerIsEnabled(connectionString);
-
-            var sqlVersion = this.GetSqlServerVersion(connectionString);
+            var sqlVersion = this.GetSqlServerVersion();
             if (sqlVersion < SqlServerVersion.SqlServer2008) throw new SqlServerVersionNotSupportedException(sqlVersion);
         }
 
@@ -388,54 +395,92 @@ namespace TableDependency.SqlClient
             var where = string.Empty;
 
             var filter = _filter?.Translate();
-            if (!string.IsNullOrWhiteSpace(filter)) where = (prependSpace ? " " : string.Empty) + "WHERE " + filter;
+            if (!string.IsNullOrWhiteSpace(filter))
+            {
+                where = (prependSpace ? " " : string.Empty) + "WHERE " + filter;
+            }
 
             return where;
         }
 
-        protected virtual IList<string> CreateSqlServerDatabaseObjects(string connectionString, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, string tableColumns, string selectColumns, string updateColumns, int watchDogTimeOut)
+        protected virtual string PrepareInsertIntoTableVariableForUpdateUserChange(ColumnInfo[] userInterestedColumns, string columnsForUpdateOf)
+        {
+            var exceptStatement = this.PrepareExceptStatement(userInterestedColumns);
+
+            var columnsForSelectFromTableVariable = userInterestedColumns.Select(c =>
+            {
+                var column = $"[{c.Name}]";
+                if (this.IncludeOldValues) column += $", (SELECT [{c.Name}] FROM DELETED)";
+                return column;
+            });
+
+            var columnsList = string.Join(", ", columnsForSelectFromTableVariable.ToList());
+
+            var scriptForInsertInTableVariable = !string.IsNullOrEmpty(columnsForUpdateOf)
+                ? string.Format(SqlScripts.InsertInTableVariableConsideringUpdateOf, columnsForUpdateOf, columnsList, ChangeType.Update, exceptStatement)
+                : string.Format(SqlScripts.InsertInTableVariable, columnsList, ChangeType.Update, exceptStatement);
+
+            return scriptForInsertInTableVariable;
+        }
+
+        protected virtual IList<string> CreateSqlServerDatabaseObjects(
+            IEnumerable<ColumnInfo> userInterestedColumns, 
+            string columnsForUpdateOf, 
+            int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
+            var tableColumns = userInterestedColumns as IList<ColumnInfo> ?? userInterestedColumns.ToList();
 
-            using (var sqlConnection = new SqlConnection(connectionString))
+            var columnsForTableVariable = this.PrepareColumnListForTableVariable(tableColumns);
+
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
 
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
-                    var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name LIKE N'%{databaseObjectsNaming}%';", sqlConnection, transaction);
-                    if ((int)sqlCommand.ExecuteScalar() > 0) throw new DbObjectsWithSameNameException(databaseObjectsNaming);
+                    var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name LIKE N'%{_dataBaseObjectsNamingConvention}%';", sqlConnection, transaction);
+                    if ((int)sqlCommand.ExecuteScalar() > 0) throw new DbObjectsWithSameNameException(_dataBaseObjectsNamingConvention);
 
                     // Messages
-                    var startMessageInsert = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert);
+                    var startMessageInsert = string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Insert);
                     sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageInsert}] VALIDATION = NONE;";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message {startMessageInsert} created.");
                     processableMessages.Add(startMessageInsert);
 
-                    var startMessageUpdate = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update);
+                    var startMessageUpdate = string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Update);
                     sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageUpdate}] VALIDATION = NONE;";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message {startMessageUpdate} created.");
                     processableMessages.Add(startMessageUpdate);
 
-                    var startMessageDelete = string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete);
+                    var startMessageDelete = string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Delete);
                     sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{startMessageDelete}] VALIDATION = NONE;";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message {startMessageDelete} created.");
                     processableMessages.Add(startMessageDelete);
 
-                    var interestedColumns = userInterestedColumns as ColumnInfo[] ?? userInterestedColumns.ToArray();
+                    var interestedColumns = userInterestedColumns as ColumnInfo[] ?? tableColumns.ToArray();
                     foreach (var userInterestedColumn in interestedColumns)
                     {
-                        var message = $"{databaseObjectsNaming}/{userInterestedColumn.Name}";
+                        var message = $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}";
                         sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
                         sqlCommand.ExecuteNonQuery();
                         this.WriteTraceMessage(TraceLevel.Verbose, $"Message {message} created.");
                         processableMessages.Add(message);
+
+                        if (this.IncludeOldValues)
+                        {
+                            message = $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}/old";
+                            sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
+                            sqlCommand.ExecuteNonQuery();
+                            this.WriteTraceMessage(TraceLevel.Verbose, $"Message {message} created.");
+                            processableMessages.Add(message);
+                        }
                     }
 
-                    var endMessage = string.Format(EndMessageTemplate, databaseObjectsNaming);
+                    var endMessage = string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention);
                     sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{endMessage}] VALIDATION = NONE;";
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message {endMessage} created.");
@@ -443,142 +488,115 @@ namespace TableDependency.SqlClient
 
                     // Contract
                     var contractBody = string.Join("," + Environment.NewLine, processableMessages.Select(message => $"[{message}] SENT BY INITIATOR"));
-                    sqlCommand.CommandText = $"CREATE CONTRACT [{databaseObjectsNaming}] ({contractBody})";
+                    sqlCommand.CommandText = $"CREATE CONTRACT [{_dataBaseObjectsNamingConvention}] ({contractBody})";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Contract {databaseObjectsNaming} created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Contract {_dataBaseObjectsNamingConvention} created.");
 
                     // Queues
-                    sqlCommand.CommandText = $"CREATE QUEUE [{_schemaName}].[{databaseObjectsNaming}_Receiver] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF);";
+                    sqlCommand.CommandText = $"CREATE QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF);";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Queue {databaseObjectsNaming}_Receiver created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Queue {_dataBaseObjectsNamingConvention}_Receiver created.");
 
-                    sqlCommand.CommandText = $"CREATE QUEUE [{_schemaName}].[{databaseObjectsNaming}_Sender] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF);";
+                    sqlCommand.CommandText = $"CREATE QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender] WITH STATUS = ON, RETENTION = OFF, POISON_MESSAGE_HANDLING (STATUS = OFF);";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Queue {databaseObjectsNaming}_Sender created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Queue {_dataBaseObjectsNamingConvention}_Sender created.");
 
                     // Services
                     sqlCommand.CommandText = string.IsNullOrWhiteSpace(this.ServiceAuthorization)
-                        ? $"CREATE SERVICE [{databaseObjectsNaming}_Sender] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}_Sender];"
-                        : $"CREATE SERVICE [{databaseObjectsNaming}_Sender] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}_Sender];";
+                        ? $"CREATE SERVICE [{_dataBaseObjectsNamingConvention}_Sender] ON QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender];"
+                        : $"CREATE SERVICE [{_dataBaseObjectsNamingConvention}_Sender] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender];";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Service broker {databaseObjectsNaming}_Sender created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Service broker {_dataBaseObjectsNamingConvention}_Sender created.");
 
                     sqlCommand.CommandText = string.IsNullOrWhiteSpace(this.ServiceAuthorization)
-                        ? $"CREATE SERVICE [{databaseObjectsNaming}_Receiver] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}_Receiver] ([{databaseObjectsNaming}]);"
-                        : $"CREATE SERVICE [{databaseObjectsNaming}_Receiver] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE [{_schemaName}].[{databaseObjectsNaming}_Receiver] ([{databaseObjectsNaming}]);";
+                        ? $"CREATE SERVICE [{_dataBaseObjectsNamingConvention}_Receiver] ON QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver] ([{_dataBaseObjectsNamingConvention}]);"
+                        : $"CREATE SERVICE [{_dataBaseObjectsNamingConvention}_Receiver] AUTHORIZATION [{this.ServiceAuthorization}] ON QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver] ([{_dataBaseObjectsNamingConvention}]);";
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Service broker {databaseObjectsNaming}_Receiver created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Service broker {_dataBaseObjectsNamingConvention}_Receiver created.");
 
                     // Activation Store Procedure
                     var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
-                    var dropAllScript = this.PrepareScriptDropAll(databaseObjectsNaming, dropMessages);
-                    sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(databaseObjectsNaming, dropAllScript);
+                    var dropAllScript = this.PrepareScriptDropAll(dropMessages);
+                    sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(dropAllScript);
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Procedure {databaseObjectsNaming} created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Procedure {_dataBaseObjectsNamingConvention} created.");
 
                     // Begin conversation
-                    this.ConversationHandle = this.BeginConversation(sqlCommand, databaseObjectsNaming);
+                    this.ConversationHandle = this.BeginConversation(sqlCommand);
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Conversation with handler {this.ConversationHandle} started.");
 
                     // Trigger
                     var declareVariableStatement = this.PrepareDeclareVariableStatement(interestedColumns);
                     var selectForSetVariablesStatement = this.PrepareSelectForSetVariables(interestedColumns);
-                    var sendInsertConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Insert, interestedColumns);
-                    var sendUpdatedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Update, interestedColumns);
-                    var sendDeletedConversationStatements = this.PrepareSendConversation(databaseObjectsNaming, ChangeType.Delete, interestedColumns);
-                    var exceptStatement = this.PrepareExceptStatement(interestedColumns);
-                    var bodyForUpdate = !string.IsNullOrEmpty(updateColumns)
-                        ? string.Format(SqlScripts.TriggerUpdateWithColumns, updateColumns, selectColumns, ChangeType.Update, exceptStatement)
-                        : string.Format(SqlScripts.TriggerUpdateWithoutColumns, selectColumns, ChangeType.Update, exceptStatement);
+                    var sendInsertConversationStatements = this.PrepareSendConversation(ChangeType.Insert, interestedColumns);
+                    var sendUpdatedConversationStatements = this.PrepareSendConversation(ChangeType.Update, interestedColumns);
+                    var sendDeletedConversationStatements = this.PrepareSendConversation(ChangeType.Delete, interestedColumns);
 
-                    sqlCommand.CommandText = this.PrepareScriptTrigger(
-                        databaseObjectsNaming,
-                        tableColumns,
-                        selectColumns,
-                        bodyForUpdate,
+                    sqlCommand.CommandText = string.Format(
+                        SqlScripts.CreateTrigger,
+                        _dataBaseObjectsNamingConvention,
+                        $"[{_schemaName}].[{_tableName}]",
+                        columnsForTableVariable,
+                        this.PrepareColumnListForSelectFromTableVariable(tableColumns),
+                        this.PrepareInsertIntoTableVariableForUpdateUserChange(interestedColumns, columnsForUpdateOf),
                         declareVariableStatement,
                         selectForSetVariablesStatement,
                         sendInsertConversationStatements,
                         sendUpdatedConversationStatements,
-                        sendDeletedConversationStatements);
+                        sendDeletedConversationStatements,
+                        ChangeType.Insert,
+                        ChangeType.Update,
+                        ChangeType.Delete,
+                        string.Join(", ", this.GetDmlTriggerType(_dmlTriggerType)),
+                        this.CreateWhereCondifition(),
+                        this.PrepareTriggerLogScript(),
+                        this.ActivateDatabaseLoging ? " WITH LOG" : string.Empty);
 
                     sqlCommand.ExecuteNonQuery();
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {databaseObjectsNaming} created.");
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {_dataBaseObjectsNamingConvention} created.");
 
                     // Associate Activation Store Procedure to sender queue
-                    sqlCommand.CommandText = $"ALTER QUEUE [{_schemaName}].[{databaseObjectsNaming}_Sender] WITH ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{databaseObjectsNaming}_QueueActivationSender], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()}, STATUS = ON);";
+                    sqlCommand.CommandText = $"ALTER QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender] WITH ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{_dataBaseObjectsNamingConvention}_QueueActivationSender], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()}, STATUS = ON);";
                     sqlCommand.ExecuteNonQuery();
 
                     // Persist all objects
                     transaction.Commit();
                 }
 
-                this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {databaseObjectsNaming}.");
+                this.WriteTraceMessage(TraceLevel.Info, $"Database objects created with naming {_dataBaseObjectsNamingConvention}.");
             }
 
             return processableMessages;
         }
 
-        protected virtual Guid BeginConversation(SqlCommand sqlCommand, string databaseObjectsNaming)
+        protected virtual Guid BeginConversation(SqlCommand sqlCommand)
         {
-            sqlCommand.CommandText = $"DECLARE @h AS UNIQUEIDENTIFIER; BEGIN DIALOG CONVERSATION @h FROM SERVICE [{databaseObjectsNaming}_Sender] TO SERVICE '{databaseObjectsNaming}_Receiver' ON CONTRACT [{databaseObjectsNaming}] WITH ENCRYPTION = OFF; SELECT @h;";
+            sqlCommand.CommandText = $"DECLARE @h AS UNIQUEIDENTIFIER; BEGIN DIALOG CONVERSATION @h FROM SERVICE [{_dataBaseObjectsNamingConvention}_Sender] TO SERVICE '{_dataBaseObjectsNamingConvention}_Receiver' ON CONTRACT [{_dataBaseObjectsNamingConvention}] WITH ENCRYPTION = OFF; SELECT @h;";
             var conversationHandler = (Guid)sqlCommand.ExecuteScalar();
             if (conversationHandler == Guid.Empty) throw new ServiceBrokerConversationHandlerInvalidException();
 
             return conversationHandler;
         }
 
-        protected virtual string PrepareScriptTrigger(
-            string databaseObjectsNaming,
-            string tableColumns,
-            string selectColumns,
-            string bodyForUpdate,
-            string declareVariableStatement,
-            string selectForSetVariablesStatement,
-            string sendInsertConversationStatements,
-            string sendUpdatedConversationStatements,
-            string sendDeletedConversationStatements)
-        {
-            return string.Format(
-                 SqlScripts.CreateTrigger,
-                 databaseObjectsNaming,
-                 $"[{_schemaName}].[{_tableName}]",
-                 tableColumns,
-                 selectColumns,
-                 bodyForUpdate,
-                 declareVariableStatement,
-                 selectForSetVariablesStatement,
-                 sendInsertConversationStatements,
-                 sendUpdatedConversationStatements,
-                 sendDeletedConversationStatements,
-                 ChangeType.Insert,
-                 ChangeType.Update,
-                 ChangeType.Delete,
-                 string.Join(",", this.GetDmlTriggerType(_dmlTriggerType)),
-                 this.CreateWhereCondifition(),
-                 this.PrepareTriggerLogScript(databaseObjectsNaming),
-                 this.ActivateDatabaseLoging ? " WITH LOG" : string.Empty);
-        }
-
-        protected virtual string PrepareTriggerLogScript(string databaseObjectsNaming)
+        protected virtual string PrepareTriggerLogScript()
         {
             if (this.ActivateDatabaseLoging == false) return string.Empty;
 
             return
-                "DECLARE @LogMessage varchar(255);" + Environment.NewLine +
-                $"SET @LogMessage = 'SqlTableDependency: Message for ' + @dmlType + ' operation added in Queue [{databaseObjectsNaming}].'" + Environment.NewLine +
+                Environment.NewLine + Environment.NewLine + "DECLARE @LogMessage varchar(255);" + Environment.NewLine +
+                $"SET @LogMessage = 'SqlTableDependency: Message for ' + @dmlType + ' operation added in Queue [{_dataBaseObjectsNamingConvention}].'" + Environment.NewLine +
                 "RAISERROR(@LogMessage, 10, 1) WITH LOG;";
         }
 
-        protected virtual string PrepareScriptProcedureQueueActivation(string databaseObjectsNaming, string dropAllScript)
+        protected virtual string PrepareScriptProcedureQueueActivation(string dropAllScript)
         {
-            var script = string.Format(SqlScripts.CreateProcedureQueueActivation, databaseObjectsNaming, dropAllScript, _schemaName);
+            var script = string.Format(SqlScripts.CreateProcedureQueueActivation, _dataBaseObjectsNamingConvention, dropAllScript, _schemaName);
             return this.ActivateDatabaseLoging ? script : this.RemoveLogOperations(script);
         }
 
-        protected virtual string PrepareScriptDropAll(string databaseObjectsNaming, string dropMessages)
+        protected virtual string PrepareScriptDropAll(string dropMessages)
         {
-            var script = string.Format(SqlScripts.ScriptDropAll, databaseObjectsNaming, dropMessages, _schemaName);
+            var script = string.Format(SqlScripts.ScriptDropAll, _dataBaseObjectsNamingConvention, dropMessages, _schemaName);
             return this.ActivateDatabaseLoging ? script : this.RemoveLogOperations(script);
         }
 
@@ -615,9 +633,7 @@ namespace TableDependency.SqlClient
                 sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
             }
 
-            var exceptStatement = $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
-
-            exceptStatement += CreateWhereCondifition(true);
+            var exceptStatement = $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] {this.CreateWhereCondifition()} EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
 
             return exceptStatement;
         }
@@ -641,13 +657,30 @@ namespace TableDependency.SqlClient
             return afters;
         }
 
-        protected virtual MessagesBag CreateMessagesBag(string databaseObjectsNaming, Encoding encoding, ICollection<string> processableMessages)
+        protected virtual MessagesBag CreateMessagesBag(Encoding encoding, ICollection<string> processableMessages)
         {
             return new MessagesBag(
                 encoding ?? Encoding.Unicode,
-                new List<string> { string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Insert), string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Update), string.Format(StartMessageTemplate, databaseObjectsNaming, ChangeType.Delete) },
-                string.Format(EndMessageTemplate, databaseObjectsNaming),
+                new List<string> { string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Insert), string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Update), string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Delete) },
+                string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention),
                 processableMessages);
+        }
+
+        protected virtual string PrepareColumnListForSelectFromTableVariable(IEnumerable<ColumnInfo> tableColumns)
+        {
+            var columns = tableColumns.Select(c =>
+            {
+                var column = $"[{c.Name}]";
+
+                if (this.IncludeOldValues)
+                {
+                    column += ", NULL";
+                }
+
+                return column;
+            });
+
+            return string.Join(", ", columns.ToList());
         }
 
         protected virtual string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
@@ -656,29 +689,36 @@ namespace TableDependency.SqlClient
             {
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
                 {
-                    return $"[{tableColumn.Name}] binary(8)";
+                    var columnBinary = $"[{tableColumn.Name}] binary(8)";
+                    if (this.IncludeOldValues) columnBinary += $", [{tableColumn.Name}_old] binary(8)";
+                    return columnBinary;
                 }
 
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
                 {
-                    return $"[{tableColumn.Name}] varbinary(8)";
+                    var columnVarbinary = $"[{tableColumn.Name}] varbinary(8)";
+                    if (this.IncludeOldValues) columnVarbinary += $", [{ tableColumn.Name}_old] varbinary(8)";
+                    return columnVarbinary;
                 }
 
                 if (!string.IsNullOrWhiteSpace(tableColumn.Size))
                 {
-                    return $"[{tableColumn.Name}] {tableColumn.Type}({tableColumn.Size})";
+                    var columnWithSize = $"[{tableColumn.Name}] {tableColumn.Type}({tableColumn.Size})";
+                    if (this.IncludeOldValues) columnWithSize += $", [{tableColumn.Name}_old] {tableColumn.Type}({tableColumn.Size})";
+                    return columnWithSize;
                 }
 
-                return $"[{tableColumn.Name}] {tableColumn.Type}";
+                var column = $"[{tableColumn.Name}] {tableColumn.Type}";
+                if (this.IncludeOldValues) column += $", [{tableColumn.Name}_old] {tableColumn.Type}";
+                return column;
             });
 
-            return string.Join(",", columns.ToList());
+            return string.Join(", ", columns.ToList());
         }
 
         protected virtual string ComputeSize(string dataType, string characterMaximumLength, string numericPrecision, string numericScale, string dateTimePrecisione)
         {
-            if (
-                string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) ||
+            if (string.Equals(dataType.ToUpperInvariant(), "BINARY", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "VARBINARY", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "CHAR", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(dataType.ToUpperInvariant(), "NCHAR", StringComparison.OrdinalIgnoreCase) ||
@@ -703,13 +743,12 @@ namespace TableDependency.SqlClient
             return null;
         }
 
-        protected override void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse)
+        protected override void CheckIfUserInterestedColumnsCanBeManaged()
         {
-            var checkIfUserInterestedColumnsCanBeManaged = tableColumnsToUse as ColumnInfo[] ?? tableColumnsToUse.ToArray();
+            var checkIfUserInterestedColumnsCanBeManaged = _userInterestedColumns as ColumnInfo[] ?? _userInterestedColumns.ToArray();
             foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
             {
-                if (
-                    string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
+                if (string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "IMAGE", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "TEXT", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(tableColumn.Type.ToUpperInvariant(), "NTEXT", StringComparison.OrdinalIgnoreCase) ||
@@ -729,31 +768,45 @@ namespace TableDependency.SqlClient
             return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
         }
 
-        protected virtual string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn)
+        protected virtual string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn, bool isOld = false)
         {
+            var oldNameExtension = isOld ? "_old" : string.Empty;
+
             if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
             {
-                return SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name);
+                return this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name) + oldNameExtension;
             }
-
-            return $"CONVERT(NVARCHAR(MAX), {SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{ConvertFormat(userInterestedColumn)})";
+            
+            return $"CONVERT(NVARCHAR(MAX), {this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{oldNameExtension}{this.ConvertFormat(userInterestedColumn)})";
         }
 
-        protected virtual string PrepareSendConversation(string databaseObjectsNaming, ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
+        protected virtual string PrepareSendConversation(ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn => $"IF {SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{databaseObjectsNaming}/{insterestedColumn.Name}] ({ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + "END" + Environment.NewLine + "ELSE BEGIN" + Environment.NewLine + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{databaseObjectsNaming}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + "END")
+                .Select(insterestedColumn =>
+                {
+                    var sendStatement = this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                    if (this.IncludeOldValues)
+                    {
+                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn, this.IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                    }
+
+                    return sendStatement;
+                })
                 .ToList();
 
-            sendList.Insert(0, $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{string.Format(StartMessageTemplate, databaseObjectsNaming, dmlType)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
-            sendList.Add($";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{string.Format(EndMessageTemplate, databaseObjectsNaming)}] (0x)" + Environment.NewLine);
+            sendList.Insert(0, $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, dmlType)}] (CONVERT(NVARCHAR, @dmlType))" + Environment.NewLine);
+            sendList.Add(Environment.NewLine + this.Spacer(16) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{string.Format(EndMessageTemplate, _dataBaseObjectsNamingConvention)}] (0x)");
 
             return string.Join(Environment.NewLine, sendList);
         }
 
         protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
         {
-            return string.Join(",", userInterestedColumns.Select(insterestedColumn => $"{SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
+            var result = string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
+            if (this.IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old = [{insterestedColumn.Name}_old]"));
+
+            return result;
         }
 
         protected virtual string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
@@ -762,9 +815,19 @@ namespace TableDependency.SqlClient
                            let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size)
                            ? string.Empty
                            : $"({insterestedColumn.Size})")
-                           select $"DECLARE {SanitizeVariableName(interestedColumns, insterestedColumn.Name)} {variableType.ToLowerInvariant()}").ToList();
+                           select this.DeclareStatement(interestedColumns, insterestedColumn, variableType)).ToList();
 
-            return string.Join(Environment.NewLine, colonne);
+            return string.Join(Environment.NewLine + this.Spacer(4), colonne);
+        }
+
+        protected virtual string DeclareStatement(IReadOnlyCollection<ColumnInfo> interestedColumns, ColumnInfo insterestedColumn, string variableType)
+        {
+            var variableName = this.SanitizeVariableName(interestedColumns, insterestedColumn.Name);
+
+            var declare = $"DECLARE {variableName} {variableType.ToLowerInvariant()}";
+            if (this.IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
+
+            return declare;
         }
 
         protected virtual string SanitizeVariableName(IReadOnlyCollection<ColumnInfo> userInterestedColumns, string tableColumnName)
@@ -780,19 +843,19 @@ namespace TableDependency.SqlClient
             throw new SanitizeVariableNameException(tableColumnName);
         }
 
-        protected override void CheckIfConnectionStringIsValid(string connectionString)
+        protected override void CheckIfConnectionStringIsValid()
         {
-            if (string.IsNullOrWhiteSpace(connectionString)) throw new ArgumentNullException(nameof(connectionString));
+            if (string.IsNullOrWhiteSpace(_connectionString)) throw new ArgumentNullException(nameof(_connectionString));
 
-            SqlConnectionStringBuilder sqlConnectionStringBuilder = null;
+            SqlConnectionStringBuilder sqlConnectionStringBuilder;
 
             try
             {
-                sqlConnectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
+                sqlConnectionStringBuilder = new SqlConnectionStringBuilder(_connectionString);
             }
             catch (Exception exception)
             {
-                throw new InvalidConnectionStringException(connectionString, exception);
+                throw new InvalidConnectionStringException(_connectionString, exception);
             }
 
             using (var sqlConnection = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
@@ -808,11 +871,11 @@ namespace TableDependency.SqlClient
             }
         }
 
-        protected override void CheckIfUserHasPermissions(string connectionString)
+        protected override void CheckIfUserHasPermissions()
         {
             PrivilegesTable privilegesTable;
 
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -842,9 +905,9 @@ namespace TableDependency.SqlClient
             }
         }
 
-        protected virtual void CheckIfServiceBrokerIsEnabled(string connectionString)
+        protected virtual void CheckIfServiceBrokerIsEnabled()
         {
-            using (var sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -855,9 +918,9 @@ namespace TableDependency.SqlClient
             }
         }
 
-        protected override void CheckIfTableExists(string connection)
+        protected override void CheckIfTableExists()
         {
-            using (var sqlConnection = new SqlConnection(connection))
+            using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
@@ -873,30 +936,24 @@ namespace TableDependency.SqlClient
             Delegate[] onChangeSubscribedList,
             Delegate[] onErrorSubscribedList,
             Delegate[] onStatusChangedSubscribedList,
-            Guid conversationHandle,
-            string connectionString,
-            string schemaName,
-            string databaseObjectsNaming,
             int timeOut,
-            int timeOutWatchDog,
-            ICollection<string> processableMessages,
-            IModelToTableMapper<T> modelMapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,
-            Encoding encoding)
+            int timeOutWatchDog)
         {
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
-            var messagesBag = this.CreateMessagesBag(databaseObjectsNaming, encoding, processableMessages);
+            var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
+
+            var unqueueMessageNumber = _userInterestedColumns.Count() * (this.IncludeOldValues ? 2 : 1) + 2;
 
             var waitforSqlScript =
-                $"BEGIN CONVERSATION TIMER ('{conversationHandle.ToString().ToUpper()}') TIMEOUT = " + timeOutWatchDog + ";" +
-                $"WAITFOR (RECEIVE TOP({userInterestedColumns.Count() + 2}) [message_type_name], [message_body] FROM [{schemaName}].[{databaseObjectsNaming}_Receiver]), TIMEOUT {timeOut * 1000};";
+                $"BEGIN CONVERSATION TIMER ('{this.ConversationHandle.ToString().ToUpper()}') TIMEOUT = " + timeOutWatchDog + ";" +
+                $"WAITFOR (RECEIVE TOP({unqueueMessageNumber}) [message_type_name], [message_body] FROM [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver]), TIMEOUT {timeOut * 1000};";
 
             this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
 
             try
             {
-                using (var sqlConnection = new SqlConnection(connectionString))
+                using (var sqlConnection = new SqlConnection(_connectionString))
                 {
                     await sqlConnection.OpenAsync(cancellationToken);
                     this.WriteTraceMessage(TraceLevel.Verbose, "Connection opened.");
@@ -916,9 +973,9 @@ namespace TableDependency.SqlClient
                                 while (sqlDataReader.Read())
                                 {
                                     var message = new Message(sqlDataReader.GetSqlString(0).Value, sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlBytes(1).Value);
-                                    if (message.Recipient == SqlMessageTypes.ErrorType) throw new QueueContainingErrorMessageException();
+                                    if (message.MessageType == SqlMessageTypes.ErrorType) throw new QueueContainingErrorMessageException();
                                     messagesBag.AddMessage(message);
-                                    this.WriteTraceMessage(TraceLevel.Verbose, $"Received message type = {sqlDataReader.GetSqlString(0).Value}.");
+                                    this.WriteTraceMessage(TraceLevel.Verbose, $"Received message type = {message.MessageType}.");
                                 }
                             }
                         }

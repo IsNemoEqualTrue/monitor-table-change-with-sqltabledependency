@@ -26,7 +26,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using TableDependency.Enums;
 using TableDependency.Exceptions;
@@ -77,15 +76,15 @@ namespace TableDependency.Messages
 
         public MessagesBagStatus AddMessage(Message message)
         {
-            if (_startMessagesSignature.Contains(message.Recipient))
+            if (_startMessagesSignature.Contains(message.MessageType))
             {
                 if (this.Status != MessagesBagStatus.Empty) throw new MessageMisalignedException($"Received an StartMessege while current status is {this.Status}.");
-                this.MessageType = MessagesBag.GetMessageType(message.Recipient);
+                this.MessageType = MessagesBag.GetMessageType(message.MessageType);
                 this.Messages.Clear();
                 return this.Status = MessagesBagStatus.Collecting;
             }
 
-            if (message.Recipient == _endMessageSignature)
+            if (message.MessageType == _endMessageSignature)
             {
                 if (this.Status != MessagesBagStatus.Collecting) throw new MessageMisalignedException($"Received an EndMessege while current status is {this.Status}.");
                 return this.Status = MessagesBagStatus.Ready;
@@ -93,15 +92,15 @@ namespace TableDependency.Messages
 
             if (this.Status == MessagesBagStatus.Ready)
             {
-                throw new MessageMisalignedException($"Received {message.Recipient} message while current status is {MessagesBagStatus.Ready}.");
+                throw new MessageMisalignedException($"Received {message.MessageType} message while current status is {MessagesBagStatus.Ready}.");
             }
 
-            if (_processableMessages.Contains(message.Recipient) == false)
+            if (_processableMessages.Contains(message.MessageType) == false)
             {
-                throw new MessageMisalignedException($"Queue containing a message type not expected [{message.Recipient}].");
+                throw new MessageMisalignedException($"Queue containing a message type not expected [{message.MessageType}].");
             }
 
-            this.Messages.Add(new Message(MessagesBag.GetRecipient(message.Recipient), message.Body));
+            this.Messages.Add(message);
 
             return this.Status = MessagesBagStatus.Collecting;
         }
@@ -122,11 +121,6 @@ namespace TableDependency.Messages
                 return ChangeType.Update;
 
             return ChangeType.None;
-        }
-
-        private static string GetRecipient(string rawMessageType)
-        {
-            return rawMessageType.Split('/').Last();
         }
 
         #endregion

@@ -110,9 +110,7 @@ BEGIN
             BEGIN
                 {9}
             END            
-        END                       
-
-        {15}
+        END{15}
     END TRY
     BEGIN CATCH
         DECLARE @ErrorMessage NVARCHAR(4000)
@@ -121,9 +119,21 @@ BEGIN
 
         SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE()
 
-        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState) {16};
+        RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState) {16}
     END CATCH
 END";
+
+        public const string InsertInTableVariableConsideringUpdateOf = @"IF ({0}) 
+BEGIN
+    SET @dmlType = '{2}'
+    INSERT INTO @modifiedRecordsTable SELECT {1} FROM {3}
+END
+ELSE BEGIN
+    RETURN
+END";
+
+        public const string InsertInTableVariable = @"SET @dmlType = '{1}'
+            INSERT INTO @modifiedRecordsTable SELECT {0} FROM {2}";
 
         public const string ScriptDropAll = @"DECLARE @schema_id INT;
 DECLARE @conversation_handle UNIQUEIDENTIFIER;
@@ -168,18 +178,6 @@ PRINT N'SqlTableDependency: Dropping messages.';
 PRINT N'SqlTableDependency: Dropping activation procedure {0}_QueueActivationSender.';
 IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivationSender') DROP PROCEDURE [{2}].[{0}_QueueActivationSender];";
 
-        public const string TriggerUpdateWithColumns = @"IF ({0}) 
-BEGIN
-    SET @dmlType = '{2}'
-    INSERT INTO @modifiedRecordsTable SELECT {1} FROM {3}
-END
-ELSE BEGIN
-    RETURN
-END";
-
-        public const string TriggerUpdateWithoutColumns = @"
-SET @dmlType = '{1}'
-INSERT INTO @modifiedRecordsTable SELECT {0} FROM {2}";
 
     }
 }

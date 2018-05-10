@@ -40,6 +40,7 @@ namespace TableDependency.EventArgs
     {
         #region Instance variables
 
+        protected MessagesBag MessagesBag { get; }
         protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
         protected IEnumerable<ColumnInfo> UserInterestedColumns;
 
@@ -47,10 +48,9 @@ namespace TableDependency.EventArgs
 
         #region Properties
 
-        internal MessagesBag MessagesBag { get; }
         public T Entity { get; protected set; }
+        public T EntityOldValues { get; protected set; }
         public ChangeType ChangeType { get; protected set; }
-        public string MessageType { get; protected set; }
 
         #endregion
 
@@ -63,14 +63,24 @@ namespace TableDependency.EventArgs
             string server,
             string database,
             string sender,
-            CultureInfo cultureInfo) : base(server, database, sender, cultureInfo)
+            CultureInfo cultureInfo,
+            bool includeOldValues = false) : base(server, database, sender, cultureInfo)
         {
             this.MessagesBag = messagesBag;
             this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
             this.UserInterestedColumns = userInterestedColumns;
 
             this.ChangeType = messagesBag.MessageType;
-            this.Entity = this.MaterializeEntity(messagesBag.Messages, mapper);
+            this.Entity = this.MaterializeEntity(messagesBag.Messages.Where(m => !m.IsOldValue).ToList(), mapper);
+
+            if (includeOldValues && this.ChangeType == ChangeType.Update)
+            {
+                this.EntityOldValues = this.MaterializeEntity(messagesBag.Messages.Where(m => m.IsOldValue).ToList(), mapper);
+            }
+            else
+            {
+                this.EntityOldValues = default(T);
+            }
         }
 
         #endregion

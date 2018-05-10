@@ -24,12 +24,16 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
+using System;
+
 namespace TableDependency.Messages
 {
     public class Message
     {
         #region Properties
 
+        public bool IsOldValue => this.MessageType.EndsWith("/old", StringComparison.InvariantCultureIgnoreCase); 
+        public string MessageType { get; }
         public string Recipient { get; }
         public byte[] Body { get; }
 
@@ -37,10 +41,24 @@ namespace TableDependency.Messages
 
         #region Constructors
 
-        public Message(string recipient, byte[] body)
+        public Message(string messageType, byte[] body)
         {
-            this.Recipient = recipient;
+            this.Recipient = this.GetRecipient(messageType);
             this.Body = body;
+            this.MessageType = messageType;
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private string GetRecipient(string rawMessageType)
+        {
+            var messageTypeTokens = rawMessageType.Split('/');
+
+            return rawMessageType.EndsWith("/old", StringComparison.InvariantCultureIgnoreCase) 
+                ? messageTypeTokens[messageTypeTokens.Length - 2] 
+                : messageTypeTokens[messageTypeTokens.Length - 1];
         }
 
         #endregion

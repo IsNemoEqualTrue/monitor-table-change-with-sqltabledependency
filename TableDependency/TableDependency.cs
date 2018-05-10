@@ -163,8 +163,8 @@ namespace TableDependency
 
         protected TableDependency(
             string connectionString,
-            string schemaName = null,
             string tableName = null,
+            string schemaName = null,
             IModelToTableMapper<T> mapper = null,
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
@@ -174,22 +174,22 @@ namespace TableDependency
             if (mapper?.Count() == 0) throw new UpdateOfException("mapper parameter is empty.");
             if (updateOf?.Count() == 0) throw new UpdateOfException("updateOf parameter is empty.");
 
-            this.CheckIfConnectionStringIsValid(connectionString);
-            if (executeUserPermissionCheck) this.CheckIfUserHasPermissions(connectionString);
-
             _connectionString = connectionString;
+            this.CheckIfConnectionStringIsValid();
+            if (executeUserPermissionCheck) this.CheckIfUserHasPermissions();
+
             _tableName = this.GetTableName(tableName);
             _schemaName = this.GetSchemaName(schemaName);
-            _server = this.GetServerName(connectionString);
-            _database = this.GetDataBaseName(connectionString);
+            _server = this.GetServerName();
+            _database = this.GetDataBaseName();
 
-            this.CheckIfTableExists(connectionString);
-            this.CheckRdbmsDependentImplementation(connectionString);
+            this.CheckIfTableExists();
+            this.CheckRdbmsDependentImplementation();
 
-            var tableColumnList = this.GetTableColumnsList(connectionString);
-            if (!tableColumnList.Any()) throw new TableWithNoColumnsException(tableName);
+            var tableColumnList = this.GetTableColumnsList();
+            if (!tableColumnList.Any()) throw new TableWithNoColumnsException(_tableName);
 
-            _mapper = mapper ?? this.GetModelMapperFromColumnDataAnnotation();
+            _mapper = mapper ?? ModelToTableMapperHelper<T>.GetModelMapperFromColumnDataAnnotation();
             this.CheckMapperValidity(tableColumnList);
 
             this.CheckUpdateOfCongruenceWithTriggerType(updateOf, dmlTriggerType);
@@ -197,7 +197,7 @@ namespace TableDependency
 
             _userInterestedColumns = this.GetUserInterestedColumns(tableColumnList);
             if (!_userInterestedColumns.Any()) throw new NoMatchBetweenModelAndTableColumns();
-            this.CheckIfUserInterestedColumnsCanBeManaged(_userInterestedColumns);
+            this.CheckIfUserInterestedColumnsCanBeManaged();
 
             _dataBaseObjectsNamingConvention = this.GetBaseObjectsNamingConvention();
             _dmlTriggerType = dmlTriggerType;
@@ -228,7 +228,7 @@ namespace TableDependency
             }
 
             _disposed = false;
-            _processableMessages = this.CreateDatabaseObjects(_connectionString, _tableName, _dataBaseObjectsNamingConvention, _userInterestedColumns, _updateOf, timeOut, watchDogTimeOut);
+            _processableMessages = this.CreateDatabaseObjects(timeOut, watchDogTimeOut);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace TableDependency
 
             _task = null;
 
-            this.DropDatabaseObjects(_connectionString, _dataBaseObjectsNamingConvention);
+            this.DropDatabaseObjects();
 
             _disposed = true;
 
@@ -364,39 +364,19 @@ namespace TableDependency
             }
         }
 
-        protected abstract void CheckIfUserInterestedColumnsCanBeManaged(IEnumerable<ColumnInfo> tableColumnsToUse);
+        protected abstract void CheckIfUserInterestedColumnsCanBeManaged();
 
-        protected virtual void CheckRdbmsDependentImplementation(string connectionString) { }
+        protected virtual void CheckRdbmsDependentImplementation() { }
 
-        protected abstract void CheckIfTableExists(string connectionString);
+        protected abstract void CheckIfTableExists();
 
-        protected abstract void CheckIfUserHasPermissions(string connectionString);
+        protected abstract void CheckIfUserHasPermissions();
 
-        protected abstract void CheckIfConnectionStringIsValid(string connectionString);
+        protected abstract void CheckIfConnectionStringIsValid();
 
         #endregion
 
         #region Get infos
-
-        protected virtual IModelToTableMapper<T> GetModelMapperFromColumnDataAnnotation()
-        {
-            var modelPropertyInfosWithColumnAttribute = typeof(T)
-                .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
-                .ToArray();
-
-            if (!modelPropertyInfosWithColumnAttribute.Any()) return null;
-
-            var mapper = new ModelToTableMapper<T>();
-            foreach (var propertyInfo in modelPropertyInfosWithColumnAttribute)
-            {
-                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
-                var dbColumnName = ((ColumnAttribute)attribute)?.Name;
-                if (dbColumnName != null && mapper.GetMapping(dbColumnName) == null) mapper.AddMapping(propertyInfo, dbColumnName);
-            }
-
-            return mapper;
-        }
 
         protected virtual IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
         {
@@ -476,13 +456,13 @@ namespace TableDependency
             return updateOfList;
         }
 
-        protected abstract IEnumerable<ColumnInfo> GetTableColumnsList(string connectionString);
+        protected abstract IEnumerable<ColumnInfo> GetTableColumnsList();
 
         protected abstract string GetBaseObjectsNamingConvention();
 
-        protected abstract string GetDataBaseName(string connectionString);
+        protected abstract string GetDataBaseName();
 
-        protected abstract string GetServerName(string connectionString);
+        protected abstract string GetServerName();
 
         protected abstract string GetTableName(string tableName);
 
@@ -492,7 +472,7 @@ namespace TableDependency
             return ((TableAttribute)attribute)?.Name;
         }
 
-        protected abstract string GetSchemaName(string schemaName);
+        protected abstract string GetSchemaName(string schimaName);
 
         protected virtual string GetSchemaNameFromDataAnnotation()
         {
@@ -558,7 +538,14 @@ namespace TableDependency
 
             foreach (var dlg in changeSubscribedList.Where(d => d != null))
             {
-                dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, this.GetRecordChangedEventArgs(messagesBag) });
+                try
+                {
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, this.GetRecordChangedEventArgs(messagesBag) });
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 
@@ -566,9 +553,9 @@ namespace TableDependency
 
         #region Database object generation/disposition
 
-        protected abstract IList<string> CreateDatabaseObjects(string connectionString, string tableName, string databaseObjectsNaming, IEnumerable<ColumnInfo> userInterestedColumns, IList<string> updateOf, int timeOut, int watchDogTimeOut);
+        protected abstract IList<string> CreateDatabaseObjects(int timeOut, int watchDogTimeOut);
 
-        protected abstract void DropDatabaseObjects(string connectionString, string dataBaseObjectsNamingConvention);
+        protected abstract void DropDatabaseObjects();
 
         #endregion
 

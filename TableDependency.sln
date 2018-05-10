@@ -9,21 +9,29 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTests", "LoadTests", "{0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTests", "IntegrationTests", "{BE3F6738-85D8-46D0-928F-87085E19E9C0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{48852C1F-6B3D-4A7B-8836-7D45B50DBD20}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Development", "Development", "{BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationListener1", "TableDependency.Tests\TableDependency.LoadTests\ApplicationListener1\ApplicationListener1.csproj", "{6046B310-27AA-43A8-9B44-59EF2A45C7DF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F3FCBF55-12B9-4137-8287-FB600C26C509}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationWriter1", "TableDependency.Tests\TableDependency.LoadTests\ApplicationWriter1\ApplicationWriter1.csproj", "{FD1BB916-453D-4D39-B7B1-B675801C3ED3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Development", "Developments\TableDependency.SqlClient\TableDependency.SqlClient.Development.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationWriter2", "TableDependency.Tests\TableDependency.LoadTests\ApplicationWriter2\ApplicationWriter2.csproj", "{02847705-A2CF-4EF3-AEEB-072D84222BFE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.Development", "Developments\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.Development.csproj", "{7086847A-041D-4885-8810-DF31EABC77E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.IntegrationTest", "TableDependency.Tests\TableDependency.IntegrationTest\TableDependency.IntegrationTest.csproj", "{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F6C996C3-D52D-4D59-99C4-675A1563438A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplicationSqlServer", "TableDependency.Tests\TableDependency.DevelopmentTests\ConsoleApplicationSqlServer.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationListener1", "Tests\TableDependency.SqlClient.LoadTests\ApplicationListener1\ApplicationListener1.csproj", "{6046B310-27AA-43A8-9B44-59EF2A45C7DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationWriter1", "Tests\TableDependency.SqlClient.LoadTests\ApplicationWriter1\ApplicationWriter1.csproj", "{FD1BB916-453D-4D39-B7B1-B675801C3ED3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationWriter2", "Tests\TableDependency.SqlClient.LoadTests\ApplicationWriter2\ApplicationWriter2.csproj", "{02847705-A2CF-4EF3-AEEB-072D84222BFE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.IntegrationTests", "Tests\TableDependency.SqlClient.Where.IntegrationTests\TableDependency.SqlClient.Where.IntegrationTests.csproj", "{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.IntegrationTests", "Tests\TableDependency.SqlClient.IntegrationTest\TableDependency.SqlClient.IntegrationTests.csproj", "{30C250EC-9E55-4896-82D8-058510EF2708}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where.Tests", "Tests\TableDependency.SqlClient.Where.UnitTests\TableDependency.SqlClient.Where.Tests.csproj", "{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.BaseTests", "Tests\TableDependency.SqlClient.BaseTests\TableDependency.SqlClient.BaseTests.csproj", "{F3AC3B55-3A32-4291-BC92-986882AD98ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +47,18 @@ Global
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7086847A-041D-4885-8810-DF31EABC77E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7086847A-041D-4885-8810-DF31EABC77E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7086847A-041D-4885-8810-DF31EABC77E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7086847A-041D-4885-8810-DF31EABC77E0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,27 +71,37 @@ Global
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30C250EC-9E55-4896-82D8-058510EF2708}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30C250EC-9E55-4896-82D8-058510EF2708}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30C250EC-9E55-4896-82D8-058510EF2708}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30C250EC-9E55-4896-82D8-058510EF2708}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{0388953A-AF9E-4718-A9B3-1AB5CABCE7FB} = {48852C1F-6B3D-4A7B-8836-7D45B50DBD20}
-		{BE3F6738-85D8-46D0-928F-87085E19E9C0} = {48852C1F-6B3D-4A7B-8836-7D45B50DBD20}
-		{BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072} = {48852C1F-6B3D-4A7B-8836-7D45B50DBD20}
+		{0388953A-AF9E-4718-A9B3-1AB5CABCE7FB} = {F6C996C3-D52D-4D59-99C4-675A1563438A}
+		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
+		{7086847A-041D-4885-8810-DF31EABC77E0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
 		{6046B310-27AA-43A8-9B44-59EF2A45C7DF} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
 		{FD1BB916-453D-4D39-B7B1-B675801C3ED3} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
 		{02847705-A2CF-4EF3-AEEB-072D84222BFE} = {0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}
-		{EFC8D631-311A-4E29-91C4-2DEB5B756BB3} = {BE3F6738-85D8-46D0-928F-87085E19E9C0}
-		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0} = {BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}
+		{3D21BE37-D842-4D9E-B91C-923FD7CBCF8A} = {F6C996C3-D52D-4D59-99C4-675A1563438A}
+		{30C250EC-9E55-4896-82D8-058510EF2708} = {F6C996C3-D52D-4D59-99C4-675A1563438A}
+		{9E1AD012-13D1-4E58-8AF1-CEBAD0CD1C1A} = {F6C996C3-D52D-4D59-99C4-675A1563438A}
+		{F3AC3B55-3A32-4291-BC92-986882AD98ED} = {F6C996C3-D52D-4D59-99C4-675A1563438A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C86745F1-F2BB-48A9-AA01-B03D7EDA5FBA}

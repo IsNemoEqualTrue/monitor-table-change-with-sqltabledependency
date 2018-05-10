@@ -46,7 +46,8 @@ namespace TableDependency.SqlClient.EventArgs
             string server,
             string database,
             string sender,
-            CultureInfo cultureInfo) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfo)
+            CultureInfo cultureInfo,
+            bool includeOldValues) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfo, includeOldValues)
         {
 
         }
