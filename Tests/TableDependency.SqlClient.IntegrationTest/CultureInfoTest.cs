@@ -88,7 +88,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
             try
             {
-                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, tableName: TableName1);
+                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, TableName1);
                 naming = tableDependency.DataBaseObjectsNamingConvention;
                 tableDependency.OnChanged += TableDependency_Changed1;
                 tableDependency.CultureInfo = new CultureInfo("it-IT");
@@ -96,7 +96,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 tableDependency.Start();
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -131,7 +131,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
             try
             {
-                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, tableName: TableName2);
+                tableDependency = new SqlTableDependency<CultureInfoTestModel>(ConnectionStringForTestUser, TableName2);
                 naming = tableDependency.DataBaseObjectsNamingConvention;
                 tableDependency.OnChanged += TableDependency_Changed2;
                 tableDependency.CultureInfo = new CultureInfo("en-US");
@@ -139,7 +139,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 tableDependency.Start();
                 var t = new Task(ModifyTableContent2);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

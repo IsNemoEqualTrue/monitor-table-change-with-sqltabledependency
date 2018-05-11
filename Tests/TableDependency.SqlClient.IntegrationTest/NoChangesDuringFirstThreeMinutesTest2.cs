@@ -75,7 +75,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 15 * 1);
 
                 Assert.AreEqual(_counter, 3);
                 Assert.AreEqual(_checkValues1[ChangeType.Insert.ToString()].Item2.Name, _checkValues1[ChangeType.Insert.ToString()].Item1.Name);
@@ -88,7 +88,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 Thread.Sleep(7 * 10 * 1000);
                 var f = new Task(ModifyTableContent2);
                 f.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 15 * 1);
 
                 Assert.AreEqual(_counter, 6);
                 Assert.AreEqual(_checkValues2[ChangeType.Insert.ToString()].Item2.Name, _checkValues2[ChangeType.Insert.ToString()].Item1.Name);

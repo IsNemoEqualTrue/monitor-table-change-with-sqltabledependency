@@ -158,7 +158,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
             string naming;
 
             Expression<Func<FilterUsingSchemaTestModel, bool>> expression = p => p.Id == _id;
-            ITableDependencyFilter filterExpression = new SqlTableDependencyFilter<FilterUsingSchemaTestModel>(expression);
+            var filterExpression = new SqlTableDependencyFilter<FilterUsingSchemaTestModel>(expression);
 
             try
             {

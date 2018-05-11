@@ -84,7 +84,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             var listenerSlq = new ListenerSlq(TableName);
             var objectNaming = listenerSlq.ObjectNaming;
             Task.Factory.StartNew(() => listenerSlq.Run(token), token);
-            Thread.Sleep(1000 * 10 * 1);
+            Thread.Sleep(1000 * 15 * 1);
 
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
@@ -130,7 +130,7 @@ namespace TableDependency.SqlClient.IntegrationTests
         {
             while (token.IsCancellationRequested == false)
             {
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
         }
 

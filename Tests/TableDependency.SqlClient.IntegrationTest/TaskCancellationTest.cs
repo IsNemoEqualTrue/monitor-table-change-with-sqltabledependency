@@ -90,7 +90,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
 
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
                 tableDependency.Stop();
 
                 Thread.Sleep(5000);

@@ -93,10 +93,10 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
 
                 this._tableDependency.Stop();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
 
                 Assert.IsTrue(Statuses[TableDependencyStatus.Starting]);
                 Assert.IsTrue(Statuses[TableDependencyStatus.Started]);

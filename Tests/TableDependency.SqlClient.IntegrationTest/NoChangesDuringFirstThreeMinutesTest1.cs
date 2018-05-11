@@ -80,7 +80,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

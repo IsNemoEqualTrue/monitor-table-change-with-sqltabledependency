@@ -122,7 +122,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(MergeOperation);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

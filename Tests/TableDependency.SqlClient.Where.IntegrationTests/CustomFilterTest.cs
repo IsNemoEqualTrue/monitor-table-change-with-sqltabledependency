@@ -108,9 +108,8 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<CustomFilterSqlServerModel> tableDependency = null;
             string naming;
-
+            SqlTableDependency<CustomFilterSqlServerModel> tableDependency = null;
             ITableDependencyFilter filterExpression = new CustomSqlTableDependencyFilter(2);
 
             try
@@ -126,7 +125,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -145,9 +144,8 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
         [TestMethod]
         public void TestWithOldValues()
         {
-            SqlTableDependency<CustomFilterSqlServerModel> tableDependency = null;
             string naming;
-
+            SqlTableDependency<CustomFilterSqlServerModel> tableDependency = null;
             ITableDependencyFilter filterExpression = new CustomSqlTableDependencyFilter(2);
 
             try
@@ -163,7 +161,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

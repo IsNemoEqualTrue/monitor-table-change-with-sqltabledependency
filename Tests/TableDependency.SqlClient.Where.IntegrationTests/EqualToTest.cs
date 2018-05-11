@@ -101,7 +101,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
             string naming;
 
             Expression<Func<EqualToTestSqlServerModel, bool>> expression = p => p.Id == _id;
-            ITableDependencyFilter filterExpression = new SqlTableDependencyFilter<EqualToTestSqlServerModel>(expression);
+            var filterExpression = new SqlTableDependencyFilter<EqualToTestSqlServerModel>(expression);
 
             try
             {
@@ -116,7 +116,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -145,7 +145,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
             string naming;
 
             Expression<Func<EqualToTestSqlServerModel, bool>> expression = p => p.Id == _id;
-            ITableDependencyFilter filterExpression = new SqlTableDependencyFilter<EqualToTestSqlServerModel>(expression);
+            var filterExpression = new SqlTableDependencyFilter<EqualToTestSqlServerModel>(expression);
 
             try
             {
@@ -160,7 +160,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 10 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

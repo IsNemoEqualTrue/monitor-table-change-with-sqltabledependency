@@ -161,7 +161,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 tableDependency.Start();
 
                 Task.Factory.StartNew(() => MultiUpdateOperation("VELIA"));
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -205,7 +205,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                 tableDependency.Start();
 
                 Task.Factory.StartNew(() => MultiUpdateOperation("xxx"));
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -237,7 +237,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(MultiInsertOperation);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {

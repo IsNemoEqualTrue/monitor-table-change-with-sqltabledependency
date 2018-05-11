@@ -104,7 +104,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -123,7 +123,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.NvarcharMaxColumn, _checkValues[ChangeType.Delete.ToString()].Item1.NvarcharMaxColumn);
             Assert.IsNull(_checkValuesOld[ChangeType.Delete.ToString()]);
 
-            Thread.Sleep(1000 * 10 * 1);
+            Thread.Sleep(1000 * 15 * 1);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
@@ -145,7 +145,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 5 * 1);
+                Thread.Sleep(1000 * 15 * 1);
             }
             finally
             {
@@ -165,7 +165,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             Assert.AreEqual(_checkValues[ChangeType.Delete.ToString()].Item2.NvarcharMaxColumn, _checkValues[ChangeType.Delete.ToString()].Item1.NvarcharMaxColumn);
             Assert.IsNull(_checkValuesOld[ChangeType.Delete.ToString()]);
 
-            Thread.Sleep(1000 * 10 * 1);
+            Thread.Sleep(1000 * 15 * 1);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
