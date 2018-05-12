@@ -34,6 +34,9 @@ bld/
 *.VisualState.xml
 TestResult.xml
 
+#Jekyll SEO plugin
+_config.yml
+
 # Build Results of an ATL Project
 [Dd]ebugPS/
 [Rr]eleasePS/
