@@ -1,5 +1,6 @@
-<meta name='description' content='150 words'>
-
+<meta name='keywords' content='Notification, monitor, record, table change, SQL Server'>
+<meta name='description' content='Monitor SQL Server table and receive notifications for any record table change as insert, update or delete change'>
+<meta name='subject' content='SQL Server monitor table changes'>
 <!--
   Title: Get SQL Server notifications when record table change
   Description: Receive notification for all insert, update or delete on SQL Server table change
