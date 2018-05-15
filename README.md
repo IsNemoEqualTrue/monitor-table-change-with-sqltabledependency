@@ -99,7 +99,7 @@ Also, here are some examples of applications getting notification on record tabl
 * [Monitor table change with MVC, SignalR and jQuery](https://github.com/christiandelbianco/monitor-table-change-with-mvc-signalR-jquery-sqltabledependency): This example shows how to continuously update a table containing stock data. The table will be updated whenever a record change occurs. The notification event contains new values for the modified table record.
 * [Monitor table change with MVC, SignalR and Knockout JS](https://github.com/christiandelbianco/monitor-table-change-with-mvc-signalR-knockoutjs-sqltabledependency): This example shows how to refresh client web browsers used to book flight tickets. Those terminals have to be update as soon as the availability change and the Web application must take the initiative of sending this information to clients instead of waiting for the client to request it. 
 
-This section reports some use case examples. Some of these examples, use the OracleTableDependency that is not longer supported. However, the example is still valid for SqlTableDependency:
+This section reports some use case examples:
 
 * [Model and properties with same name of table and columns.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Model-and-properties-with-same-name-of-table-and-columns)
 * [Code First Data Annotations to map model with database table.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Code-First-Data-Annotations-to-map-model-with-database-table)
