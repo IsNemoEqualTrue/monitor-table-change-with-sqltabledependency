@@ -167,8 +167,8 @@ In case the user specified in the connection string is not database **Administra
 It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Nevertheless a SQL server exception will be thrown if user does not have sufficient permissions.
 
 #### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
-From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
-To reproduce this issue infact, I download Northwind.mdf file and then I attached to my SQL Server 2008 R2 instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
+From time to time, I receive bugs reporting issue like "I not detect/receive any record change notification". Assuming that you are using a logic with enough grants, one of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that your Databasehas been created using an old SQL Server version, for example SQL Server 2005.
+To reproduce this issue infact, you can download Northwind.mdf file and then attach it to your SQL Server 2008 R2 (or greater) instance. Running SqlTableDependency against it, no exception is raised as well as no notification on record change is detected.
 
 In order to discover your database compatibility version, you can use the following SQL script (see details on http://jongurgul.com/blog/database-created-version-internal-database-version-dbi_createversion/). 
 
@@ -194,15 +194,15 @@ END [SQLVersion]
 FROM @DBINFO
 WHERE [Field] IN ('dbi_createversion','dbi_version')
 ```
-Executing this script on my Northwind database I get:
+Executing this script on Northwind database you get:
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/2018-04-20%20at%2010-40-04.png" />
 
-Executing this script on DB created by SQL Server 2008 R2 instance (TableDependencyDB), the result is:
+Executing this script on DB created by SQL Server 2008 R2 instance (database name TableDependencyDB), the result is:
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/2018-04-20%20at%2011-51-49.png" />
 
-Even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
+So, even if your SQL Server instance is 2008 R2 or greater, DB compatibility level (VALUE column) is fundamental to receive record change notifications!
 
 #### Not supported SQL Server types
 Following SQL Server columns types are **not** supported by SqlTableDepdency:
