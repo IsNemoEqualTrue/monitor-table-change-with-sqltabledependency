@@ -62,7 +62,7 @@ public class Program
        mapper.AddMapping(c => c.Name, "First Name");
 
        // Here - as second parameter - we pass table name: this is necessary only if the model name is 
-       // different from table name (in our case we have Customer vs Customers). You can also specifiy the schema name.
+       // different from table name (in our case we have Customer vs Customers). You can also specifiy schema name.
        using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
        {
            dep.OnChanged += Changed;
