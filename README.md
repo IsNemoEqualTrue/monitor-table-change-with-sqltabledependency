@@ -149,7 +149,7 @@ When you use notifications, you must be sure to enable Service Broker for the da
 ```SQL
 ALTER DATABASE MyDatabase SET ENABLE_BROKER
 ```
-In case the user specified in the connection string is not database operator and neither has *db_owner* role, please make sure to GRANT the following permissions:
+In case the user specified in the connection string is not database **Administrator**, **db owner** or neither has **db_owner** role, please make sure to GRANT the following permissions to your login user:
 * ALTER
 * CONNECT
 * CONTROL
@@ -164,7 +164,7 @@ In case the user specified in the connection string is not database operator and
 * VIEW DATABASE STATE
 * VIEW DEFINITION
 
-It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Otherwise an SQL server exception will be thrown if user does not have sufficient permissions.
+It is possible skip permissions test done by SqlTableDependency setting `executeUserPermissionCheck` constructor parameter to `false`. Nevertheless a SQL server exception will be thrown if user does not have sufficient permissions.
 
 #### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Note about Compatibility Level and Database Version
 From time to time, I receive bugs reporting issue like "not detect any record are changed". One of the possible cause of this missing record change notification, is due to Database compatibility version. Even if your SQL Server instance is SQL Server 2008 R2 or latest versions, can be that Database you are using was created using an old SQL Server version, for example SQL Server 2005.
