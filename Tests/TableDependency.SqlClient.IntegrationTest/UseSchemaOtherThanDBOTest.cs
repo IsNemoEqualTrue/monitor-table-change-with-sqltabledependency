@@ -13,15 +13,15 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("Customers", Schema = "test_schema")]
-    public class UseSchemaOtherThanDboTestSqlServerModel
-    {
-        public string Name { get; set; }
-    }
-
     [TestClass]
     public class UseSchemaOtherThanDboTestSqlServer : SqlTableDependencyBaseTest
     {
+        [Table("Customers", Schema = "test_schema")]
+        private class UseSchemaOtherThanDboTestSqlServerModel
+        {
+            public string Name { get; set; }
+        }
+
         private const string TableName = "Customers";
         private const string SchemaName = "test_schema";
         private static int _counter;

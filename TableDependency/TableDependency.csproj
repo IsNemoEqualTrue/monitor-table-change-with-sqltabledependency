@@ -57,7 +57,7 @@
     <Compile Include="Exceptions\NoMatchBetweenModelAndTableColumns.cs" />
     <Compile Include="Exceptions\TableWithNoColumnsException.cs" />
     <Compile Include="Utilities\ModelToTableMapperHelper.cs" />
-    <Compile Include="Utilities\ColumnInfo.cs" />
+    <Compile Include="Utilities\TableColumnInfo.cs" />
     <Compile Include="Delegates\ErrorEventHandler.cs" />
     <Compile Include="Enums\DmlTriggerType.cs" />
     <Compile Include="EventArgs\BaseEventArgs.cs" />

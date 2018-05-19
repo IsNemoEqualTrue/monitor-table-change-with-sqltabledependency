@@ -14,17 +14,17 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("XXXX")]
-    public class DataAnnotationTestSqlServer6Model
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
-
     [TestClass]
     public class DataAnnotationTest06 : SqlTableDependencyBaseTest
     {
+        [Table("XXXX")]
+        private class DataAnnotationTestSqlServer6Model
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+        }
+
         private const string TableName = "IronManTable";
         private static int _counter;
         private static Dictionary<string, Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>> _checkValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer6Model, DataAnnotationTestSqlServer6Model>>();

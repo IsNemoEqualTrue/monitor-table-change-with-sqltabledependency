@@ -56,6 +56,11 @@ namespace TableDependency
         /// <param name="columnName">Name of the column.</param>
         public void AddMapping(PropertyInfo pi, string columnName)
         {
+            if (_mappings.Values.Any(cn => cn == columnName))
+            {
+                throw new ModelToTableMapperException("Duplicate mapping for column " + columnName);
+            }
+
             _mappings[pi] = columnName;
         }
 

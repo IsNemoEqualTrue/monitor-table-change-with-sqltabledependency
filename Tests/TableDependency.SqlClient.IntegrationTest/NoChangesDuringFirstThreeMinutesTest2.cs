@@ -12,16 +12,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class NoChangesDuringFirstThreeMinutesTestSqlServer2Model
-    {
-        public int MenuId { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-    }
-
     [TestClass]
     public class NoChangesDuringFirstThreeMinutesTest2 : SqlTableDependencyBaseTest
     {
+        private class NoChangesDuringFirstThreeMinutesTestSqlServer2Model
+        {
+            public int MenuId { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+        }
+
         private static readonly string TableName = typeof(NoChangesDuringFirstThreeMinutesTestSqlServer2Model).Name;
         private static Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>> _checkValues1 = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>>();
         private static Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>> _checkValues2 = new Dictionary<string, Tuple<NoChangesDuringFirstThreeMinutesTestSqlServer2Model, NoChangesDuringFirstThreeMinutesTestSqlServer2Model>>();

@@ -8,15 +8,15 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    internal class Issue27Model
-    {
-        public string Id { get; set; }
-        public string Message { get; set; }
-    }
-
     [TestClass]
     public class Issue27Test : SqlTableDependencyBaseTest
     {
+        private class Issue27Model
+        {
+            public string Id { get; set; }
+            public string Message { get; set; }
+        }
+
         private static readonly string TableName = typeof(Issue27Model).Name;
 
         [ClassInitialize]

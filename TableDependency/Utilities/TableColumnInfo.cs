@@ -26,9 +26,9 @@
 
 namespace TableDependency.Utilities
 {
-    public class ColumnInfo
+    public class TableColumnInfo
     {
-        public ColumnInfo(string name, string type, string size = null)
+        public TableColumnInfo(string name, string type, string size = null)
         {
             this.Name = name;
             this.Type = type;

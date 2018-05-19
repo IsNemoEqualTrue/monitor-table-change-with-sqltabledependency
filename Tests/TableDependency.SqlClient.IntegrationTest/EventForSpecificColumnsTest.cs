@@ -12,18 +12,18 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class EventForSpecificColumnsTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
     [TestClass]
     public class UpdateOfColumnTest : SqlTableDependencyBaseTest
     {
+        private class EventForSpecificColumnsTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private static readonly string TableName = typeof(EventForSpecificColumnsTestSqlServerModel).Name;
         private static int _counter;
         private static Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForSpecificColumnsTestSqlServerModel, EventForSpecificColumnsTestSqlServerModel>>();

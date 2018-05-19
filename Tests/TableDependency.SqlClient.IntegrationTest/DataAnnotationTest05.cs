@@ -13,20 +13,20 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("BathManTable")]
-    public class DataAnnotationTestSqlServer5Model
-    {
-        public long Id { get; set; }
-
-        public string Name { get; set; }
-
-        [Column("Long Description")]
-        public string Description { get; set; }
-    }
-
     [TestClass]
     public class DataAnnotationTest05 : SqlTableDependencyBaseTest
     {
+        [Table("BathManTable")]
+        private class DataAnnotationTestSqlServer5Model
+        {
+            public long Id { get; set; }
+
+            public string Name { get; set; }
+
+            [Column("Long Description")]
+            public string Description { get; set; }
+        }
+
         private const string TableName = "BathManTable";
         private static int _counter;
         private static Dictionary<string, Tuple<DataAnnotationTestSqlServer5Model, DataAnnotationTestSqlServer5Model>> _checkValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer5Model, DataAnnotationTestSqlServer5Model>>();

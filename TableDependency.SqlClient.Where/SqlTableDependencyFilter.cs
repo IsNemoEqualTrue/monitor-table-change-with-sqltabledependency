@@ -27,6 +27,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -35,7 +36,6 @@ using System.Text;
 
 using TableDependency.Abstracts;
 using TableDependency.SqlClient.Where.Helpers;
-using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.Where
 {
@@ -76,9 +76,9 @@ namespace TableDependency.SqlClient.Where
         {
             _filter = filter;
 
-            _modelMapperDictionary = modelMapperDictionary != null && modelMapperDictionary.Count() > 0 
-                ? modelMapperDictionary.GetMappings().ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value) 
-                : ModelToTableMapperHelper<T>.GetModelMapperFromColumnDataAnnotation()?.GetMappings().ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
+            _modelMapperDictionary = modelMapperDictionary != null && modelMapperDictionary.Count() > 0
+                ? modelMapperDictionary.GetMappings().ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value)
+                : this.CreateModelToTableMapperHelper()?.GetMappings().ToDictionary(kvp => kvp.Key.Name, kvp => kvp.Value);
         }
 
         #endregion
@@ -450,6 +450,32 @@ namespace TableDependency.SqlClient.Where
         #endregion
 
         #region Private Methods
+
+        private ModelToTableMapper<T> CreateModelToTableMapperHelper()
+        {
+            var modelPropertyInfosWithColumnAttribute = typeof(T)
+                    .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
+                    .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
+                    .ToArray();
+
+            if (!modelPropertyInfosWithColumnAttribute.Any()) return null;
+
+            var mapper = new ModelToTableMapper<T>();
+            foreach (var propertyInfo in modelPropertyInfosWithColumnAttribute)
+            {
+                var attribute = propertyInfo.GetCustomAttribute(typeof(ColumnAttribute));
+                var dbColumnName = ((ColumnAttribute)attribute)?.Name;
+                if (string.IsNullOrWhiteSpace(dbColumnName))
+                {
+                    dbColumnName = propertyInfo.Name;
+                    mapper.AddMapping(propertyInfo, dbColumnName);
+                }
+
+                mapper.AddMapping(propertyInfo, dbColumnName);
+            }
+
+            return mapper;
+        }
 
         private string GetDataBaseColumnName(string memberName)
         {

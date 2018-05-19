@@ -12,16 +12,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class TableWithSpacesModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-    }
-
     [TestClass]
     public class TableWithSpacesTest : SqlTableDependencyBaseTest
     {
+        private class TableWithSpacesModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+        }
+
         private const string TableName = "BranchABC$Sales Invoice Header";
         private static int _counter;
         private static readonly Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>>();

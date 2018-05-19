@@ -13,17 +13,17 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("XXXX", Schema = "YYYY")]
-    public class DataAnnotationTestSqlServer9Model
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
-
     [TestClass]
     public class DataAnnotationTest09 : SqlTableDependencyBaseTest
     {
+        [Table("XXXX", Schema = "YYYY")]
+        private class DataAnnotationTestSqlServer9Model
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
+        }
+
         private static readonly string SchemaName = "dbo"; 
         private static readonly string TableName = typeof(DataAnnotationTest09).Name;
         private static int _counter;

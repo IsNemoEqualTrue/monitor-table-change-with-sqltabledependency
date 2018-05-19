@@ -10,14 +10,14 @@ using TableDependency.SqlClient.Enumerations;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class EndpointsStatusModel
-    {
-        public long Id { get; set; }
-    }
-
     [TestClass]
     public class EndpointsStatusTest : SqlTableDependencyBaseTest
     {
+        private class EndpointsStatusModel
+        {
+            public long Id { get; set; }
+        }
+
         private static readonly string TableName = typeof(EndpointsStatusModel).Name;
 
         [ClassInitialize]

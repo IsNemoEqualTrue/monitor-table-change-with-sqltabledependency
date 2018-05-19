@@ -8,15 +8,15 @@ using TableDependency.SqlClient.BaseTests;
 namespace TableDependency.SqlClient.IntegrationTests
 {
 #if DEBUG
-    public class DatabaseObjectCleanUpSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Description { get; set; }
-    }
-
     [TestClass]
     public class DatabaseObjectCleanUpTest : SqlTableDependencyBaseTest
     {
+        private class DatabaseObjectCleanUpSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Description { get; set; }
+        }
+
         private static readonly string TableName = typeof(DatabaseObjectCleanUpSqlServerModel).Name;
 
         [ClassInitialize]

@@ -10,18 +10,18 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class TransactionTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
     [TestClass]
     public class TransactionTest1 : SqlTableDependencyBaseTest
     {
+        private class TransactionTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private static readonly string TableName = typeof(TransactionTestSqlServerModel).Name;
         private int _counter;
 

@@ -42,7 +42,7 @@ namespace TableDependency.EventArgs
 
         protected MessagesBag MessagesBag { get; }
         protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
-        protected IEnumerable<ColumnInfo> UserInterestedColumns;
+        protected IEnumerable<TableColumnInfo> UserInterestedColumns;
 
         #endregion
 
@@ -59,7 +59,7 @@ namespace TableDependency.EventArgs
         public RecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,
+            IEnumerable<TableColumnInfo> userInterestedColumns,
             string server,
             string database,
             string sender,
@@ -87,7 +87,7 @@ namespace TableDependency.EventArgs
 
         #region public methods
 
-        public virtual object GetValue(PropertyInfo propertyInfo, ColumnInfo columnInfo, byte[] message)
+        public virtual object GetValue(PropertyInfo propertyInfo, TableColumnInfo columnInfo, byte[] message)
         {
             var stringValue = Convert.ToString(this.MessagesBag.Encoding.GetString(message), base.CultureInfo);
             return this.GetValueObject(propertyInfo, stringValue);
@@ -165,7 +165,7 @@ namespace TableDependency.EventArgs
             return null;
         }
 
-        protected virtual ColumnInfo GetColumnInfo(string columnName)
+        protected virtual TableColumnInfo GetColumnInfo(string columnName)
         {
             return this.UserInterestedColumns.First(uic => string.Equals(uic.Name, columnName, StringComparison.CurrentCultureIgnoreCase));
         }

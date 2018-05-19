@@ -11,18 +11,18 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class MargeTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
     [TestClass]
     public class MargeTest : SqlTableDependencyBaseTest
     {
+        private class MargeTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private MargeTestSqlServerModel _modifiedValues;
         private MargeTestSqlServerModel _insertedValues;
         private MargeTestSqlServerModel _deletedValues;

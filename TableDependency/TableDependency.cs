@@ -57,7 +57,7 @@ namespace TableDependency
         protected string _database;
         protected Task _task;
         protected IList<string> _processableMessages;
-        protected IEnumerable<ColumnInfo> _userInterestedColumns;
+        protected IEnumerable<TableColumnInfo> _userInterestedColumns;
         protected IList<string> _updateOf;
         protected TableDependencyStatus _status;
         protected DmlTriggerType _dmlTriggerType;
@@ -189,7 +189,7 @@ namespace TableDependency
             var tableColumnList = this.GetTableColumnsList();
             if (!tableColumnList.Any()) throw new TableWithNoColumnsException(_tableName);
 
-            _mapper = mapper ?? ModelToTableMapperHelper<T>.GetModelMapperFromColumnDataAnnotation();
+            _mapper = mapper ?? ModelToTableMapperHelper<T>.GetModelMapperFromColumnDataAnnotation(tableColumnList);
             this.CheckMapperValidity(tableColumnList);
 
             this.CheckUpdateOfCongruenceWithTriggerType(updateOf, dmlTriggerType);
@@ -339,7 +339,7 @@ namespace TableDependency
 
         #region Checks
 
-        protected virtual void CheckMapperValidity(IEnumerable<ColumnInfo> tableColumnsList)
+        protected virtual void CheckMapperValidity(IEnumerable<TableColumnInfo> tableColumnsList)
         {
             if (_mapper == null || _mapper.Count() < 1) return;
 
@@ -378,9 +378,9 @@ namespace TableDependency
 
         #region Get infos
 
-        protected virtual IEnumerable<ColumnInfo> GetUserInterestedColumns(IEnumerable<ColumnInfo> tableColumnsList)
+        protected virtual IEnumerable<TableColumnInfo> GetUserInterestedColumns(IEnumerable<TableColumnInfo> tableColumnsList)
         {
-            var tableColumnsListFiltered = new List<ColumnInfo>();
+            var tableColumnsListFiltered = new List<TableColumnInfo>();
 
             foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
@@ -406,7 +406,7 @@ namespace TableDependency
             return tableColumnsListFiltered;
         }
 
-        protected virtual string GetColumnNameFromModelProperty(IEnumerable<ColumnInfo> tableColumnsList, string modelPropertyName)
+        protected virtual string GetColumnNameFromModelProperty(IEnumerable<TableColumnInfo> tableColumnsList, string modelPropertyName)
         {
             var entityPropertyInfo = ModelUtil.GetModelPropertiesInfo<T>().First(mpf => mpf.Name == modelPropertyName);
 
@@ -425,7 +425,7 @@ namespace TableDependency
             return modelPropertyName;
         }
 
-        protected virtual IList<string> GetUpdateOfColumnNameList(IUpdateOfModel<T> updateOf, IEnumerable<ColumnInfo> tableColumns)
+        protected virtual IList<string> GetUpdateOfColumnNameList(IUpdateOfModel<T> updateOf, IEnumerable<TableColumnInfo> tableColumns)
         {
             var updateOfList = new List<string>();
 
@@ -444,19 +444,21 @@ namespace TableDependency
                 if (attribute != null)
                 {
                     var dbColumnName = ((ColumnAttribute)attribute).Name;
+                    if (!string.IsNullOrWhiteSpace(dbColumnName))
+                    {
+                        updateOfList.Add(dbColumnName);
+                        continue;
+                    }
+
+                    dbColumnName = GetColumnNameFromModelProperty(tableColumns, propertyInfo.Name);
                     updateOfList.Add(dbColumnName);
-                }
-                else
-                {
-                    var dbColumnName = GetColumnNameFromModelProperty(tableColumns, propertyInfo.Name);
-                    updateOfList.Add(dbColumnName);
-                }
+                }                
             }
 
             return updateOfList;
         }
 
-        protected abstract IEnumerable<ColumnInfo> GetTableColumnsList();
+        protected abstract IEnumerable<TableColumnInfo> GetTableColumnsList();
 
         protected abstract string GetBaseObjectsNamingConvention();
 

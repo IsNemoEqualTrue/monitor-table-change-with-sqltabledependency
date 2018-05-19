@@ -12,18 +12,18 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class NoMapperUseTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
     [TestClass]
     public class NoMapperUseTest : SqlTableDependencyBaseTest
     {
+        private class NoMapperUseTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private static readonly string TableName = typeof(NoMapperUseTestSqlServerModel).Name;
         private static int _counter;
         private static readonly Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<NoMapperUseTestSqlServerModel, NoMapperUseTestSqlServerModel>>();

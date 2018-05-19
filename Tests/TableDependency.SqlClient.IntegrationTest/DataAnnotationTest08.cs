@@ -13,16 +13,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class DataAnnotationTestSqlServer8Model
-    {
-        public long IdNotExist { get; set; }
-        public string NameNotExist { get; set; }
-        public string DescriptionNotExist { get; set; }
-    }
-
     [TestClass]
     public class DataAnnotationTest08 : SqlTableDependencyBaseTest
     {
+        private class DataAnnotationTestSqlServer8Model
+        {
+            public long IdNotExist { get; set; }
+            public string NameNotExist { get; set; }
+            public string DescriptionNotExist { get; set; }
+        }
+
         private static readonly string TableName = typeof(DataAnnotationTestSqlServer8Model).Name;
         private static int _counter;
         private static Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>> _checkValues = new Dictionary<string, Tuple<DataAnnotationTestSqlServer8Model, DataAnnotationTestSqlServer8Model>>();

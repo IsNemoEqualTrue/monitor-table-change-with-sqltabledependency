@@ -13,16 +13,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("Item", Schema = "Transaction")]
-    public class UseSchemaOtherThanDboTestSqlServer2Model
-    {
-        public Guid TransactionItemId { get; set; }
-        public string Description { get; set; }
-    }
-
     [TestClass]
     public class UseSchemaOtherThanDboTestSqlServer2 : SqlTableDependencyBaseTest
     {
+        [Table("Item", Schema = "Transaction")]
+        private class UseSchemaOtherThanDboTestSqlServer2Model
+        {
+            public Guid TransactionItemId { get; set; }
+            public string Description { get; set; }
+        }
+
         private const string TableName = "Item";
         private const string SchemaName = "Transaction";
         private static int _counter;

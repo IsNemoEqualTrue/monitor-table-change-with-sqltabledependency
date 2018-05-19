@@ -13,15 +13,15 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class MassiveChangesInSingleCommandModel
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
-
     [TestClass]
     public class MassiveChangesInSingleCommandTest : SqlTableDependencyBaseTest
     {
+        private class MassiveChangesInSingleCommandModel
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+        }
+
         private static readonly string TableName = typeof(MassiveChangesInSingleCommandModel).Name;
         private static Dictionary<string, IList<MassiveChangesInSingleCommandModel>> _checkValues = new Dictionary<string, IList<MassiveChangesInSingleCommandModel>>();
         private static Dictionary<string, IList<MassiveChangesInSingleCommandModel>> _checkValuesOld = new Dictionary<string, IList<MassiveChangesInSingleCommandModel>>();

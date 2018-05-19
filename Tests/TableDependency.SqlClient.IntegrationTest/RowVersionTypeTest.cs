@@ -11,16 +11,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class RowVersionTypeModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public byte[] Version { get; set; }
-    }
-
     [TestClass]
     public class RowVersionTypeTest : SqlTableDependencyBaseTest
     {
+        private class RowVersionTypeModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public byte[] Version { get; set; }
+        }
+
         private static readonly string TableName = typeof(RowVersionTypeModel).Name;
         private byte[] _rowVersionInsert;
         private byte[] _rowVersionUpdate;

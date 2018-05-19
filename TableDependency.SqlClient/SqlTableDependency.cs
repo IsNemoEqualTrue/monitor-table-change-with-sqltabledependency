@@ -292,9 +292,9 @@ namespace TableDependency.SqlClient
             return SqlServerVersion.SqlServerLatest;
         }
 
-        protected override IEnumerable<ColumnInfo> GetTableColumnsList()
+        protected override IEnumerable<TableColumnInfo> GetTableColumnsList()
         {
-            var columnsList = new List<ColumnInfo>();
+            var columnsList = new List<TableColumnInfo>();
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -314,7 +314,7 @@ namespace TableDependency.SqlClient
                             reader.GetSafeString(reader.GetOrdinal("NUMERIC_SCALE")),
                             reader.GetSafeString(reader.GetOrdinal("DATETIME_PRECISION")));
 
-                        columnsList.Add(new ColumnInfo(name, type, size));
+                        columnsList.Add(new TableColumnInfo(name, type, size));
                     }
                 }
             }
@@ -341,7 +341,7 @@ namespace TableDependency.SqlClient
         {
             IList<string> processableMessages;
 
-            var interestedColumns = _userInterestedColumns as ColumnInfo[] ?? _userInterestedColumns.ToArray();
+            var interestedColumns = _userInterestedColumns as TableColumnInfo[] ?? _userInterestedColumns.ToArray();
 
             if (this.CheckIfDatabaseObjectExists() == false)
             {
@@ -403,7 +403,7 @@ namespace TableDependency.SqlClient
             return where;
         }
 
-        protected virtual string PrepareInsertIntoTableVariableForUpdateUserChange(ColumnInfo[] userInterestedColumns, string columnsForUpdateOf)
+        protected virtual string PrepareInsertIntoTableVariableForUpdateUserChange(TableColumnInfo[] userInterestedColumns, string columnsForUpdateOf)
         {
             var exceptStatement = this.PrepareExceptStatement(userInterestedColumns);
 
@@ -424,12 +424,12 @@ namespace TableDependency.SqlClient
         }
 
         protected virtual IList<string> CreateSqlServerDatabaseObjects(
-            IEnumerable<ColumnInfo> userInterestedColumns, 
+            IEnumerable<TableColumnInfo> userInterestedColumns, 
             string columnsForUpdateOf, 
             int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
-            var tableColumns = userInterestedColumns as IList<ColumnInfo> ?? userInterestedColumns.ToList();
+            var tableColumns = userInterestedColumns as IList<TableColumnInfo> ?? userInterestedColumns.ToList();
 
             var columnsForTableVariable = this.PrepareColumnListForTableVariable(tableColumns);
 
@@ -461,7 +461,7 @@ namespace TableDependency.SqlClient
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Message {startMessageDelete} created.");
                     processableMessages.Add(startMessageDelete);
 
-                    var interestedColumns = userInterestedColumns as ColumnInfo[] ?? tableColumns.ToArray();
+                    var interestedColumns = userInterestedColumns as TableColumnInfo[] ?? tableColumns.ToArray();
                     foreach (var userInterestedColumn in interestedColumns)
                     {
                         var message = $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}";
@@ -616,7 +616,7 @@ namespace TableDependency.SqlClient
             return source;
         }
 
-        protected virtual string PrepareExceptStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
+        protected virtual string PrepareExceptStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns)
         {
             if (interestedColumns.Any(tableColumn =>
                 string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
@@ -666,7 +666,7 @@ namespace TableDependency.SqlClient
                 processableMessages);
         }
 
-        protected virtual string PrepareColumnListForSelectFromTableVariable(IEnumerable<ColumnInfo> tableColumns)
+        protected virtual string PrepareColumnListForSelectFromTableVariable(IEnumerable<TableColumnInfo> tableColumns)
         {
             var columns = tableColumns.Select(c =>
             {
@@ -683,7 +683,7 @@ namespace TableDependency.SqlClient
             return string.Join(", ", columns.ToList());
         }
 
-        protected virtual string PrepareColumnListForTableVariable(IEnumerable<ColumnInfo> tableColumns)
+        protected virtual string PrepareColumnListForTableVariable(IEnumerable<TableColumnInfo> tableColumns)
         {
             var columns = tableColumns.Select(tableColumn =>
             {
@@ -745,7 +745,7 @@ namespace TableDependency.SqlClient
 
         protected override void CheckIfUserInterestedColumnsCanBeManaged()
         {
-            var checkIfUserInterestedColumnsCanBeManaged = _userInterestedColumns as ColumnInfo[] ?? _userInterestedColumns.ToArray();
+            var checkIfUserInterestedColumnsCanBeManaged = _userInterestedColumns as TableColumnInfo[] ?? _userInterestedColumns.ToArray();
             foreach (var tableColumn in checkIfUserInterestedColumnsCanBeManaged)
             {
                 if (string.Equals(tableColumn.Type.ToUpperInvariant(), "XML", StringComparison.OrdinalIgnoreCase) ||
@@ -763,12 +763,12 @@ namespace TableDependency.SqlClient
             }
         }
 
-        protected virtual string ConvertFormat(ColumnInfo userInterestedColumn)
+        protected virtual string ConvertFormat(TableColumnInfo userInterestedColumn)
         {
             return string.Equals(userInterestedColumn.Type, "datetime", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "date", StringComparison.OrdinalIgnoreCase) ? ", 121" : string.Empty;
         }
 
-        protected virtual string ConvertValueByType(IReadOnlyCollection<ColumnInfo> userInterestedColumns, ColumnInfo userInterestedColumn, bool isOld = false)
+        protected virtual string ConvertValueByType(IReadOnlyCollection<TableColumnInfo> userInterestedColumns, TableColumnInfo userInterestedColumn, bool isOld = false)
         {
             var oldNameExtension = isOld ? "_old" : string.Empty;
 
@@ -780,7 +780,7 @@ namespace TableDependency.SqlClient
             return $"CONVERT(NVARCHAR(MAX), {this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{oldNameExtension}{this.ConvertFormat(userInterestedColumn)})";
         }
 
-        protected virtual string PrepareSendConversation(ChangeType dmlType, IReadOnlyCollection<ColumnInfo> userInterestedColumns)
+        protected virtual string PrepareSendConversation(ChangeType dmlType, IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
                 .Select(insterestedColumn =>
@@ -801,7 +801,7 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine, sendList);
         }
 
-        protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<ColumnInfo> userInterestedColumns)
+        protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
             var result = string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
             if (this.IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old = [{insterestedColumn.Name}_old]"));
@@ -809,7 +809,7 @@ namespace TableDependency.SqlClient
             return result;
         }
 
-        protected virtual string PrepareDeclareVariableStatement(IReadOnlyCollection<ColumnInfo> interestedColumns)
+        protected virtual string PrepareDeclareVariableStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns)
         {
             var colonne = (from insterestedColumn in interestedColumns
                            let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size)
@@ -820,7 +820,7 @@ namespace TableDependency.SqlClient
             return string.Join(Environment.NewLine + this.Spacer(4), colonne);
         }
 
-        protected virtual string DeclareStatement(IReadOnlyCollection<ColumnInfo> interestedColumns, ColumnInfo insterestedColumn, string variableType)
+        protected virtual string DeclareStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns, TableColumnInfo insterestedColumn, string variableType)
         {
             var variableName = this.SanitizeVariableName(interestedColumns, insterestedColumn.Name);
 
@@ -830,7 +830,7 @@ namespace TableDependency.SqlClient
             return declare;
         }
 
-        protected virtual string SanitizeVariableName(IReadOnlyCollection<ColumnInfo> userInterestedColumns, string tableColumnName)
+        protected virtual string SanitizeVariableName(IReadOnlyCollection<TableColumnInfo> userInterestedColumns, string tableColumnName)
         {
             for (var i = 0; i < userInterestedColumns.Count; i++)
             {

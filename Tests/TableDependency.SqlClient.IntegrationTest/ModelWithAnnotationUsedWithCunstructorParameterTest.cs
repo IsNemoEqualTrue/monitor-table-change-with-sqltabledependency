@@ -12,20 +12,20 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    [Table("AAWItemsTable")]
-    public class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel
-    {
-        public long Id { get; set; }
-
-        public string Name { get; set; }
-
-        [Column("Long Description")]
-        public string Infos { get; set; }
-    }
-
     [TestClass]
     public class ModelWithAnnotationUsedWithCunstructorParameterTest : SqlTableDependencyBaseTest
     {
+        [Table("AAWItemsTable")]
+        private class ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel
+        {
+            public long Id { get; set; }
+
+            public string Name { get; set; }
+
+            [Column("Long Description")]
+            public string Infos { get; set; }
+        }
+
         private static readonly string TableName = typeof(ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel).Name;
         private static int _counter;
         private static readonly Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel> CheckValues = new Dictionary<string, ModelWithAnnotationUsedWithCunstructorParameterTestSqlServerModel>();

@@ -42,7 +42,7 @@ namespace TableDependency.SqlClient.EventArgs
         public SqlRecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<ColumnInfo> userInterestedColumns,            
+            IEnumerable<TableColumnInfo> userInterestedColumns,            
             string server,
             string database,
             string sender,
@@ -52,7 +52,7 @@ namespace TableDependency.SqlClient.EventArgs
 
         }
 
-        public override object GetValue(PropertyInfo entityPropertyInfo, ColumnInfo columnInfo, byte[] message)
+        public override object GetValue(PropertyInfo entityPropertyInfo, TableColumnInfo columnInfo, byte[] message)
         {
             if (message == null || message.Length == 0) return null;
 

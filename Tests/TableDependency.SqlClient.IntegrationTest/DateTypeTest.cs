@@ -40,7 +40,7 @@ namespace TableDependency.SqlClient.IntegrationTests
                     sqlCommand.ExecuteNonQuery();
 
                     sqlCommand.CommandText = $"CREATE TABLE [{TableName}] (" +
-                        "dateColumn date NULL, " +
+                        "dateColumn DATE NULL, " +
                         "datetimeColumn DATETIME NULL, " +
                         "datetime2Column datetime2(7) NULL, " +
                         "datetimeoffsetColumn DATETIMEOFFSET(7) NULL)";

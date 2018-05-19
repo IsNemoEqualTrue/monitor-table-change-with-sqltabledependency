@@ -13,15 +13,14 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class MassiveChangesModel
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
-
     [TestClass]
     public class MassiveChangesTest : SqlTableDependencyBaseTest
     {
+        private class MassiveChangesModel
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+        }
 
         public const int ChangesNumber = 1000;
         public static bool Done = false;

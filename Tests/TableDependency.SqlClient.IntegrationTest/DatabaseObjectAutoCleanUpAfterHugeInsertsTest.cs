@@ -9,18 +9,18 @@ using TableDependency.SqlClient.BaseTests;
 namespace TableDependency.SqlClient.IntegrationTests
 {
 #if DEBUG
-    public class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
     [TestClass]
     public class DatabaseObjectAutoCleanUpAfterHugeInsertsTest : SqlTableDependencyBaseTest
     {
+        private class DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private static readonly string TableName = typeof(DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel).Name;
 
         [ClassInitialize]

@@ -9,19 +9,19 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public DateTime Born { get; set; }
-        public int Quantity { get; set; }
-    }
-
 #if DEBUG
     [TestClass]
     public class DatabaseObjectAutoCleanUpAfter2InsertsTest : SqlTableDependencyBaseTest
     {
+        private class DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public DateTime Born { get; set; }
+            public int Quantity { get; set; }
+        }
+
         private static readonly string TableName = typeof(DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel).Name;
 
         [ClassInitialize]

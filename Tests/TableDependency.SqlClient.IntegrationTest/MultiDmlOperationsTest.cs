@@ -12,24 +12,24 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class MultiDmlOperationsTestSqlServerModel : IEquatable<MultiDmlOperationsTestSqlServerModel>
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-
-        public bool Equals(MultiDmlOperationsTestSqlServerModel other)
-        {
-            if (other == null) return false;
-            if (this.Name != other.Name) return false;
-            if (this.Surname != other.Surname) return false;
-            return true;
-        }
-    }
-
     [TestClass]
     public class MultiDmlOperationsTest : SqlTableDependencyBaseTest
     {
+        private class MultiDmlOperationsTestSqlServerModel : IEquatable<MultiDmlOperationsTestSqlServerModel>
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+
+            public bool Equals(MultiDmlOperationsTestSqlServerModel other)
+            {
+                if (other == null) return false;
+                if (this.Name != other.Name) return false;
+                if (this.Surname != other.Surname) return false;
+                return true;
+            }
+        }
+
         private static readonly string TableName = typeof(MultiDmlOperationsTestSqlServerModel).Name;
         private static readonly List<MultiDmlOperationsTestSqlServerModel> ModifiedValues = new List<MultiDmlOperationsTestSqlServerModel>();
         private static readonly List<MultiDmlOperationsTestSqlServerModel> InitialValues = new List<MultiDmlOperationsTestSqlServerModel>();
