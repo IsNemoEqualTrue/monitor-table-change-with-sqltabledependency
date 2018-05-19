@@ -18,16 +18,16 @@ namespace TableDependency.SqlClient.IntegrationTests
         Figlio = 2
     }
 
-    public class EnumTestSqlServerModel
-    {      
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public TypeEnum Tipo { get; set; }
-    }
-
     [TestClass]
     public class EnumTestSqlServer : SqlTableDependencyBaseTest
     {
+        private class EnumTestSqlServerModel
+        {
+            public string Name { get; set; }
+            public string Surname { get; set; }
+            public TypeEnum Tipo { get; set; }
+        }
+
         private static readonly string TableName = typeof(EnumTestSqlServerModel).Name.ToUpper();
         private static int _counter;
         private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>>();

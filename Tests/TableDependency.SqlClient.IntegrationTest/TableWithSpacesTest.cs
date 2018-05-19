@@ -24,8 +24,8 @@ namespace TableDependency.SqlClient.IntegrationTests
 
         private const string TableName = "BranchABC$Sales Invoice Header";
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>> _checkValues = new Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>>();
-        private static readonly Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>> _checkValuesOld = new Dictionary<string, Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>>();
+        private static readonly Dictionary<string, Tuple<TableWithSpacesModel, TableWithSpacesModel>> _checkValues = new Dictionary<string, Tuple<TableWithSpacesModel, TableWithSpacesModel>>();
+        private static readonly Dictionary<string, Tuple<TableWithSpacesModel, TableWithSpacesModel>> _checkValuesOld = new Dictionary<string, Tuple<TableWithSpacesModel, TableWithSpacesModel>>();
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -40,7 +40,7 @@ namespace TableDependency.SqlClient.IntegrationTests
 
                     sqlCommand.CommandText =
                         $"CREATE TABLE [{TableName}]( " +
-                        "[Id][int] IDENTITY(1, 1) NOT NULL, " +
+                        "[Id] [int] IDENTITY(1, 1) NOT NULL, " +
                         "[First Name] [nvarchar](50) NOT NULL, " +
                         "[Second Name] [nvarchar](50) NOT NULL)";
                     sqlCommand.ExecuteNonQuery();
@@ -66,13 +66,13 @@ namespace TableDependency.SqlClient.IntegrationTests
 
             _counter = 0;
 
-            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new EventForAllColumnsTestSqlServerModel()));
-            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
-            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
+            _checkValues.Add(ChangeType.Insert.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Christian", Surname = "Del Bianco" }, new TableWithSpacesModel()));
+            _checkValues.Add(ChangeType.Update.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Velia", Surname = "Ceccarelli" }, new TableWithSpacesModel()));
+            _checkValues.Add(ChangeType.Delete.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Velia", Surname = "Ceccarelli" }, new TableWithSpacesModel()));
 
-            _checkValuesOld.Add(ChangeType.Insert.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Christian", Surname = "Del Bianco" }, new EventForAllColumnsTestSqlServerModel()));
-            _checkValuesOld.Add(ChangeType.Update.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
-            _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<EventForAllColumnsTestSqlServerModel, EventForAllColumnsTestSqlServerModel>(new EventForAllColumnsTestSqlServerModel { Name = "Velia", Surname = "Ceccarelli" }, new EventForAllColumnsTestSqlServerModel()));
+            _checkValuesOld.Add(ChangeType.Insert.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Christian", Surname = "Del Bianco" }, new TableWithSpacesModel()));
+            _checkValuesOld.Add(ChangeType.Update.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Velia", Surname = "Ceccarelli" }, new TableWithSpacesModel()));
+            _checkValuesOld.Add(ChangeType.Delete.ToString(), new Tuple<TableWithSpacesModel, TableWithSpacesModel>(new TableWithSpacesModel { Name = "Velia", Surname = "Ceccarelli" }, new TableWithSpacesModel()));
         }
 
         [ClassCleanup]
@@ -93,15 +93,15 @@ namespace TableDependency.SqlClient.IntegrationTests
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<EventForAllColumnsTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<TableWithSpacesModel> tableDependency = null;
             string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
-                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+                var mapper = new ModelToTableMapper<TableWithSpacesModel>();
+                mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, tableName: TableName, mapper: mapper);
+                tableDependency = new SqlTableDependency<TableWithSpacesModel>(ConnectionStringForTestUser, includeOldValues: false, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -137,15 +137,15 @@ namespace TableDependency.SqlClient.IntegrationTests
         [TestMethod]
         public void TestWithOldValues()
         {
-            SqlTableDependency<EventForAllColumnsTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<TableWithSpacesModel> tableDependency = null;
             string naming;
 
             try
             {
-                var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
-                mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+                var mapper = new ModelToTableMapper<TableWithSpacesModel>();
+                mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-                tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(ConnectionStringForTestUser, includeOldValues: true, tableName: TableName, mapper: mapper);
+                tableDependency = new SqlTableDependency<TableWithSpacesModel>(ConnectionStringForTestUser, includeOldValues: true, tableName: TableName, mapper: mapper);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
                 naming = tableDependency.DataBaseObjectsNamingConvention;
@@ -178,7 +178,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<TableWithSpacesModel> e)
         {
             _counter++;
 

@@ -8,18 +8,18 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
+    public class DatabaseObjectCleanUpTestSqlServerModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class DatabaseObjectAutoCleanUpTest : SqlTableDependencyBaseTest
     {
-        private class DatabaseObjectCleanUpTestSqlServerModel
-        {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public string Surname { get; set; }
-            public DateTime Born { get; set; }
-            public int Quantity { get; set; }
-        }
-
         private static string _dbObjectsNaming;
         private const string TableName = "SpiderManTable";
 

@@ -13,16 +13,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class CultureInfoTestModel
-    {
-        public string Name { get; set; }
-
-        public DateTime BirthDate { get; set; }
-    }
-
     [TestClass]
     public class CultureInfoTest : SqlTableDependencyBaseTest
     {
+        private class CultureInfoTestModel
+        {
+            public string Name { get; set; }
+
+            public DateTime BirthDate { get; set; }
+        }
+
         private static readonly string TableName1 = typeof(CultureInfoTestModel).Name + "1";
         private static readonly string TableName2 = typeof(CultureInfoTestModel).Name + "2";
         private static int _counter1;

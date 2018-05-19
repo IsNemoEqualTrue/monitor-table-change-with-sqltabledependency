@@ -10,19 +10,19 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
+    public class CancellationTokenTestModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public DateTime Born { get; set; }
+        public int Quantity { get; set; }
+    }
+
     [TestClass]
     public class CancellationTokenTest : SqlTableDependencyBaseTest
     {
-        private class LoadAndCountTestSqlServerModel
-        {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public string Surname { get; set; }
-            public DateTime Born { get; set; }
-            public int Quantity { get; set; }
-        }
-
-        private static readonly string TableName = typeof(LoadAndCountTestSqlServerModel).Name;
+        private static readonly string TableName = typeof(CancellationTokenTestModel).Name;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -112,15 +112,15 @@ namespace TableDependency.SqlClient.IntegrationTests
 
     public class ListenerSlq : SqlTableDependencyBaseTest, IDisposable
     {
-        private readonly SqlTableDependency<LoadAndCountTestSqlServerModel> _tableDependency;    
+        private readonly SqlTableDependency<CancellationTokenTestModel> _tableDependency;    
         public string ObjectNaming { get; }
 
         public ListenerSlq(string tableName)
         {
-            var mapper = new ModelToTableMapper<LoadAndCountTestSqlServerModel>();
+            var mapper = new ModelToTableMapper<CancellationTokenTestModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            _tableDependency = new SqlTableDependency<LoadAndCountTestSqlServerModel>(ConnectionStringForTestUser, mapper: mapper);
+            _tableDependency = new SqlTableDependency<CancellationTokenTestModel>(ConnectionStringForTestUser, mapper: mapper);
             _tableDependency.OnChanged += (o, args) => { Debug.WriteLine("Received:" + args.Entity.Name); };
             _tableDependency.Start(60, 120);
             this.ObjectNaming = this._tableDependency.DataBaseObjectsNamingConvention;

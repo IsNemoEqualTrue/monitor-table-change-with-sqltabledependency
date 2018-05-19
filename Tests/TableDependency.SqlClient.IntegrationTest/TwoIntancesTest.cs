@@ -12,15 +12,15 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class TwoIntancesModel
-    {
-        public long Id { get; set; }
-        public string Name { get; set; }
-    }
-
     [TestClass]
     public class TwoIntancesTest : SqlTableDependencyBaseTest
     {
+        private class TwoIntancesModel
+        {
+            public long Id { get; set; }
+            public string Name { get; set; }
+        }
+
         private const string TableName1 = "TwoIntancesModel1";
         private const string TableName2 = "TwoIntancesModel2";
         private static readonly Dictionary<string, IList<TwoIntancesModel>> CheckValues1 = new Dictionary<string, IList<TwoIntancesModel>>();

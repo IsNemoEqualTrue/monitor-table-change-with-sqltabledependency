@@ -59,10 +59,10 @@ namespace TableDependency.SqlClient.IntegrationTests
         [TestMethod]
         public void Test()
         {
-            var mapper = new ModelToTableMapper<EventForAllColumnsTestSqlServerModel>();
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<EventForAllColumnsTestSqlServerModel>(
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel>(
                 ConnectionStringForTestUser, 
                 includeOldValues: true, 
                 tableName: TableName, 
@@ -115,7 +115,7 @@ namespace TableDependency.SqlClient.IntegrationTests
             }
         }
 
-        private void TableDependency_OnChanged(object sender, TableDependency.EventArgs.RecordChangedEventArgs<EventForAllColumnsTestSqlServerModel> e)
+        private void TableDependency_OnChanged(object sender, TableDependency.EventArgs.RecordChangedEventArgs<DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel> e)
         {
         }
     }

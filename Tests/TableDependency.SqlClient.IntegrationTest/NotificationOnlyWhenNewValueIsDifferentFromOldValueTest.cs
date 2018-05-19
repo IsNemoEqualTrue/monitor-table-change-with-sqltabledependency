@@ -12,16 +12,16 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-    }
-
     [TestClass]
     public class NotificationOnlyWhenNewValueIsDifferentFromOldValueTest : SqlTableDependencyBaseTest
     {
+        private class NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public string Surname { get; set; }
+        }
+
         private static readonly string TableName = typeof(NotificationOnlyWhenNewValueIsDifferentFromOldValueSqlServerModel).Name;
         private static int _counter1;
         private static int _counter2;
