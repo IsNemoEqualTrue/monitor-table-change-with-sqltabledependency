@@ -139,7 +139,7 @@ namespace TableDependency.SqlClient
         public SqlTableDependency(
             string connectionString,
             string tableName = null,
-            string schemaName = null,            
+            string schemaName = null,
             IModelToTableMapper<T> mapper = null,
             IUpdateOfModel<T> updateOf = null,
             ITableDependencyFilter filter = null,
@@ -400,38 +400,28 @@ namespace TableDependency.SqlClient
                 where = (prependSpace ? " " : string.Empty) + "WHERE " + filter;
             }
 
-            return where;
+            return where.Trim();
         }
 
-        protected virtual string PrepareInsertIntoTableVariableForUpdateUserChange(TableColumnInfo[] userInterestedColumns, string columnsForUpdateOf)
+        protected virtual string PrepareInsertIntoTableVariableForUpdateChange(TableColumnInfo[] userInterestedColumns, string columnsForUpdateOf)
         {
-            var exceptStatement = this.PrepareExceptStatement(userInterestedColumns);
-
-            var columnsForSelectFromTableVariable = userInterestedColumns.Select(c =>
-            {
-                var column = $"[{c.Name}]";
-                if (this.IncludeOldValues) column += $", (SELECT [{c.Name}] FROM DELETED)";
-                return column;
-            });
-
-            var columnsList = string.Join(", ", columnsForSelectFromTableVariable.ToList());
+            var insertIntoExceptTableStatement = this.PrepareInsertIntoModifiedRecordsTableStatement(userInterestedColumns);
 
             var scriptForInsertInTableVariable = !string.IsNullOrEmpty(columnsForUpdateOf)
-                ? string.Format(SqlScripts.InsertInTableVariableConsideringUpdateOf, columnsForUpdateOf, columnsList, ChangeType.Update, exceptStatement)
-                : string.Format(SqlScripts.InsertInTableVariable, columnsList, ChangeType.Update, exceptStatement);
+                ? string.Format(SqlScripts.InsertInTableVariableConsideringUpdateOf, columnsForUpdateOf, ChangeType.Update, insertIntoExceptTableStatement)
+                : string.Format(SqlScripts.InsertInTableVariable, ChangeType.Update, insertIntoExceptTableStatement);
 
             return scriptForInsertInTableVariable;
         }
 
-        protected virtual IList<string> CreateSqlServerDatabaseObjects(
-            IEnumerable<TableColumnInfo> userInterestedColumns, 
-            string columnsForUpdateOf, 
-            int watchDogTimeOut)
+        protected virtual IList<string> CreateSqlServerDatabaseObjects(IEnumerable<TableColumnInfo> userInterestedColumns, string columnsForUpdateOf, int watchDogTimeOut)
         {
             var processableMessages = new List<string>();
             var tableColumns = userInterestedColumns as IList<TableColumnInfo> ?? userInterestedColumns.ToList();
 
-            var columnsForTableVariable = this.PrepareColumnListForTableVariable(tableColumns);
+            var columnsForModifiedRecordsTable = this.PrepareColumnListForTableVariable(tableColumns, this.IncludeOldValues);
+            var columnsForExceptTable = this.PrepareColumnListForTableVariable(tableColumns, false);
+            var columnsForDeletedTable = this.PrepareColumnListForTableVariable(tableColumns, false);
 
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
@@ -536,9 +526,9 @@ namespace TableDependency.SqlClient
                         SqlScripts.CreateTrigger,
                         _dataBaseObjectsNamingConvention,
                         $"[{_schemaName}].[{_tableName}]",
-                        columnsForTableVariable,
+                        columnsForModifiedRecordsTable,
                         this.PrepareColumnListForSelectFromTableVariable(tableColumns),
-                        this.PrepareInsertIntoTableVariableForUpdateUserChange(interestedColumns, columnsForUpdateOf),
+                        this.PrepareInsertIntoTableVariableForUpdateChange(interestedColumns, columnsForUpdateOf),
                         declareVariableStatement,
                         selectForSetVariablesStatement,
                         sendInsertConversationStatements,
@@ -550,7 +540,9 @@ namespace TableDependency.SqlClient
                         string.Join(", ", this.GetDmlTriggerType(_dmlTriggerType)),
                         this.CreateWhereCondifition(),
                         this.PrepareTriggerLogScript(),
-                        this.ActivateDatabaseLoging ? " WITH LOG" : string.Empty);
+                        this.ActivateDatabaseLoging ? " WITH LOG" : string.Empty,
+                        columnsForExceptTable,
+                        columnsForDeletedTable);
 
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {_dataBaseObjectsNamingConvention} created.");
@@ -616,26 +608,50 @@ namespace TableDependency.SqlClient
             return source;
         }
 
-        protected virtual string PrepareExceptStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns)
+        protected virtual string PrepareInsertIntoModifiedRecordsTableStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns)
         {
-            if (interestedColumns.Any(tableColumn =>
-                string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))) return "INSERTED";
+            string insertIntoExceptStatement;
 
-            var separatorNewColumns = new Separator(2, ",");
-            var sBuilderNewColumns = new StringBuilder();
-            var separatorOldColumns = new Separator(2, ",");
-            var sBuilderOldColumns = new StringBuilder();
+            var whereCondifition = this.CreateWhereCondifition();
 
-            foreach (var column in interestedColumns)
+            var comma = new Separator(2, ",");
+            var sBuilderColumns = new StringBuilder();
+            foreach (var column in interestedColumns) sBuilderColumns.Append($"{comma.GetSeparator()}[{column.Name}]");
+
+            var insertedAndDeletedTableVariable =
+                $"INSERT INTO @deletedTable SELECT {sBuilderColumns} FROM DELETED" + Environment.NewLine +
+                $"INSERT INTO @insertedTable SELECT {sBuilderColumns} FROM INSERTED" + Environment.NewLine + Environment.NewLine;
+
+            if (interestedColumns.Any(tableColumn => string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) || string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase)))
             {
-                sBuilderNewColumns.Append($"{separatorNewColumns.GetSeparator()}[m_New].[{column.Name}]");
-                sBuilderOldColumns.Append($"{separatorOldColumns.GetSeparator()}[m_Old].[{column.Name}]");
+                insertIntoExceptStatement =
+                    insertedAndDeletedTableVariable +
+                    $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable";
+            }
+            else
+            {
+                insertIntoExceptStatement =
+                    insertedAndDeletedTableVariable +
+                    $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable EXCEPT SELECT [RowNumber],{sBuilderColumns} FROM @deletedTable";
             }
 
-            var exceptStatement = $"(SELECT {sBuilderNewColumns} FROM INSERTED AS [m_New] {this.CreateWhereCondifition()} EXCEPT SELECT {sBuilderOldColumns} FROM DELETED AS [m_Old]) a";
+            if (this.IncludeOldValues)
+            {
+                comma = new Separator(2, ",");
+                sBuilderColumns = new StringBuilder();
+                foreach (var column in interestedColumns)
+                {
+                    sBuilderColumns.Append($"{comma.GetSeparator()}[{column.Name}]");
+                    sBuilderColumns.Append($"{comma.GetSeparator()}(SELECT d.[{column.Name}] FROM @deletedTable d WHERE d.[RowNumber] = e.[RowNumber])");
+                }
+            }
 
-            return exceptStatement;
+            var insertIntoModifiedRecordsTable = 
+                insertIntoExceptStatement + Environment.NewLine + Environment.NewLine +
+                $"INSERT INTO @modifiedRecordsTable {Environment.NewLine}" +
+                $"SELECT {sBuilderColumns} FROM @exceptTable e {whereCondifition}";
+
+            return insertIntoModifiedRecordsTable;
         }
 
         protected virtual IEnumerable<string> GetDmlTriggerType(DmlTriggerType dmlTriggerType)
@@ -683,33 +699,33 @@ namespace TableDependency.SqlClient
             return string.Join(", ", columns.ToList());
         }
 
-        protected virtual string PrepareColumnListForTableVariable(IEnumerable<TableColumnInfo> tableColumns)
+        protected virtual string PrepareColumnListForTableVariable(IEnumerable<TableColumnInfo> tableColumns, bool includeOldValues)
         {
             var columns = tableColumns.Select(tableColumn =>
             {
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
                 {
                     var columnBinary = $"[{tableColumn.Name}] binary(8)";
-                    if (this.IncludeOldValues) columnBinary += $", [{tableColumn.Name}_old] binary(8)";
+                    if (includeOldValues) columnBinary += $", [{tableColumn.Name}_old] binary(8)";
                     return columnBinary;
                 }
 
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
                 {
                     var columnVarbinary = $"[{tableColumn.Name}] varbinary(8)";
-                    if (this.IncludeOldValues) columnVarbinary += $", [{ tableColumn.Name}_old] varbinary(8)";
+                    if (includeOldValues) columnVarbinary += $", [{ tableColumn.Name}_old] varbinary(8)";
                     return columnVarbinary;
                 }
 
                 if (!string.IsNullOrWhiteSpace(tableColumn.Size))
                 {
                     var columnWithSize = $"[{tableColumn.Name}] {tableColumn.Type}({tableColumn.Size})";
-                    if (this.IncludeOldValues) columnWithSize += $", [{tableColumn.Name}_old] {tableColumn.Type}({tableColumn.Size})";
+                    if (includeOldValues) columnWithSize += $", [{tableColumn.Name}_old] {tableColumn.Type}({tableColumn.Size})";
                     return columnWithSize;
                 }
 
                 var column = $"[{tableColumn.Name}] {tableColumn.Type}";
-                if (this.IncludeOldValues) column += $", [{tableColumn.Name}_old] {tableColumn.Type}";
+                if (includeOldValues) column += $", [{tableColumn.Name}_old] {tableColumn.Type}";
                 return column;
             });
 
@@ -776,7 +792,7 @@ namespace TableDependency.SqlClient
             {
                 return this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name) + oldNameExtension;
             }
-            
+
             return $"CONVERT(NVARCHAR(MAX), {this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{oldNameExtension}{this.ConvertFormat(userInterestedColumn)})";
         }
 

@@ -21,7 +21,7 @@ namespace TableDependency.SqlClient.IntegrationTests
     public class DatabaseObjectAutoCleanUpTest : SqlTableDependencyBaseTest
     {
         private static string _dbObjectsNaming;
-        private const string TableName = "SpiderManTable";
+        private const string TableName = "DatabaseObjectAutoCleanUpTestTable";
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)

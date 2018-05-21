@@ -21,7 +21,7 @@ namespace TableDependency.SqlClient.Where.IntegrationTests
         private class WithMapperTestModel
         {
             public int Identificator { get; set; }
-            public string Name { get; set; }        
+            public string Name { get; set; }
             public string Surname { get; set; }
         }
 

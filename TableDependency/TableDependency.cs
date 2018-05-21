@@ -452,7 +452,10 @@ namespace TableDependency
 
                     dbColumnName = GetColumnNameFromModelProperty(tableColumns, propertyInfo.Name);
                     updateOfList.Add(dbColumnName);
-                }                
+                    continue;
+                }
+
+                updateOfList.Add(propertyInfo.Name);
             }
 
             return updateOfList;

@@ -39,7 +39,7 @@ namespace TableDependency.Utilities
         {
             var modelPropertyInfosWithColumnAttribute = typeof(T)
                 .GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => CustomAttributeExtensions.IsDefined(x, typeof(ColumnAttribute), false))
+                .Where(x => CustomAttributeExtensions.IsDefined((MemberInfo)x, typeof(ColumnAttribute), false))
                 .ToArray();
 
             if (!modelPropertyInfosWithColumnAttribute.Any()) return null;
@@ -62,7 +62,7 @@ namespace TableDependency.Utilities
                 }
             }
 
-            return mapper.Count() > 0 ? mapper : null;
+            return mapper;
         }
     }
 }

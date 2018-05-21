@@ -63,6 +63,9 @@ BEGIN
     DECLARE @theMessageContainer NVARCHAR(MAX)
     DECLARE @dmlType NVARCHAR(10)
     DECLARE @modifiedRecordsTable TABLE ([RowNumber] INT IDENTITY(1, 1), {2})
+    DECLARE @exceptTable TABLE ([RowNumber] INT, {17})
+	DECLARE @deletedTable TABLE ([RowNumber] INT IDENTITY(1, 1), {18})
+    DECLARE @insertedTable TABLE ([RowNumber] INT IDENTITY(1, 1), {18})
     {5}
     
     IF NOT EXISTS(SELECT * FROM INSERTED)
@@ -125,15 +128,15 @@ END";
 
         public const string InsertInTableVariableConsideringUpdateOf = @"IF ({0}) 
 BEGIN
-    SET @dmlType = '{2}'
-    INSERT INTO @modifiedRecordsTable SELECT {1} FROM {3}
+    SET @dmlType = '{1}'
+    {2}
 END
 ELSE BEGIN
     RETURN
 END";
 
-        public const string InsertInTableVariable = @"SET @dmlType = '{1}'
-            INSERT INTO @modifiedRecordsTable SELECT {0} FROM {2}";
+        public const string InsertInTableVariable = @"SET @dmlType = '{0}'
+            {1}";
 
         public const string ScriptDropAll = @"DECLARE @schema_id INT;
 DECLARE @conversation_handle UNIQUEIDENTIFIER;
@@ -177,7 +180,6 @@ PRINT N'SqlTableDependency: Dropping messages.';
 
 PRINT N'SqlTableDependency: Dropping activation procedure {0}_QueueActivationSender.';
 IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivationSender') DROP PROCEDURE [{2}].[{0}_QueueActivationSender];";
-
 
     }
 }

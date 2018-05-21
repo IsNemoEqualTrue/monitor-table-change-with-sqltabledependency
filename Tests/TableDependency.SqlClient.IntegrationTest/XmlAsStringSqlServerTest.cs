@@ -12,19 +12,19 @@ using TableDependency.SqlClient.BaseTests;
 
 namespace TableDependency.SqlClient.IntegrationTests
 {
-    public class XmlAsStringSqlServerTestModel
-    {
-        // *****************************************************
-        // SQL Server Data Type Mappings: 
-        // https://msdn.microsoft.com/en-us/library/cc716729%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
-        // *****************************************************
-        public string VarcharMaxColumn { get; set; }
-        public string NvarcharMaxColumn { get; set; }
-    }
-
     [TestClass]
     public class XmlAsStringSqlServerTest : SqlTableDependencyBaseTest
     {
+        private class XmlAsStringSqlServerTestModel
+        {
+            // *****************************************************
+            // SQL Server Data Type Mappings: 
+            // https://msdn.microsoft.com/en-us/library/cc716729%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+            // *****************************************************
+            public string VarcharMaxColumn { get; set; }
+            public string NvarcharMaxColumn { get; set; }
+        }
+
         private static readonly string TableName = typeof(XmlAsStringSqlServerTestModel).Name;
         private static Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>> _checkValues = new Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>>();
         private static Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>> _checkValuesOld = new Dictionary<string, Tuple<XmlAsStringSqlServerTestModel, XmlAsStringSqlServerTestModel>>();
