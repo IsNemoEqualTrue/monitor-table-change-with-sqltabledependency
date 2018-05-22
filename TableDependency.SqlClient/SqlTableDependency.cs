@@ -191,7 +191,7 @@ namespace TableDependency.SqlClient
 
         #endregion
 
-        #region protected virtual methods
+        #region Protected virtual methods
 
         protected virtual string Spacer(int numberOrSpaces)
         {
