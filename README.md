@@ -9,7 +9,7 @@
 
 # Monitor and receive notifications on record table changes
 
-[![License](https://img.shields.io/cocoapods/l/AFNetworking.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![Release](https://img.shields.io/badge/release-7.2.0-brightgreen.svg)](#) [![Updated](https://img.shields.io/badge/date-May%2010%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
+[![License](https://img.shields.io/cocoapods/l/AFNetworking.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![Release](https://img.shields.io/badge/release-7.3.0-brightgreen.svg)](#) [![Updated](https://img.shields.io/badge/date-May%2021%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
 
 **SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes.
 
@@ -26,7 +26,7 @@ Assuming we are interested to receive record changes for the following database 
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
 
-Start installing SqlTableDependency using:
+Install SqlTableDependency using:
 
 [![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
@@ -106,11 +106,12 @@ This section reports some use case examples:
 * [Explicit database table name.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Explicit-database-table-name)
 * [Custom map between model property and table column using ModelToTableMapper<T>.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Custom-map-between-model-property-and-table-column-using-ModelToTableMapper-T)
 * [Specify for which properties we want receive notification using UpdateOfModel<T> mapper.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Specify-for-which-properties-we-want-receive-notification-using-UpdateOfModel-T--mapper)
-* [Filter notification by operation type.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Filter-notification-by-operation-type)
+* [Filter notification by change type.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Filter-notification-by-operation-type)
 * [Get Errors.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Get-errors)
 * [Logging.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Logging)
 * [Get Status.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Status-change)
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
+* [Include old values.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Include-old-values)
 
 #### Remark
 The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method starts the listener to receive record change notifications.
