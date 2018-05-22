@@ -26,7 +26,7 @@ Assuming we are interested to receive record changes for the following database 
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
 
-Start installing SqlTableDependency using:
+Install SqlTableDependency using:
 
 [![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
