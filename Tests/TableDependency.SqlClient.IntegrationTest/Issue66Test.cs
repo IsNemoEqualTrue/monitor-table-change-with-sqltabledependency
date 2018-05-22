@@ -366,6 +366,66 @@ namespace TableDependency.SqlClient.IntegrationTests
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void Test6()
+        {
+            SqlTableDependency<Issue66Model2> tableDependency = null;
+            string naming;
+
+            var mapper = new ModelToTableMapper<Issue66Model2>();
+            mapper.AddMapping(c => c.Surname, "Second Name");
+
+            Expression<Func<Issue66Model2, bool>> expression = p => p.Id == 1 && p.Surname == "DEL BIANCO";
+            ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Issue66Model2>(expression, mapper);
+
+            var updateOf = new UpdateOfModel<Issue66Model2>();
+            updateOf.Add(i => i.Surname);
+            updateOf.Add(i => i.City);
+
+            try
+            {
+                tableDependency = new SqlTableDependency<Issue66Model2>(
+                    ConnectionStringForTestUser,
+                    includeOldValues: true,
+                    tableName: TableName + "2",
+                    mapper: mapper,
+                    updateOf: updateOf,
+                    notifyOn: DmlTriggerType.Update,
+                    filter: whereCondition);
+
+                tableDependency.OnChanged += this.TableDependency_Changed2;
+                tableDependency.Start();
+                naming = tableDependency.DataBaseObjectsNamingConvention;
+
+                var t = new Task(ModifyTableContent5);
+                t.Start();
+                Thread.Sleep(1000 * 15 * 1);
+            }
+            finally
+            {
+                tableDependency?.Dispose();
+            }
+
+            Assert.AreEqual(CheckValues2[ChangeType.Insert.ToString()].Count, 0);
+
+            Assert.AreEqual(CheckValues2[ChangeType.Update.ToString()].Count, 1);
+
+            Assert.AreEqual(CheckValues2[ChangeType.Update.ToString()][0].Id, 1);
+            Assert.AreEqual(CheckValues2[ChangeType.Update.ToString()][0].Surname, "DEL BIANCO");
+            Assert.AreEqual(CheckValues2[ChangeType.Update.ToString()][0].Name, "CHRISTIAN");
+            Assert.AreEqual(CheckValues2[ChangeType.Update.ToString()][0].City, "BAAR");
+            Assert.AreEqual(CheckValuesOld2[ChangeType.Update.ToString()][0].Id, 1);
+            Assert.AreEqual(CheckValuesOld2[ChangeType.Update.ToString()][0].Surname, "DELBIANCO");
+            Assert.AreEqual(CheckValuesOld2[ChangeType.Update.ToString()][0].Name, "CHRISTIAN");
+            Assert.AreEqual(CheckValuesOld2[ChangeType.Update.ToString()][0].City, "LAVENA PONTE TRESA");
+
+            Assert.AreEqual(CheckValues2[ChangeType.Delete.ToString()].Count, 0);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
+            Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
+        }
+
         private void TableDependency_Changed1(object sender, RecordChangedEventArgs<Issue66Model1> e)
         {
             switch (e.ChangeType)
