@@ -26,7 +26,7 @@ As example, let's assume we are interested to receive record changes for the fol
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
 
-after installing SqlTableDependency using:
+after installing SqlTableDependency using
 
 [![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
