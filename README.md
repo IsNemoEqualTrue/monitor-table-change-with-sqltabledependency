@@ -91,7 +91,7 @@ Done! Now you are ready to receive record table change notifications:
 [![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
 ### Monitor table changes use cases and examples
-To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test). Here, SqlTableDependency is tested continuously using a thread that every five seconds perform an update record table change. SqlTableDependency monitor this table change and get a notification containing new update record table values.  
+To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test). Here, SqlTableDependency is tested continuously using a thread that every five seconds perform an update record table change. SqlTableDependency monitor this record table change and get a notification containing new update record table values.  
 
 Also, here are some examples of applications getting notification on record table change. After downloading the example, please remember to update SqlTableDependency nuget package:
 
