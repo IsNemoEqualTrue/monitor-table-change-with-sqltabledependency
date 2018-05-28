@@ -146,7 +146,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 * Windows service using SqlTableDependency **must not goes to SLEEP mode or IDLE state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects (please see https://stackoverflow.com/questions/6302185/how-to-prevent-windows-from-entering-idle-state).
 * Database Backup and Restore: restoring SqlTableDependency's db objects, it does **not work**.
 
-To use notifications, you must be sure to enable Service Broker for the database. To do this please run the following command:
+To use notifications, you must be sure to enable Service Broker for the database. To do this run the SQL command:
 ```SQL
 ALTER DATABASE MyDatabase SET ENABLE_BROKER
 ```
