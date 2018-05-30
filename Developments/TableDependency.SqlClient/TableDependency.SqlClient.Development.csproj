@@ -39,7 +39,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Customer.cs" />
+    <Compile Include="Models\Customer.cs" />
+    <Compile Include="Models\Equipamento.cs" />
+    <Compile Include="Models\Product.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

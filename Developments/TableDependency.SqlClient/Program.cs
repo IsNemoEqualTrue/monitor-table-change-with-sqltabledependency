@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Configuration;
+using System.Globalization;
 
 using TableDependency.Enums;
 using TableDependency.EventArgs;
+using TableDependency.SqlClient.Development.Models;
 
 using ErrorEventArgs = TableDependency.EventArgs.ErrorEventArgs;
 
@@ -19,6 +21,7 @@ namespace TableDependency.SqlClient.Development
             {
                 Console.Clear();
 
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("TableDependency, SqlTableDependency");
                 Console.WriteLine("Copyright (c) 2015-2018 Christian Del Bianco.");
                 Console.WriteLine("All rights reserved." + Environment.NewLine);
@@ -33,18 +36,15 @@ namespace TableDependency.SqlClient.Development
                 if (consoleKeyInfo.Key == ConsoleKey.Escape) Environment.Exit(0);
 
             } while (consoleKeyInfo.Key != ConsoleKey.F4 && consoleKeyInfo.Key != ConsoleKey.F5);
-           
+
+            Console.ResetColor();
             if (consoleKeyInfo.Key == ConsoleKey.F4) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F5) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
 
-            var mapper = new ModelToTableMapper<Customer>();
-            mapper.AddMapping(c => c.Id, "CustomerID");
+            var mapper = new ModelToTableMapper<Product>();
+            mapper.AddMapping(c => c.Expiring, "ExpiringDate");
 
-            var updateOf = new UpdateOfModel<Customer>();
-            updateOf.Add(i => i.CompanyName);
-            updateOf.Add(i => i.ContactName);
-
-            using (var dep = new SqlTableDependency<Customer>(connectionString, "Customers", mapper: mapper, updateOf: updateOf, includeOldValues: true))
+            using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, includeOldValues: true))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
@@ -54,7 +54,7 @@ namespace TableDependency.SqlClient.Development
                 Console.WriteLine("Waiting for receiving notifications (db objects naming: " + dep.DataBaseObjectsNamingConvention + ")...");
                 Console.WriteLine("Press a key to stop.");
                 Console.ReadKey();
-            }            
+            }
         }
 
         private static void OnError(object sender, ErrorEventArgs e)
@@ -65,23 +65,30 @@ namespace TableDependency.SqlClient.Development
             Console.WriteLine(e.Error?.Message);
         }
 
-        private static void Changed(object sender, RecordChangedEventArgs<Customer> e)
+        private static void Changed(object sender, RecordChangedEventArgs<Product> e)
         {
             Console.WriteLine(Environment.NewLine);
 
             if (e.ChangeType != ChangeType.None)
             {
                 var changedEntity = e.Entity;
-                Console.WriteLine("DML operation: " + e.ChangeType);
-                Console.WriteLine("CompanyName:   " + changedEntity.CompanyName);
-                Console.WriteLine("ContactName:   " + changedEntity.ContactName);
+                Console.WriteLine("Id: " + changedEntity.Id);
+                Console.WriteLine("Name: " + changedEntity.Name);
+                Console.WriteLine("Expiring: " + changedEntity.Expiring);
+                Console.WriteLine("Quantity: " + changedEntity.Quantity);
+                Console.WriteLine("Price: " + changedEntity.Price);
             }
 
-            if (e.ChangeType == ChangeType.Update)
+            if (e.ChangeType == ChangeType.Update && e.EntityOldValues != null)
             {
+                Console.WriteLine(Environment.NewLine);
+
                 var changedEntity = e.EntityOldValues;
-                Console.WriteLine("CompanyName (OLD):   " + changedEntity.CompanyName);
-                Console.WriteLine("ContactName (OLD):   " + changedEntity.ContactName);
+                Console.WriteLine("Id (OLD): " + changedEntity.Id);
+                Console.WriteLine("Name (OLD): " + changedEntity.Name);
+                Console.WriteLine("Expiring (OLD): " + changedEntity.Expiring);
+                Console.WriteLine("Quantity (OLD): " + changedEntity.Quantity);
+                Console.WriteLine("Price (OLD): " + changedEntity.Price);
             }
         }
     }

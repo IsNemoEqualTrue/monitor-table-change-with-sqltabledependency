@@ -49,7 +49,6 @@ namespace TableDependency.SqlClient.EventArgs
             CultureInfo cultureInfo,
             bool includeOldValues) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfo, includeOldValues)
         {
-
         }
 
         public override object GetValue(PropertyInfo entityPropertyInfo, TableColumnInfo columnInfo, byte[] message)

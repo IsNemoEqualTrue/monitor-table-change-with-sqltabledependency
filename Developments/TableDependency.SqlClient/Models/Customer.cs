@@ -1,4 +1,4 @@
-﻿namespace TableDependency.SqlClient.Development
+﻿namespace TableDependency.SqlClient.Development.Models
 {
     public class Customer
     {

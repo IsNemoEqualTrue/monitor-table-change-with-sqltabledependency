@@ -164,11 +164,11 @@ namespace TableDependency.SqlClient
         /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
-            if (OnChanged == null) throw new NoSubscriberException();
+            if (this.OnChanged == null) throw new NoSubscriberException();
 
-            var onChangedSubscribedList = OnChanged?.GetInvocationList();
-            var onErrorSubscribedList = OnError?.GetInvocationList();
-            var onStatusChangedSubscribedList = OnStatusChanged?.GetInvocationList();
+            var onChangedSubscribedList = this.OnChanged?.GetInvocationList();
+            var onErrorSubscribedList = this.OnError?.GetInvocationList();
+            var onStatusChangedSubscribedList = this.OnStatusChanged?.GetInvocationList();
 
             this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
@@ -232,7 +232,7 @@ namespace TableDependency.SqlClient
                 return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
 
-            var tableNameFromDataAnotation = GetTableNameFromDataAnnotation();
+            var tableNameFromDataAnotation = this.GetTableNameFromDataAnnotation();
             return !string.IsNullOrWhiteSpace(tableNameFromDataAnotation) ? tableNameFromDataAnotation : typeof(T).Name;
         }
 
@@ -243,7 +243,7 @@ namespace TableDependency.SqlClient
                 return schemaName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
 
-            var schemaNameFromDataAnnotation = GetSchemaNameFromDataAnnotation();
+            var schemaNameFromDataAnnotation = this.GetSchemaNameFromDataAnnotation();
             return !string.IsNullOrWhiteSpace(schemaNameFromDataAnnotation) ? schemaNameFromDataAnnotation : "dbo";
         }
 
@@ -575,7 +575,7 @@ namespace TableDependency.SqlClient
             if (this.ActivateDatabaseLoging == false) return string.Empty;
 
             return
-                Environment.NewLine + Environment.NewLine + "DECLARE @LogMessage varchar(255);" + Environment.NewLine +
+                Environment.NewLine + Environment.NewLine + "DECLARE @LogMessage VARCHAR(255);" + Environment.NewLine +
                 $"SET @LogMessage = 'SqlTableDependency: Message for ' + @dmlType + ' operation added in Queue [{_dataBaseObjectsNamingConvention}].'" + Environment.NewLine +
                 "RAISERROR(@LogMessage, 10, 1) WITH LOG;";
         }
@@ -705,15 +705,15 @@ namespace TableDependency.SqlClient
             {
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase))
                 {
-                    var columnBinary = $"[{tableColumn.Name}] binary(8)";
-                    if (includeOldValues) columnBinary += $", [{tableColumn.Name}_old] binary(8)";
+                    var columnBinary = $"[{tableColumn.Name}] BINARY(8)";
+                    if (includeOldValues) columnBinary += $", [{tableColumn.Name}_old] BINARY(8)";
                     return columnBinary;
                 }
 
                 if (string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase))
                 {
-                    var columnVarbinary = $"[{tableColumn.Name}] varbinary(8)";
-                    if (includeOldValues) columnVarbinary += $", [{ tableColumn.Name}_old] varbinary(8)";
+                    var columnVarbinary = $"[{tableColumn.Name}] VARBINARY(8)";
+                    if (includeOldValues) columnVarbinary += $", [{ tableColumn.Name}_old] VARBINARY(8)";
                     return columnVarbinary;
                 }
 
@@ -747,6 +747,11 @@ namespace TableDependency.SqlClient
             if (string.Equals(dataType.ToUpperInvariant(), "DECIMAL", StringComparison.OrdinalIgnoreCase))
             {
                 return $"{numericPrecision},{numericScale}";
+            }
+
+            if (string.Equals(dataType.ToUpperInvariant(), "FLOAT", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
             }
 
             if (string.Equals(dataType.ToUpperInvariant(), "DATETIME2", StringComparison.OrdinalIgnoreCase) ||
@@ -791,6 +796,11 @@ namespace TableDependency.SqlClient
             if (string.Equals(userInterestedColumn.Type, "binary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "varbinary", StringComparison.OrdinalIgnoreCase) || string.Equals(userInterestedColumn.Type, "timestamp", StringComparison.OrdinalIgnoreCase))
             {
                 return this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name) + oldNameExtension;
+            }
+
+            if (userInterestedColumn.Type.ToLower() == "float")
+            {
+                return $"CONVERT(NVARCHAR(MAX), RTRIM(LTRIM(STR({this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{oldNameExtension}{this.ConvertFormat(userInterestedColumn)}, 53, 16))))";
             }
 
             return $"CONVERT(NVARCHAR(MAX), {this.SanitizeVariableName(userInterestedColumns, userInterestedColumn.Name)}{oldNameExtension}{this.ConvertFormat(userInterestedColumn)})";
