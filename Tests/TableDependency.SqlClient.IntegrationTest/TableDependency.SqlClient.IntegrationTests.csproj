@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="CultureInfoTest.cs" />
     <Compile Include="ComputedColumnTest.cs" />
+    <Compile Include="Issue18Test.cs" />
     <Compile Include="Issue66Test.cs" />
     <Compile Include="Issue65Test.cs" />
     <Compile Include="TwoIntancesTest.cs" />
