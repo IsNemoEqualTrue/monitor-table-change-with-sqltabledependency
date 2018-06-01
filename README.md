@@ -5,8 +5,7 @@
   Title: Get SQL Server notifications when record table change
   Description: Receive notification for all insert, update or delete on SQL Server table change
   Author: christiandelbianco
-  -->
-  
+  --> 
 # Monitor and receive notifications on record table changes
 
 [![License](https://img.shields.io/cocoapods/l/AFNetworking.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![Release](https://img.shields.io/badge/release-7.3.0-brightgreen.svg)](#) [![Updated](https://img.shields.io/badge/date-May%2021%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
@@ -90,7 +89,7 @@ Done! Now you are ready to receive record table change notifications:
 
 [![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
-### Monitor table changes use cases and examples
+### Monitor record table changes use cases and examples
 To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test). Here, SqlTableDependency is tested continuously using a thread that every five seconds perform an update record table change. SqlTableDependency monitor this record table change and get a notification containing new update record table values.  
 
 Also, here are some examples of applications getting notification on record table change. After downloading the example, please remember to update SqlTableDependency nuget package:
@@ -140,7 +139,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/DbObjects-min.png "Database Object created for send notifications"
 
-#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Requirements 
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Audit record table change requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
 * Windows service using SqlTableDependency **must not goes to SLEEP mode or IDLE state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects (please see https://stackoverflow.com/questions/6302185/how-to-prevent-windows-from-entering-idle-state).
