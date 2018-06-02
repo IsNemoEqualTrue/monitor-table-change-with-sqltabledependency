@@ -113,18 +113,6 @@ This section reports some use case examples:
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 * [Include old values.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Include-old-values)
 
-#### Remark
-The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method starts the listener to receive record table change notifications.
-The `watchDogTimeOut` parameter specifies the amount of time in seconds for the watch dog system.
-
-After calling the `Stop()` method, record table change notifications are not longer delivered. Database objects created by SqlTableDependency will be deleted.
-
-It is a good practice - when possible - wrap SqlTableDependency within a using statement or alternatively in a try catch block: when the application will stop, this is enough to remove the SqlTableDependency infrastructure (Trigger, Service Broker service, the queue, Contract, Messages type and Stored Procedure) automatically.
-
-In any case, when the application exits abruptly – that is by not calling the `Stop()` and/or `Dispose()` method - we need a way to cleaning up the SqlTableDependency infrastructure. The `Start()` method takes an optional parameter `watchDogTimeOut`. If there are no listeners waiting for notifications, the SqlTableDependency infrastructure will be removed after this period of time. The default value of `watchDogTimeOut` is 180 seconds.
-
-There is a common scenario that could trigger the watchdog: debugging. During development, you often spend several minutes inside the debugger before you move on to the next step. Please make sure to increase `watchDogTimeOut` when you debug an application, otherwise you will experience an unexpected destruction of database objects in the middle of your debugging activity.
-
 #### Under The Hood
 SqlTableDependency's record change audit, provides the low-level implementation to receive database record table change notifications creating SQL Server triggers, queues and service broker that immediately notifies your application when a record table change happens.
 
@@ -139,6 +127,18 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 ![DatabaseObjects][DatabaseObjects]
 
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/DbObjects-min.png "Database Object created for send notifications"
+
+#### Remark
+The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method starts the listener to receive record table change notifications.
+The `watchDogTimeOut` parameter specifies the amount of time in seconds for the watch dog system.
+
+After calling the `Stop()` method, record table change notifications are not longer delivered. Database objects created by SqlTableDependency will be deleted.
+
+It is a good practice - when possible - wrap SqlTableDependency within a using statement or alternatively in a try catch block: when the application will stop, this is enough to remove the SqlTableDependency infrastructure (Trigger, Service Broker, Queue, Contract, Messages type and Stored Procedure) automatically.
+
+In any case, when the application exits abruptly – that is by not calling the `Stop()` and/or `Dispose()` method - we need a way to cleaning up the SqlTableDependency infrastructure. The `Start()` method takes an optional parameter `watchDogTimeOut`. If there are no listeners waiting for notifications, the SqlTableDependency infrastructure will be removed after this period of time. The default value of `watchDogTimeOut` is 180 seconds.
+
+There is a common scenario that could trigger the watchdog: debugging. During development, you often spend several minutes inside the debugger before you move on to the next step. Please make sure to increase `watchDogTimeOut` when you debug an application, otherwise you will experience an unexpected destruction of database objects in the middle of your debugging activity.
 
 #### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Audit record table change requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
@@ -226,3 +226,4 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 #### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
+[⬆ Back to top](#monitor-and-receive-notifications-on-record-table-changes)
