@@ -4,7 +4,7 @@
 
 # Monitor and receive notifications on record table changes
 [![License](https://img.shields.io/cocoapods/l/AFNetworking.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![Release](https://img.shields.io/badge/release-7.3.0-brightgreen.svg)](#) [![Updated](https://img.shields.io/badge/date-May%2021%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
----
+
 **SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes. For any record table change, as insert, update or delete operation, a notification **containing values for the record changed** is is delivered to SqlTableDependency. This notification contains insert, update or delete record values.
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Workflow-min.png" />
