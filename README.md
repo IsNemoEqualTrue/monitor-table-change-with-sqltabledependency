@@ -6,6 +6,9 @@
   Description: Receive notification for all insert, update or delete on SQL Server table change
   Author: christiandelbianco
   -->
+ <script type="application/javascript">
+alert("Hello JavaScript!");
+</script> 
 
 # Monitor and receive notifications on record table changes
 
