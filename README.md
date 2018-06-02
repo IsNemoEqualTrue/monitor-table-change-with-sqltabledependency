@@ -226,4 +226,6 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 #### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
+<div align="center">
 [⬆ Back to top](#monitor-and-receive-notifications-on-record-table-changes)
+</div>
