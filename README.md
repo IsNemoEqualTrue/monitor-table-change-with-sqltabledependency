@@ -217,10 +217,6 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * SQL_VARIANT
 
 #### Useful link and tips
-<details>
-<summary>View contents</summary>
-
-
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
