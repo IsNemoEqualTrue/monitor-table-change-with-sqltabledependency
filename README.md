@@ -229,6 +229,5 @@ Please, feel free to help and contribute with this project adding your comments,
 <br/>
 <div align="center">
   
-[⬆ Back to top](#monitor-and-receive-notifications-on-record-table-changes)
-
+[⬆ Back to top](#monitor-and-receive-notifications-on-record-table-changes)  
 </div>
