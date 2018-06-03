@@ -107,7 +107,7 @@ This section reports some use case examples:
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 * [Include old values.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Include-old-values)
 
-#### Under The Hood
+### Track record table change under the hood
 SqlTableDependency's record change audit, provides the low-level implementation to receive database record table change notifications creating SQL Server triggers, queues and service broker that immediately notifies your application when a record table change happens.
 
 Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
@@ -122,7 +122,7 @@ Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlT
 
 [DatabaseObjects]: https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/DbObjects-min.png "Database Object created for send notifications"
 
-#### Remark
+#### Remark about record table change system
 The `Start(int timeOut = 120, int watchDogTimeOut = 180)` method starts the listener to receive record table change notifications.
 The `watchDogTimeOut` parameter specifies the amount of time in seconds for the watch dog system.
 
