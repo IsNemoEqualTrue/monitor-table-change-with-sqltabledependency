@@ -2,7 +2,7 @@
 <meta name='description' content='Monitor SQL Server table and receive notifications for any record table change as insert, update or delete change'>
 <meta name='subject' content='SQL Server monitor record table changes'>
 
-# Monitor and receive notifications on record table changes
+# Monitor and receive notifications on record table change
 [![License](https://img.shields.io/cocoapods/l/AFNetworking.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE.txt) [![Release](https://img.shields.io/badge/release-7.3.0-brightgreen.svg)](#) [![Updated](https://img.shields.io/badge/date-May%2021%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET-%3E%3D%204.5.1-ff69b4.svg)](#)
 
 **SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes. For any record table change, as insert, update or delete operation, a notification **containing values for the record changed** is is delivered to SqlTableDependency. This notification contains insert, update or delete record values.
@@ -11,7 +11,7 @@
 
 This **table record tracking change** system has the advantage to avoid a select to retrieve updated table record, because the updated table values record is delivered by notification.
 
-## Get record table changes
+## Get record table change
 If we want **get alert on record table change** without paying attention to the underlying SQL Server infrastructure then SqlTableDependency's record table change notifications will do that for us. Using notifications, an application can **detect table record change** saving us from having to continuously re-query the database to get new values: for any record table change, SqlTableDependency's event handler get a notification containing modified table record values as well as the INSERT, UPDATE, DELETE operation type executed on database table.
 
 As example, let's assume we are interested to receive record table changes for the following database table:
@@ -84,7 +84,7 @@ Done! Now you are ready to receive record table change notifications:
 
 [![Receive SQL server notifications GIF video](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/Receive_notifications_from_Sql_Server_database.gif)](https://www.youtube.com/watch?v=sHJVusS5Qz0)
 
-### Monitor record table changes use cases and examples
+### How to monitor record table change use cases and examples
 To see SqlTableDependency in action, check the following [online long running test](http://sqltabledependency.somee.com/test). Here, SqlTableDependency is tested continuously using a thread that every five seconds perform an update record table change. SqlTableDependency monitor this record table change and get a notification containing new update record table values.  
 
 Also, here are some examples of applications getting notification on record table change. After downloading the example, please remember to update SqlTableDependency nuget package:
@@ -215,14 +215,14 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * HIERARCHYID
 * SQL_VARIANT
 
-#### Useful link and tips
+##### Useful link and tips
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
 * https://stackoverflow.com/questions/11383145/sql-server-2008-service-broker-tutorial-cannot-receive-the-message-exception
 * Deleting multiple records then inserting using **sql bulk copy**, only deleted change events are raised: to solve this problem, set **SqlBulkCopyOptions.FireTriggers**. Thanks to Ashraf Ghorabi! 
 </details>
 
-#### Contributors
+##### Contributors
 Please, feel free to help and contribute with this project adding your comments, issues or bugs found as well as proposing fix and enhancements. [See contributors](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Contributors).
 
 <div align="center">
