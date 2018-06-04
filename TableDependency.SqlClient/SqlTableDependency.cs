@@ -69,6 +69,14 @@ namespace TableDependency.SqlClient
         #region Properties
 
         /// <summary>
+        /// If DiagnostikOnException is set to true, when an exception is raised, original exception is wrapped in following check are executed 
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [diagnostik on exception]; otherwise, <c>false</c>.
+        /// </value>
+        public bool DiagnostikOnException { get; set; }
+
+        /// <summary>
         /// Set if notification must contains the old value too.
         /// </summary>
         /// <value>
@@ -430,8 +438,7 @@ namespace TableDependency.SqlClient
 
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
-                    var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name LIKE N'%{_dataBaseObjectsNamingConvention}%';", sqlConnection, transaction);
-                    if ((int)sqlCommand.ExecuteScalar() > 0) throw new DbObjectsWithSameNameException(_dataBaseObjectsNamingConvention);
+                    var sqlCommand = new SqlCommand { Connection = sqlConnection, Transaction = transaction };
 
                     // Messages
                     var startMessageInsert = string.Format(StartMessageTemplate, _dataBaseObjectsNamingConvention, ChangeType.Insert);
@@ -913,6 +920,7 @@ namespace TableDependency.SqlClient
                     privilegesTable = PrivilegesTable.FromEnumerable(rows);
                 }
             }
+
             if (privilegesTable.Rows.Count == 0) throw new UserWithNoPermissionException();
 
             if (privilegesTable.Rows.Any(r => string.Equals(r.Role, "db_owner", StringComparison.OrdinalIgnoreCase)))
@@ -969,7 +977,6 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
-
             var unqueueMessageNumber = _userInterestedColumns.Count() * (this.IncludeOldValues ? 2 : 1) + 2;
 
             var waitforSqlScript =
