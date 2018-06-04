@@ -69,14 +69,6 @@ namespace TableDependency.SqlClient
         #region Properties
 
         /// <summary>
-        /// If DiagnostikOnException is set to true, when an exception is raised, original exception is wrapped in following check are executed 
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [diagnostik on exception]; otherwise, <c>false</c>.
-        /// </value>
-        public bool DiagnostikOnException { get; set; }
-
-        /// <summary>
         /// Set if notification must contains the old value too.
         /// </summary>
         /// <value>
