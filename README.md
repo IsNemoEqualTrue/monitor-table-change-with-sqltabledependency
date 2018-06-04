@@ -227,5 +227,5 @@ Please, feel free to help and contribute with this project adding your comments,
 
 <div align="center">
   
-[⬆ Back to top](#monitor-and-receive-notifications-on-record-table-changes)  
+[⬆ Back to top](#monitor-and-receive-notifications-on-record-table-change)  
 </div>
