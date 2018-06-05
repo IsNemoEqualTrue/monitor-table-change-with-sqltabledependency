@@ -149,7 +149,7 @@ END";
         IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_Sender') EXEC (N'ALTER QUEUE [{2}].[{0}_Sender] WITH ACTIVATION (STATUS = OFF)');
 
         PRINT N'SqlTableDependency: Ending conversations {0}.';
-        SELECT DISTINCT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service LIKE N'{0}_%';
+        SELECT conversation_handle INTO #Conversations FROM sys.conversation_endpoints WITH (NOLOCK) WHERE far_service LIKE N'{0}_%' ORDER BY is_initiator ASC;
         DECLARE conversation_cursor CURSOR FAST_FORWARD FOR SELECT conversation_handle FROM #Conversations;
         OPEN conversation_cursor;
         FETCH NEXT FROM conversation_cursor INTO @conversation_handle;
