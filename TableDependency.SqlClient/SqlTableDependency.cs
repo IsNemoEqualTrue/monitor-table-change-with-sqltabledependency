@@ -60,6 +60,7 @@ namespace TableDependency.SqlClient
     {
         #region Private variables
 
+        protected readonly bool IncludeOldValues;
         protected Guid ConversationHandle;
         protected const string StartMessageTemplate = "{0}/StartMessage/{1}";
         protected const string EndMessageTemplate = "{0}/EndMessage";
@@ -67,14 +68,6 @@ namespace TableDependency.SqlClient
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Set if notification must contains the old value too.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [include modified values]; otherwise, <c>false</c>.
-        /// </value>
-        public bool IncludeOldValues { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether activate database loging and event viewer loging.
@@ -211,7 +204,7 @@ namespace TableDependency.SqlClient
                 _database,
                 _dataBaseObjectsNamingConvention,
                 base.CultureInfo,
-                this.IncludeOldValues);
+                IncludeOldValues);
         }
 
         protected override string GetDataBaseName()
@@ -420,7 +413,7 @@ namespace TableDependency.SqlClient
             var processableMessages = new List<string>();
             var tableColumns = userInterestedColumns as IList<TableColumnInfo> ?? userInterestedColumns.ToList();
 
-            var columnsForModifiedRecordsTable = this.PrepareColumnListForTableVariable(tableColumns, this.IncludeOldValues);
+            var columnsForModifiedRecordsTable = this.PrepareColumnListForTableVariable(tableColumns, IncludeOldValues);
             var columnsForExceptTable = this.PrepareColumnListForTableVariable(tableColumns, false);
             var columnsForDeletedTable = this.PrepareColumnListForTableVariable(tableColumns, false);
 
@@ -460,7 +453,7 @@ namespace TableDependency.SqlClient
                         this.WriteTraceMessage(TraceLevel.Verbose, $"Message {message} created.");
                         processableMessages.Add(message);
 
-                        if (this.IncludeOldValues)
+                        if (IncludeOldValues)
                         {
                             message = $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}/old";
                             sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
@@ -511,10 +504,6 @@ namespace TableDependency.SqlClient
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Procedure {_dataBaseObjectsNamingConvention} created.");
 
-                    // Begin conversation
-                    this.ConversationHandle = this.BeginConversation(sqlCommand);
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Conversation with handler {this.ConversationHandle} started.");
-
                     // Trigger
                     var declareVariableStatement = this.PrepareDeclareVariableStatement(interestedColumns);
                     var selectForSetVariablesStatement = this.PrepareSelectForSetVariables(interestedColumns);
@@ -550,6 +539,10 @@ namespace TableDependency.SqlClient
                     // Associate Activation Store Procedure to sender queue
                     sqlCommand.CommandText = $"ALTER QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender] WITH ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{_dataBaseObjectsNamingConvention}_QueueActivationSender], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()}, STATUS = ON);";
                     sqlCommand.ExecuteNonQuery();
+
+                    // Begin conversation
+                    this.ConversationHandle = this.BeginConversation(sqlCommand);
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Conversation with handler {this.ConversationHandle} started.");
 
                     // Persist all objects
                     transaction.Commit();
@@ -635,7 +628,7 @@ namespace TableDependency.SqlClient
                     $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable EXCEPT SELECT [RowNumber],{sBuilderColumns} FROM @deletedTable";
             }
 
-            if (this.IncludeOldValues)
+            if (IncludeOldValues)
             {
                 comma = new Separator(2, ",");
                 sBuilderColumns = new StringBuilder();
@@ -688,7 +681,7 @@ namespace TableDependency.SqlClient
             {
                 var column = $"[{c.Name}]";
 
-                if (this.IncludeOldValues)
+                if (IncludeOldValues)
                 {
                     column += ", NULL";
                 }
@@ -812,9 +805,9 @@ namespace TableDependency.SqlClient
                 .Select(insterestedColumn =>
                 {
                     var sendStatement = this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
-                    if (this.IncludeOldValues)
+                    if (IncludeOldValues)
                     {
-                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn, this.IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn, IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
                     }
 
                     return sendStatement;
@@ -830,7 +823,7 @@ namespace TableDependency.SqlClient
         protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
             var result = string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
-            if (this.IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old = [{insterestedColumn.Name}_old]"));
+            if (IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old = [{insterestedColumn.Name}_old]"));
 
             return result;
         }
@@ -851,7 +844,7 @@ namespace TableDependency.SqlClient
             var variableName = this.SanitizeVariableName(interestedColumns, insterestedColumn.Name);
 
             var declare = $"DECLARE {variableName} {variableType.ToLowerInvariant()}";
-            if (this.IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
+            if (IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
 
             return declare;
         }
@@ -969,7 +962,7 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
-            var unqueueMessageNumber = _userInterestedColumns.Count() * (this.IncludeOldValues ? 2 : 1) + 2;
+            var unqueueMessageNumber = _userInterestedColumns.Count() * (IncludeOldValues ? 2 : 1) + 2;
 
             var waitforSqlScript =
                 $"BEGIN CONVERSATION TIMER ('{this.ConversationHandle.ToString().ToUpper()}') TIMEOUT = " + timeOutWatchDog + ";" +
