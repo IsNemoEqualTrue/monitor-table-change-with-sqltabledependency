@@ -138,7 +138,7 @@ There is a common scenario that could trigger the watchdog: debugging. During de
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions.
 * Windows service using SqlTableDependency **must not goes to SLEEP mode or IDLE state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects (please see https://stackoverflow.com/questions/6302185/how-to-prevent-windows-from-entering-idle-state).
-* Database Backup and Restore: restoring SqlTableDependency's db objects, it does **not work**.
+* Database Backup and Restore: restoring SqlTableDependency's db objects, it does not work.
 
 To use notifications, you must be sure to enable Service Broker for the database. To do this run the SQL command:
 ```SQL
