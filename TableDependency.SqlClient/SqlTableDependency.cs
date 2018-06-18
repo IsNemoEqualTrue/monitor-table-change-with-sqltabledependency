@@ -504,6 +504,10 @@ namespace TableDependency.SqlClient
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Procedure {_dataBaseObjectsNamingConvention} created.");
 
+                    // Begin conversation
+                    this.ConversationHandle = this.BeginConversation(sqlCommand);
+                    this.WriteTraceMessage(TraceLevel.Verbose, $"Conversation with handler {this.ConversationHandle} started.");
+
                     // Trigger
                     var declareVariableStatement = this.PrepareDeclareVariableStatement(interestedColumns);
                     var selectForSetVariablesStatement = this.PrepareSelectForSetVariables(interestedColumns);
@@ -539,10 +543,6 @@ namespace TableDependency.SqlClient
                     // Associate Activation Store Procedure to sender queue
                     sqlCommand.CommandText = $"ALTER QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender] WITH ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{_dataBaseObjectsNamingConvention}_QueueActivationSender], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()}, STATUS = ON);";
                     sqlCommand.ExecuteNonQuery();
-
-                    // Begin conversation
-                    this.ConversationHandle = this.BeginConversation(sqlCommand);
-                    this.WriteTraceMessage(TraceLevel.Verbose, $"Conversation with handler {this.ConversationHandle} started.");
 
                     // Persist all objects
                     transaction.Commit();
