@@ -44,7 +44,7 @@ using TableDependency.Utilities;
 
 namespace TableDependency
 {
-    public abstract class TableDependency<T> : ITableDependency<T>, IDisposable where T : class, new()
+    public abstract class TableDependency<T> : ITableDependency<T> where T : class, new()
     {
         #region Instance Variables
 
