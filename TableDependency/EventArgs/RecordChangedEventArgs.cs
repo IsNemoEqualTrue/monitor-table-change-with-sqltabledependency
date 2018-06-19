@@ -42,7 +42,7 @@ namespace TableDependency.EventArgs
         #region Instance variables
 
         protected MessagesBag MessagesBag { get; }
-        protected readonly IEnumerable<PropertyInfo> EntiyProperiesInfo;
+        protected readonly IEnumerable<PropertyInfo> EntityPropertiesInfo;
         protected IEnumerable<TableColumnInfo> UserInterestedColumns;
 
         #endregion
@@ -68,7 +68,7 @@ namespace TableDependency.EventArgs
             bool includeOldValues = false) : base(server, database, sender, cultureInfo)
         {
             this.MessagesBag = messagesBag;
-            this.EntiyProperiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
+            this.EntityPropertiesInfo = ModelUtil.GetModelPropertiesInfo<T>();
             this.UserInterestedColumns = userInterestedColumns;
 
             this.ChangeType = messagesBag.MessageType;
@@ -175,7 +175,7 @@ namespace TableDependency.EventArgs
         {
             var entity = new T();
 
-            foreach (var entityPropertyInfo in this.EntiyProperiesInfo)
+            foreach (var entityPropertyInfo in this.EntityPropertiesInfo)
             {
                 var propertyMappedTo = mapper?.GetMapping(entityPropertyInfo);
                 var columnName = propertyMappedTo ?? entityPropertyInfo.Name;
