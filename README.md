@@ -220,9 +220,7 @@ Functionalities comparison between Microsoft ADO.NET SqlDependency and SqlTableD
 
 Functionality |SqlTableDependecy | SqlDependency
 ------------ |------------ | -------------
-Join multiple tables | 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/no-icon.png" /> | 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/yes-icon.png" />
+Join multiple tables | No | Yes
 Where | Yes | Yes
 Generic | Yes | No
 Notification containig updated values | Yes | No
