@@ -215,6 +215,21 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * HIERARCHYID
 * SQL_VARIANT
 
+##### Difference between SqlTableDependency and SqlDependency from ADO.NET
+Functionalities comparison between Microsoft ADO.NET SqlDependency and SqlTableDependency:
+
+Functionality |SqlTableDependecy | SqlDependency
+------------ |------------ | -------------
+Join multiple tables | No | Yes
+Where | Yes | Yes
+Generic | Yes | No
+Notification containig updated values | Yes | No
+Notification containig old values | Yes | No
+Notification only on insert | Yes | No
+Notification only on update | Yes | No
+Notification only on delete | Yes | No
+Notification only when specific column is changes  | Yes | No
+
 ##### Useful link and tips
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
 * https://stackoverflow.com/questions/41169144/sqltabledependency-onchange-event-not-fired
