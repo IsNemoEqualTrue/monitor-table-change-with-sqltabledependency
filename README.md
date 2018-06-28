@@ -220,15 +220,15 @@ Functionalities comparison between Microsoft ADO.NET SqlDependency and SqlTableD
 
 Functionality |SqlTableDependecy | SqlDependency
 ------------ |------------ | -------------
-Join multiple tables | No | Yes
-Where | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" />
-Generic | Yes | No
-Notification containig updated values | Yes | No
-Notification containig old values | Yes | No
-Notification only on insert | Yes | No
-Notification only on update | Yes | No
-Notification only on delete | Yes | No
-Notification only when specific column is changes  | Yes | No
+Join multiple tables | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" />
+Where | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" />
+Generic | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification containig updated values | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification containig old values | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification only on insert | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification only on update | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification only on delete | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
+Notification only when specific column is changes | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/YesSmall.png" /> | <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NoSmall.png" />
 
 ##### Useful link and tips
 * https://sqlrus.com/2014/10/compatibility-level-vs-database-version/
