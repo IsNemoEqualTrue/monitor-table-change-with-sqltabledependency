@@ -76,20 +76,20 @@ namespace TableDependency
         {
             if (string.IsNullOrWhiteSpace(columnName)) throw new ModelToTableMapperException("ModelToTableMapper cannot contains null or empty strings.");
 
-            var memberExpression = expression.Body as MemberExpression;
-            if (memberExpression != null)
+            if (expression.Body is MemberExpression memberExpression)
             {
                 _mappings[(PropertyInfo)memberExpression.Member] = columnName;
                 return this;
             }
 
             var unarUnaryExpressionyExp = expression.Body as UnaryExpression;
-            var memberExpressionByOperator = unarUnaryExpressionyExp?.Operand as MemberExpression;
-            if (memberExpressionByOperator == null) throw new UpdateOfModelException("The 'expression' parameter should be a member expression.");
+            if (unarUnaryExpressionyExp?.Operand is MemberExpression memberExpressionByOperator)
+            {
+                _mappings[(PropertyInfo)memberExpressionByOperator.Member] = columnName;
+                return this;
+            }
 
-            _mappings[(PropertyInfo)memberExpressionByOperator.Member] = columnName;
-
-            return this;
+            throw new UpdateOfModelException("The 'expression' parameter should be a member expression.");
         }
 
         /// <summary>
