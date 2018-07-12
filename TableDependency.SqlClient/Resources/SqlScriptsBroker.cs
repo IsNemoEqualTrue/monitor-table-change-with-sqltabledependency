@@ -68,7 +68,7 @@ BEGIN
     DECLARE @insertedTable TABLE ([RowNumber] INT IDENTITY(1, 1), {18})
     {5}
     
-    IF NOT EXISTS(SELECT * FROM INSERTED)
+    IF NOT EXISTS(SELECT 1 FROM INSERTED)
     BEGIN
         SET @dmlType = '{12}'
         INSERT INTO @modifiedRecordsTable SELECT {3} FROM DELETED {14}
@@ -86,7 +86,7 @@ BEGIN
         END
     END
 
-    SELECT @rowsToProcess = COUNT(*) FROM @modifiedRecordsTable    
+    SELECT @rowsToProcess = COUNT(1) FROM @modifiedRecordsTable    
     IF @rowsToProcess < 1 RETURN
     SET @currentRow = 0
 
