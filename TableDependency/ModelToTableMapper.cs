@@ -54,7 +54,7 @@ namespace TableDependency
         /// </summary>
         /// <param name="pi">The pi.</param>
         /// <param name="columnName">Name of the column.</param>
-        public void AddMapping(PropertyInfo pi, string columnName)
+        public ModelToTableMapper<T> AddMapping(PropertyInfo pi, string columnName)
         {
             if (_mappings.Values.Any(cn => cn == columnName))
             {
@@ -62,6 +62,8 @@ namespace TableDependency
             }
 
             _mappings[pi] = columnName;
+
+            return this;
         }
 
         /// <summary>
