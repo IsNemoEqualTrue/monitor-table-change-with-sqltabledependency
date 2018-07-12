@@ -94,7 +94,7 @@ namespace TableDependency.SqlClient.Where.UnitTests
             var where = new SqlTableDependencyFilter<Product>(expression).Translate();
 
             // Assert
-            Assert.AreEqual("[ExcangeRate] IN (123.45,432.1)", where);
+            Assert.AreEqual($"[ExcangeRate] IN ({123.45},{432.1})", where);
         }
 
         [TestMethod]

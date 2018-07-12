@@ -416,7 +416,7 @@ namespace TableDependency
             // If model property is mapped to table column keep it
             foreach (var tableColumn in tableColumnsList)
             {
-                if (string.Equals(tableColumn.Name.ToLowerInvariant(), propertyName.ToLowerInvariant(), StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(tableColumn.Name, propertyName, StringComparison.OrdinalIgnoreCase))
                 {
                     return tableColumn.Name;
                 }
