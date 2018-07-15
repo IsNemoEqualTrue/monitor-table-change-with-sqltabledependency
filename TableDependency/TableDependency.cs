@@ -511,7 +511,7 @@ namespace TableDependency
             {
                 try
                 {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new StatusChangedEventArgs(status, _server, _database, _dataBaseObjectsNamingConvention) });
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { this, new StatusChangedEventArgs(status, _server, _database, _dataBaseObjectsNamingConvention) });
                 }
                 catch
                 {
@@ -528,7 +528,7 @@ namespace TableDependency
             {
                 try
                 {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, new ErrorEventArgs(exception, _server, _database, _dataBaseObjectsNamingConvention) });
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { this, new ErrorEventArgs(exception, _server, _database, _dataBaseObjectsNamingConvention) });
                 }
                 catch
                 {
@@ -545,7 +545,7 @@ namespace TableDependency
             {
                 try
                 {
-                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { null, this.GetRecordChangedEventArgs(messagesBag) });
+                    dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { this, this.GetRecordChangedEventArgs(messagesBag) });
                 }
                 catch
                 {
