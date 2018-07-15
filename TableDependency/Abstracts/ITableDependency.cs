@@ -32,11 +32,10 @@ using TableDependency.Enums;
 
 namespace TableDependency.Abstracts
 {
-    public interface ITableDependency<T> where T : class, new()
+    public interface ITableDependency
     {
         #region Events
 
-        event ChangedEventHandler<T> OnChanged;
         event ErrorEventHandler OnError;
         event StatusEventHandler OnStatusChanged;
 
@@ -59,6 +58,15 @@ namespace TableDependency.Abstracts
         string DataBaseObjectsNamingConvention { get; }
         string TableName { get; }
         string SchemaName { get; }
+
+        #endregion
+    }
+
+    public interface ITableDependency<T> : ITableDependency where T : class, new()
+    {
+        #region Events
+
+        event ChangedEventHandler<T> OnChanged;
 
         #endregion
     }
