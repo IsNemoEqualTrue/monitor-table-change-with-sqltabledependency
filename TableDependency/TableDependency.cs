@@ -314,7 +314,7 @@ namespace TableDependency
             }
         }
 
-        protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
+        virtual protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
         {
             try
             {
