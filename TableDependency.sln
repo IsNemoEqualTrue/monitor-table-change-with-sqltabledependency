@@ -3,15 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency", "TableDependency\TableDependency.csproj", "{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient", "TableDependency.SqlClient\TableDependency.SqlClient.csproj", "{3B201820-CB8F-41A1-8430-0C806BCF7494}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LoadTests", "LoadTests", "{0388953A-AF9E-4718-A9B3-1AB5CABCE7FB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Development", "Development", "{BAF6F0A5-FEA5-46F6-93B3-AD7D377F2072}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{F3FCBF55-12B9-4137-8287-FB600C26C509}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Development", "Developments\TableDependency.SqlClient\TableDependency.SqlClient.Development.csproj", "{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}"
 EndProject
@@ -33,24 +27,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.BaseTests", "Tests\TableDependency.SqlClient.BaseTests\TableDependency.SqlClient.BaseTests.csproj", "{F3AC3B55-3A32-4291-BC92-986882AD98ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency", "TableDependency\TableDependency.csproj", "{9A682475-BC69-45FD-AB32-8D544D757EC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient", "TableDependency.SqlClient\TableDependency.SqlClient.csproj", "{B7FE729C-6067-4305-AB5B-337DF4D37A1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TableDependency.SqlClient.Where", "TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj", "{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B201820-CB8F-41A1-8430-0C806BCF7494}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F3FCBF55-12B9-4137-8287-FB600C26C509}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3EFDFCF-49DC-4BCA-8B7C-97E623687BB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -87,6 +75,18 @@ Global
 		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3AC3B55-3A32-4291-BC92-986882AD98ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A682475-BC69-45FD-AB32-8D544D757EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A682475-BC69-45FD-AB32-8D544D757EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A682475-BC69-45FD-AB32-8D544D757EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A682475-BC69-45FD-AB32-8D544D757EC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7FE729C-6067-4305-AB5B-337DF4D37A1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7FE729C-6067-4305-AB5B-337DF4D37A1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7FE729C-6067-4305-AB5B-337DF4D37A1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7FE729C-6067-4305-AB5B-337DF4D37A1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

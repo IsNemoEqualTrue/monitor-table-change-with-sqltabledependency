@@ -73,17 +73,21 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
-      <Project>{f3fcbf55-12b9-4137-8287-fb600c26c509}</Project>
-      <Name>TableDependency.SqlClient.Where</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\TableDependency\TableDependency.csproj">
-      <Project>{0a46a45a-be9b-455f-a6d1-183c07fef4bc}</Project>
-      <Name>TableDependency</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
+      <Project>{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}</Project>
+      <Name>TableDependency.SqlClient.Where</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
+      <Project>{b7fe729c-6067-4305-ab5b-337df4d37a1b}</Project>
+      <Name>TableDependency.SqlClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\TableDependency\TableDependency.csproj">
+      <Project>{9a682475-bc69-45fd-ab32-8d544d757ec4}</Project>
+      <Name>TableDependency</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
