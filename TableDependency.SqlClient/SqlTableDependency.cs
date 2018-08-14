@@ -190,7 +190,7 @@ namespace TableDependency.SqlClient
         protected virtual string Spacer(int numberOrSpaces)
         {
             var stringBuilder = new StringBuilder();
-            for (int i = 1; i <= numberOrSpaces; i++) stringBuilder.Append(' ');
+            for (var i = 1; i <= numberOrSpaces; i++) stringBuilder.Append(' ');
             return stringBuilder.ToString();
         }
 

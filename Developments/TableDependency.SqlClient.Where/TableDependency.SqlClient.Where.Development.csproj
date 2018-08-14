@@ -52,15 +52,15 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
-      <Project>{f3fcbf55-12b9-4137-8287-fb600c26c509}</Project>
+      <Project>{EB8023C6-4FDA-455A-9D36-08C627BBDD4E}</Project>
       <Name>TableDependency.SqlClient.Where</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
-      <Project>{3B201820-CB8F-41A1-8430-0C806BCF7494}</Project>
+      <Project>{B7FE729C-6067-4305-AB5B-337DF4D37A1B}</Project>
       <Name>TableDependency.SqlClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\TableDependency\TableDependency.csproj">
-      <Project>{0A46A45A-BE9B-455F-A6D1-183C07FEF4BC}</Project>
+      <Project>{9A682475-BC69-45FD-AB32-8D544D757EC4}</Project>
       <Name>TableDependency</Name>
     </ProjectReference>
   </ItemGroup>
