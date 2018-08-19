@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netcoreapp2.0;net451;netstandard2.0</TargetFrameworks>
+		<Authors>Christian Del Bianco</Authors>
+		<Company>Christian Del Bianco</Company>
+		<Version>8.0.0</Version>
+		<Description>TableDependency is the base library for TableDependency.SqlClient</Description>
+		<Copyright>Christian Del Bianco © 2015-2018</Copyright>
+		<PackageProjectUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</PackageProjectUrl>
+		<PackageIconUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_notify.png</PackageIconUrl>
+		<RepositoryUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
+		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="System.ComponentModel.DataAnnotations">
+			<HintPath>..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.ComponentModel.DataAnnotations.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
+		<DefineConstants>NET45;NETFULL</DefineConstants>
+	</PropertyGroup>
+
+</Project>

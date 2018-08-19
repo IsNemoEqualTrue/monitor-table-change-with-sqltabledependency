@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netcoreapp2.0;net451;netstandard2.0</TargetFrameworks>
+		<Description>TableDependency.SqlClient is a C# component used to receive Microsoft SQL Server © database notifications when a table record has been changed</Description>
+		<Authors>Christian Del Bianco</Authors>
+		<Version>8.0.0</Version>
+		<Copyright>Christian Del Bianco © 2015-2018</Copyright>
+		<PackageProjectUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
+		<PackageIconUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_notify.png</PackageIconUrl>
+		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="System.Data.SqlClient">
+			<Version>4.3.0</Version>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\TableDependency\TableDependency.csproj" />
+	</ItemGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
+		<DefineConstants>NET45;NETFULL</DefineConstants>
+	</PropertyGroup>
+	
+</Project>
