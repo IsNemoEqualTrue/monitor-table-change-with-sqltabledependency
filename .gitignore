@@ -217,7 +217,7 @@ ModelManifest.xml
 
 # Exclude files or folders
 NuPkg/**
-img/**
-img/
+/img/**
+/img/
 LICENSE
 README.md
