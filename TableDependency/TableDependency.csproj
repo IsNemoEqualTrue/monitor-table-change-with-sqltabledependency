@@ -12,7 +12,7 @@
 		<RepositoryUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
-		<PackageIconUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_notify.png</PackageIconUrl>
+		<PackageIconUrl>http://sqltabledependency.somee.com/rsz_notify.png</PackageIconUrl>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
 	</PropertyGroup>
 

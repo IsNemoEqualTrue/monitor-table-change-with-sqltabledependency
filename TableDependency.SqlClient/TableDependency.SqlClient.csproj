@@ -10,6 +10,13 @@ If you want to use record change notifications without paying attention to the u
 
 The SqlTableDependency class represents a notification dependency between an application and a SQL Server Table. When you use SqlTableDependency to get notifications, this componenet provides the low-level implementation creating the Queue and Service Broker.
 
+In this way SqlTableDependency class provides access to notifications without knowing anything about the underlying Service Broker infrastructure. Once a record change happens, SqlTableDependency's event subscribers are notified.
+This class allows you to create a dependency to detect changes on a database table. Every change will trigger a notification messages contains values for the updated, inserted or deleted record, avoid you to execute a further select to update your application data.
+
+If you want to use record change notifications without paying attention to the underlying Service Broker infrastructure, the SqlTableDependency class is your choice.
+
+The SqlTableDependency class represents a notification dependency between an application and a SQL Server Table. When you use SqlTableDependency to get notifications, this componenet provides the low-level implementation creating the Queue and Service Broker.
+
 In this way SqlTableDependency class provides access to notifications without knowing anything about the underlying Service Broker infrastructure. Once a record change happens, SqlTableDependency's event subscribers are notified.</Description>
 		<Authors>Christian Del Bianco</Authors>
 		<Version>8.0.0</Version>
@@ -20,11 +27,11 @@ In this way SqlTableDependency class provides access to notifications without kn
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
 		<PackageIconUrl>http://sqltabledependency.somee.com/rsz_notify.png</PackageIconUrl>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageId>SqlTableDependency</PackageId>
 		<PackageTags>SQL Server dependency notifications record table change</PackageTags>
-		<NeutralLanguage />
-		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<ItemGroup>
