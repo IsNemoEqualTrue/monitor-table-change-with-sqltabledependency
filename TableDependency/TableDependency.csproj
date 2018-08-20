@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp2.0;net451;netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net451;netstandard2.0</TargetFrameworks>
 		<Authors>Christian Del Bianco</Authors>
 		<Company>Christian Del Bianco</Company>
 		<Version>8.0.0</Version>
