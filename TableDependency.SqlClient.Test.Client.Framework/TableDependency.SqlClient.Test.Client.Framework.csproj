@@ -44,10 +44,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj">
-      <Project>{62b17b57-77b1-4b66-9624-7a04d3c7b571}</Project>
-      <Name>TableDependency.SqlClient.Where</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
       <Project>{8df673d9-f985-4628-95d6-14f10ff55eee}</Project>
       <Name>TableDependency.SqlClient</Name>

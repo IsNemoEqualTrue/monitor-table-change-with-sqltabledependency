@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TableDependency.SqlClient.Where\TableDependency.SqlClient.Where.csproj" />
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj" />
     <ProjectReference Include="..\TableDependency\TableDependency.csproj" />
   </ItemGroup>
