@@ -11,23 +11,19 @@
 		<RepositoryUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
+		<PackageIconUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_notify.png</PackageIconUrl>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
 		<Version>8.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.ComponentModel.Annotations" Version="4.3.0" />
+		<Reference Include="System.ComponentModel.DataAnnotations">
+			<HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.ComponentModel.DataAnnotations.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\TableDependency\TableDependency.csproj" />
 	</ItemGroup>
-
-	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
-		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
-		<DefineConstants>NET45;NETFULL</DefineConstants>
-	</PropertyGroup>
 	
 </Project>

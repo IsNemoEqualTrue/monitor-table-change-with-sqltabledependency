@@ -14,25 +14,12 @@
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Data.SqlClient">
-			<Version>4.3.0</Version>
-		</PackageReference>
-	</ItemGroup>
-
 	<ItemGroup>
 	  <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
 	</ItemGroup>
-
+	
 	<ItemGroup>
 		<ProjectReference Include="..\TableDependency\TableDependency.csproj" />
 	</ItemGroup>
 
-	<PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
-		<DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
-		<DefineConstants>NET45;NETFULL</DefineConstants>
-	</PropertyGroup>
-	
 </Project>
