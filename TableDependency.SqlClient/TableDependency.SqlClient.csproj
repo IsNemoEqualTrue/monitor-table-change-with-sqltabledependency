@@ -2,7 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netcoreapp2.0;net451;netstandard2.0</TargetFrameworks>
-		<Description>TableDependency.SqlClient is a C# component used to receive Microsoft SQL Server © database notifications when a table record has been changed</Description>
+		<Description>SqlTableDependency is a high-level implementation to access table record change notifications from SQL Server.
+
+This class allows you to create a dependency to detect changes on a database table. Every change will trigger a notification messages contains values for the updated, inserted or deleted record, avoid you to execute a further select to update your application data.
+
+If you want to use record change notifications without paying attention to the underlying Service Broker infrastructure, the SqlTableDependency class is your choice.
+
+The SqlTableDependency class represents a notification dependency between an application and a SQL Server Table. When you use SqlTableDependency to get notifications, this componenet provides the low-level implementation creating the Queue and Service Broker.
+
+In this way SqlTableDependency class provides access to notifications without knowing anything about the underlying Service Broker infrastructure. Once a record change happens, SqlTableDependency's event subscribers are notified.</Description>
 		<Authors>Christian Del Bianco</Authors>
 		<Version>8.0.0</Version>
 		<Copyright>Christian Del Bianco © 2015-2018</Copyright>
@@ -10,8 +18,13 @@
 		<RepositoryUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency</RepositoryUrl>
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
-		<PackageIconUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_notify.png</PackageIconUrl>
+		<PackageIconUrl>http://sqltabledependency.somee.com/rsz_notify.png</PackageIconUrl>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageId>SqlTableDependency</PackageId>
+		<PackageTags>SQL Server dependency notifications record table change</PackageTags>
+		<NeutralLanguage />
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,6 +33,10 @@
 		<Reference Include="System.ComponentModel.DataAnnotations">
 			<HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.ComponentModel.DataAnnotations.dll</HintPath>
 		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Properties\" />
 	</ItemGroup>
 
 </Project>
