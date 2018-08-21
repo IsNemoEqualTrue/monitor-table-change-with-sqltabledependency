@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.EventArgs;
+
 namespace TableDependency.SqlClient.Test
 {
     [TestClass]
@@ -113,7 +116,7 @@ namespace TableDependency.SqlClient.Test
             }
         }
 
-        private void TableDependency_OnChanged(object sender, TableDependency.EventArgs.RecordChangedEventArgs<DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpAfterHugeInsertsTestSqlServerModel> e)
         {
         }
     }

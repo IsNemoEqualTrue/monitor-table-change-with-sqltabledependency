@@ -25,7 +25,8 @@
 #endregion
 
 using System;
-using TableDependency.Exceptions;
+
+using TableDependency.SqlClient.Base.Exceptions;
 
 namespace TableDependency.SqlClient.Exceptions
 {

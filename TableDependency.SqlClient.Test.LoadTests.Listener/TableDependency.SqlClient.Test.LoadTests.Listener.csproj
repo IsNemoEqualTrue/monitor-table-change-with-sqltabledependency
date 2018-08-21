@@ -8,9 +8,10 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TableDependency.SqlClient.Test.LoadTests.Listener</RootNamespace>
     <AssemblyName>TableDependency.SqlClient.Test.LoadTests.Listener</AssemblyName>
-    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -52,12 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TableDependency.SqlClient\TableDependency.SqlClient.csproj">
-      <Project>{8df673d9-f985-4628-95d6-14f10ff55eee}</Project>
+      <Project>{110ff47e-d483-4b69-9eca-d784392c6a44}</Project>
       <Name>TableDependency.SqlClient</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TableDependency\TableDependency.csproj">
-      <Project>{b95e95e1-12c0-4c84-83c5-1b1616e13dfc}</Project>
-      <Name>TableDependency</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,4 +1,13 @@
-﻿namespace TableDependency.SqlClient.Test
+﻿using System;
+using System.Data.SqlClient;
+using System.Threading;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Test.Base;
+
+namespace TableDependency.SqlClient.Test
 {
 #if DEBUG
     [TestClass]

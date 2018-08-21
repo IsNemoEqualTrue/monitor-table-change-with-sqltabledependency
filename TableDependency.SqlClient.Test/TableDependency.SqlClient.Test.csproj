@@ -156,10 +156,6 @@
       <Project>{8df673d9-f985-4628-95d6-14f10ff55eee}</Project>
       <Name>TableDependency.SqlClient</Name>
     </ProjectReference>
-    <ProjectReference Include="..\TableDependency\TableDependency.csproj">
-      <Project>{b95e95e1-12c0-4c84-83c5-1b1616e13dfc}</Project>
-      <Name>TableDependency</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

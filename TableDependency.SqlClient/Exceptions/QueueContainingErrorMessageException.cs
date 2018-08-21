@@ -1,4 +1,4 @@
-﻿using TableDependency.Exceptions;
+﻿using TableDependency.SqlClient.Base.Exceptions;
 using TableDependency.SqlClient.Messages;
 
 namespace TableDependency.SqlClient.Exceptions

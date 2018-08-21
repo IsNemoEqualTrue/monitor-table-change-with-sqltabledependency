@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -21,7 +21,7 @@ namespace TableDependency.SqlClient.Test
             public string Id { get; set; }
 
             [Column(TypeName = "Date")]
-            public virtual DateTime InvoiceDate { get; set; }
+            public DateTime InvoiceDate { get; set; }
         }
 
         private static readonly string TableName = typeof(Issue65Model).Name;

@@ -1,4 +1,12 @@
-﻿namespace TableDependency.SqlClient.Test
+﻿using System.Data.SqlClient;
+using System.Threading;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Test.Base;
+
+namespace TableDependency.SqlClient.Test
 {
 #if DEBUG
     [TestClass]
@@ -53,7 +61,7 @@
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
             Thread.Sleep(10000);
-            
+
             tableDependency.StopWithoutDisposing();
 
             Thread.Sleep(4 * 60 * 1000);
@@ -61,7 +69,7 @@
             Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
 
-        private void TableDependency_OnChanged(object sender, TableDependency.EventArgs.RecordChangedEventArgs<DatabaseObjectCleanUpSqlServerModel> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<DatabaseObjectCleanUpSqlServerModel> e)
         {
         }
     }

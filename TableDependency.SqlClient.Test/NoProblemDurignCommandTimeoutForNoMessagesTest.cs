@@ -4,7 +4,8 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Enums;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.Enums;
 
 namespace TableDependency.SqlClient.Test
 {

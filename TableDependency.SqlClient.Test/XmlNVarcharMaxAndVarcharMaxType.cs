@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -95,10 +95,10 @@ namespace TableDependency.SqlClient.Test
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
-            
+
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Update.ToString()].Item1.varcharMAXColumn);
             Assert.AreEqual(CheckValues[ChangeType.Update.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Update.ToString()].Item1.nvarcharMAXColumn);
-            
+
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Delete.ToString()].Item1.varcharMAXColumn);
             Assert.AreEqual(CheckValues[ChangeType.Delete.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Delete.ToString()].Item1.nvarcharMAXColumn);
 
@@ -170,6 +170,6 @@ namespace TableDependency.SqlClient.Test
 
                 Thread.Sleep(1000);
             }
-        }       
+        }
     }
 }

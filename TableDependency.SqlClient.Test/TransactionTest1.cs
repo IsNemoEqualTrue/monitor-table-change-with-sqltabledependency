@@ -6,6 +6,8 @@ using System.Transactions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using TableDependency.SqlClient.Base;
+
 namespace TableDependency.SqlClient.Test
 {
     [TestClass]

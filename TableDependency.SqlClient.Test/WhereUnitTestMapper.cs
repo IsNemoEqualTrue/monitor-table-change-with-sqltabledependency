@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using TableDependency.SqlClient.Base;
 using TableDependency.SqlClient.Test.Models;
 using TableDependency.SqlClient.Where;
 

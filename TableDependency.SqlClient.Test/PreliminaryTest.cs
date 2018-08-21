@@ -3,7 +3,8 @@ using System.Data.SqlClient;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Exceptions;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.Exceptions;
 using TableDependency.SqlClient.Exceptions;
 
 namespace TableDependency.SqlClient.Test

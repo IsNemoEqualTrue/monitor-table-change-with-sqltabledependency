@@ -4,7 +4,8 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test
 {

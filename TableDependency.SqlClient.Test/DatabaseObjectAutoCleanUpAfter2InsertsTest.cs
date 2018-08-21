@@ -1,4 +1,15 @@
-﻿namespace TableDependency.SqlClient.Test
+﻿using System;
+using System.Data.SqlClient;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Test.Base;
+
+namespace TableDependency.SqlClient.Test
 {
 #if DEBUG
     [TestClass]
@@ -78,7 +89,7 @@
             Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
 
-        private void TableDependency_OnChanged(object sender, TableDependency.EventArgs.RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel> e)
+        private void TableDependency_OnChanged(object sender, RecordChangedEventArgs<DatabaseObjectAutoCleanUpAfter2InsertsTestSqlServerModel> e)
         {
         }
 

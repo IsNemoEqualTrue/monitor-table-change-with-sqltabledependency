@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -95,15 +95,15 @@ namespace TableDependency.SqlClient.Test
 
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.varcharMAXColumn);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn, CheckValues[ChangeType.Insert.ToString()].Item1.nvarcharMAXColumn);
-                   
+
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);
         }
 
         private void TableDependency_Changed(object sender, RecordChangedEventArgs<NVarcharMaxAndVarcharMaxModel2> e)
         {
-                    CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
-                    CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;         
+            CheckValues[ChangeType.Insert.ToString()].Item2.varcharMAXColumn = e.Entity.varcharMAXColumn;
+            CheckValues[ChangeType.Insert.ToString()].Item2.nvarcharMAXColumn = e.Entity.nvarcharMAXColumn;
         }
 
         public static SqlXml ConvertString2SqlXml(string xmlData)
@@ -115,10 +115,10 @@ namespace TableDependency.SqlClient.Test
 
         private static void ModifyTableContent1()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), 
+            CheckValues.Add(ChangeType.Insert.ToString(),
                 new Tuple<NVarcharMaxAndVarcharMaxModel2, NVarcharMaxAndVarcharMaxModel2>(new NVarcharMaxAndVarcharMaxModel2
                 { varcharMAXColumn = new string('¢', 6000), nvarcharMAXColumn = "мы фантастические" }, new NVarcharMaxAndVarcharMaxModel2()));
-            
+
             using (var sqlConnection = new SqlConnection(ConnectionString))
             {
                 sqlConnection.Open();
@@ -131,7 +131,7 @@ namespace TableDependency.SqlClient.Test
                     sqlCommand.ExecuteNonQuery();
                 }
 
-                Thread.Sleep(1000);            
+                Thread.Sleep(1000);
             }
         }
     }

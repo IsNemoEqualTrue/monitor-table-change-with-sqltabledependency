@@ -2,9 +2,10 @@
 using System.Configuration;
 using System.Linq.Expressions;
 
-using TableDependency.Abstracts;
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.Abstracts;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 using TableDependency.SqlClient.Test.Client.Framework.Models;
 using TableDependency.SqlClient.Where;
 

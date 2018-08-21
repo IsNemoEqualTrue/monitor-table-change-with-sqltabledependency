@@ -34,7 +34,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-using TableDependency.Abstracts;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.Abstracts;
 using TableDependency.SqlClient.Where.Helpers;
 
 namespace TableDependency.SqlClient.Where

@@ -24,7 +24,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-using TableDependency.Exceptions;
+using TableDependency.SqlClient.Base.Exceptions;
 using TableDependency.SqlClient.Enumerations;
 
 namespace TableDependency.SqlClient.Exceptions

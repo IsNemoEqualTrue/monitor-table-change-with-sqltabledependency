@@ -36,12 +36,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using TableDependency.Abstracts;
-using TableDependency.Delegates;
-using TableDependency.Enums;
-using TableDependency.EventArgs;
-using TableDependency.Exceptions;
-using TableDependency.Messages;
+using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.Abstracts;
+using TableDependency.SqlClient.Base.Delegates;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Base.Exceptions;
+using TableDependency.SqlClient.Base.Messages;
+using TableDependency.SqlClient.Base.Utilities;
 using TableDependency.SqlClient.Enumerations;
 using TableDependency.SqlClient.EventArgs;
 using TableDependency.SqlClient.Exceptions;
@@ -49,7 +51,7 @@ using TableDependency.SqlClient.Extensions;
 using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.SqlClient.Utilities;
-using TableDependency.Utilities;
+
 #endregion
 
 namespace TableDependency.SqlClient
@@ -156,7 +158,7 @@ namespace TableDependency.SqlClient
         /// <param name="watchDogTimeOut">The WATCHDOG timeout in seconds.</param>
         /// <returns></returns>
         /// <exception cref="NoSubscriberException"></exception>
-        /// <exception cref="TableDependency.Exceptions.NoSubscriberException"></exception>
+        /// <exception cref="NoSubscriberException"></exception>
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
             if (this.OnChanged == null) throw new NoSubscriberException();

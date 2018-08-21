@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using TableDependency.Abstracts;
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base.Abstracts;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 using TableDependency.SqlClient.Test.Base;
 using TableDependency.SqlClient.Where;
 

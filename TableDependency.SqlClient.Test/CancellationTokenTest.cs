@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using TableDependency.SqlClient.Base;
+
 namespace TableDependency.SqlClient.Test
 {
     public class CancellationTokenTestModel

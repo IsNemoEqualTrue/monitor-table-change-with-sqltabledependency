@@ -2,8 +2,8 @@
 using System.Configuration;
 using System.Data.SqlClient;
 
-using TableDependency.Enums;
-using TableDependency.EventArgs;
+using TableDependency.SqlClient.Base.Enums;
+using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test.LoadTests.Listener
 {

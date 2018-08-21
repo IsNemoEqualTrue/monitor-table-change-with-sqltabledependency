@@ -30,11 +30,11 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 
-using TableDependency.Abstracts;
-using TableDependency.EventArgs;
-using TableDependency.Messages;
+using TableDependency.SqlClient.Base.Abstracts;
+using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Base.Messages;
+using TableDependency.SqlClient.Base.Utilities;
 using TableDependency.SqlClient.Extensions;
-using TableDependency.Utilities;
 
 namespace TableDependency.SqlClient.EventArgs
 {
