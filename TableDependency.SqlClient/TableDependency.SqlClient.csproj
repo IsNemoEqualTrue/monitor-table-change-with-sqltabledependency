@@ -12,19 +12,17 @@
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
 		<PackageIconUrl>http://sqltabledependency.somee.com/rsz_notify.png</PackageIconUrl>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageId>SqlTableDependency</PackageId>
 		<PackageTags>SQL Server dependency notifications record table change</PackageTags>
 		<NeutralLanguage>en-US</NeutralLanguage>
-		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\TableDependency\TableDependency.csproj" />
-		<PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
-		<Reference Include="System.ComponentModel.DataAnnotations">
-			<HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1\System.ComponentModel.DataAnnotations.dll</HintPath>
-		</Reference>
+		<PackageReference Include="System.ComponentModel.Annotations" Version="4.4.0" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.3.0" />
 	</ItemGroup>
-
+	
 </Project>
