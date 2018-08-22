@@ -38,10 +38,6 @@ Model properties can have different name from table columns. We'll see later how
 Now create SqlTableDependency instance passing the connection string and table name (database table name is necessary only if the C# model has a name that is different from the database table name). Then create an event handler for SqlTableDependency's Changed event:
 
 ```C#
-using TableDependency;
-using TableDependency.SqlClient;
-using TableDependency.EventArgs;
-
 public class Program
 {
    private static string _con= "data source=.; initial catalog=MyDB; integrated security=True";
