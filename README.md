@@ -19,11 +19,11 @@ As example, let's assume we are interested to receive record table changes for t
 
 <img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
 
-after have installed SqlTableDependency using:
+Let's start installing SqlTableDependency using:
 
 [![Install-Package SqlTableDependency](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/NuGetSqlTableDependency.png)](https://www.nuget.org/packages/SqlTableDependency/)
 
-we start defining a C# model mapping table columns we are interested: these properties will be populated with the values resulting from any INSERT, DELETE or UPDATE record table change operation. We do not need to specify all table columns but just the ones we are interested:
+We now define a C# model mapping table columns we are interested: these properties will be populated with the values resulting from any INSERT, DELETE or UPDATE record table change operation. We do not need to specify all table columns but just the ones we are interested:
 
 ```C#
 public class Customer
