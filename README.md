@@ -103,7 +103,7 @@ This section reports some use case examples:
 ### Track record table change under the hood
 SqlTableDependency's record change audit, provides the low-level implementation to receive database record table change notifications creating SQL Server triggers, queues and service broker that immediately notifies your application when a record table change happens.
 
-Assuming we want to monitor the \[dbo.Customer\] table content, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
+Assuming we want to monitor the Customer table content, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
 * Message types
 * Contract
 * Queue
