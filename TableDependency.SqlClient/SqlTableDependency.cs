@@ -361,6 +361,8 @@ namespace TableDependency.SqlClient
 
         protected override void DropDatabaseObjects()
         {
+            if (!_databaseObjectsCreated) return;
+
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
@@ -550,6 +552,8 @@ namespace TableDependency.SqlClient
                     // Persist all objects
                     transaction.Commit();
                 }
+
+                _databaseObjectsCreated = true;
 
                 this.WriteTraceMessage(TraceLevel.Info, $"All OK! Database objects created with naming {_dataBaseObjectsNamingConvention}.");
             }

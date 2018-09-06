@@ -65,6 +65,7 @@ namespace TableDependency.SqlClient.Base
         protected ITableDependencyFilter _filter;
         protected bool _disposed;
         protected string _dataBaseObjectsNamingConvention;
+        protected bool _databaseObjectsCreated;
 
         #endregion
 
