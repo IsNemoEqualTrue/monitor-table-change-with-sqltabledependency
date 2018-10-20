@@ -208,6 +208,9 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * HIERARCHYID
 * SQL_VARIANT
 
+#### Limitations
+SqlTableDependency does not consider an empty string different from a string containing only spaces; example: '' and '   ' are considered eguals. This means that in there is case of update from '' to '  ' - and vice versa - this change it will not be notified. Same is true for NULL and empty string.
+
 #### Difference between SqlTableDependency and SqlDependency from ADO.NET
 Functionalities comparison between Microsoft ADO.NET SqlDependency and SqlTableDependency:
 
