@@ -209,7 +209,7 @@ Following SQL Server columns types are **not** supported by SqlTableDepdency:
 * SQL_VARIANT
 
 #### Limitations
-SqlTableDependency does not consider an empty string different from a string containing only spaces; example: '' and '   ' are considered eguals. This means that in there is case of update from '' to '  ' - and vice versa - this change it will not be notified. Same is true for NULL and empty string.
+SqlTableDependency does not consider an empty string different from a string containing only spaces; example: '' and '   ' are considered eguals. This means that in there is case of update from '' to '  ' - and vice versa - this change it will not be notified. Same is true for NULL and empty string. Please check https://support.microsoft.com/en-us/help/316626/inf-how-sql-server-compares-strings-with-trailing-spaces.
 
 SqlTableDependency works with traditional disk-based tables: it does not works with In-Memory OLTP tables.
 
