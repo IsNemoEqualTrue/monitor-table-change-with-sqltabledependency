@@ -27,7 +27,7 @@ namespace TableDependency.SqlClient.Test.Client.Core
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(" (.NET Core)");
                 Console.ForegroundColor = originalForegroundColor;
-                Console.WriteLine("Copyright (c) 2015-2018 Christian Del Bianco.");
+                Console.WriteLine("Copyright (c) 2015-2019 Christian Del Bianco.");
                 Console.WriteLine("All rights reserved." + Environment.NewLine);
                 Console.WriteLine("**********************************************************************************************");
                 Console.WriteLine("Choose connection string:");

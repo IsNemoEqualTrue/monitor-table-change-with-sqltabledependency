@@ -79,7 +79,8 @@
     <Compile Include="DatabaseObjectCleanUpTest.cs" />
     <Compile Include="DateTypeTest.cs" />
     <Compile Include="EndpointsStatusTest.cs" />
-    <Compile Include="EnumTestSqlServer.cs" />
+    <Compile Include="EnumTestSqlServer1.cs" />
+    <Compile Include="EnumTestSqlServer2.cs" />
     <Compile Include="EventForAllColumnsTest.cs" />
     <Compile Include="EventForSpecificColumnsTest.cs" />
     <Compile Include="GuidSmallMoneyTypesTest.cs" />
@@ -119,6 +120,7 @@
     <Compile Include="TransactionTest4.cs" />
     <Compile Include="TriggerTypeTest.cs" />
     <Compile Include="TwoIntancesTest.cs" />
+    <Compile Include="UnitTest1.cs" />
     <Compile Include="UpdateOfUsingLambaTest.cs" />
     <Compile Include="UseSchemaOtherThanDBOTest.cs" />
     <Compile Include="UseSchemaOtherThanDBOTest2.cs" />

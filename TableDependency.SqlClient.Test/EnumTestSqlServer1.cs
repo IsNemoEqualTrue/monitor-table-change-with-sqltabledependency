@@ -11,25 +11,25 @@ using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Test
 {
-    public enum TypeEnum : byte
-    {
-        Genitore = 1,
-        Figlio = 2
-    }
-
     [TestClass]
-    public class EnumTestSqlServer : Base.SqlTableDependencyBaseTest
+    public class EnumTestSqlServer1 : Base.SqlTableDependencyBaseTest
     {
-        private class EnumTestSqlServerModel
+        private enum TypeEnum1 : byte
+        {
+            Genitore = 1,
+            Figlio = 2
+        }
+
+        private class EnumTestSqlServerModel1
         {
             public string Name { get; set; }
             public string Surname { get; set; }
-            public TypeEnum Tipo { get; set; }
+            public TypeEnum1 Tipo { get; set; }
         }
 
-        private static readonly string TableName = typeof(EnumTestSqlServerModel).Name.ToUpper();
+        private static readonly string TableName = typeof(EnumTestSqlServerModel1).Name.ToUpper();
         private static int _counter;
-        private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>>();
+        private static readonly Dictionary<string, Tuple<EnumTestSqlServerModel1, EnumTestSqlServerModel1>> CheckValues = new Dictionary<string, Tuple<EnumTestSqlServerModel1, EnumTestSqlServerModel1>>();
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -66,11 +66,11 @@ namespace TableDependency.SqlClient.Test
         [TestMethod]
         public void Test()
         {
-            SqlTableDependency<EnumTestSqlServerModel> tableDependency = null;
+            SqlTableDependency<EnumTestSqlServerModel1> tableDependency = null;
 
             try
             {
-                tableDependency = new SqlTableDependency<EnumTestSqlServerModel>(ConnectionStringForTestUser, TableName);
+                tableDependency = new SqlTableDependency<EnumTestSqlServerModel1>(ConnectionStringForTestUser, TableName);
                 tableDependency.OnChanged += TableDependency_Changed;
                 tableDependency.Start();
 
@@ -101,7 +101,7 @@ namespace TableDependency.SqlClient.Test
             Assert.IsTrue(base.CountConversationEndpoints(tableDependency.DataBaseObjectsNamingConvention) == 0);
         }
 
-        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EnumTestSqlServerModel> e)
+        private static void TableDependency_Changed(object sender, RecordChangedEventArgs<EnumTestSqlServerModel1> e)
         {
             _counter++;
 
@@ -129,9 +129,9 @@ namespace TableDependency.SqlClient.Test
 
         private static void ModifyTableContent()
         {
-            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Figlio, Name = "Christian", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
-            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<EnumTestSqlServerModel, EnumTestSqlServerModel>(new EnumTestSqlServerModel { Tipo = TypeEnum.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel()));
+            CheckValues.Add(ChangeType.Insert.ToString(), new Tuple<EnumTestSqlServerModel1, EnumTestSqlServerModel1>(new EnumTestSqlServerModel1 { Tipo = TypeEnum1.Figlio, Name = "Christian", Surname = "Del Bianco" }, new EnumTestSqlServerModel1()));
+            CheckValues.Add(ChangeType.Update.ToString(), new Tuple<EnumTestSqlServerModel1, EnumTestSqlServerModel1>(new EnumTestSqlServerModel1 { Tipo = TypeEnum1.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel1()));
+            CheckValues.Add(ChangeType.Delete.ToString(), new Tuple<EnumTestSqlServerModel1, EnumTestSqlServerModel1>(new EnumTestSqlServerModel1 { Tipo = TypeEnum1.Genitore, Name = "Velia", Surname = "Del Bianco" }, new EnumTestSqlServerModel1()));
 
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {

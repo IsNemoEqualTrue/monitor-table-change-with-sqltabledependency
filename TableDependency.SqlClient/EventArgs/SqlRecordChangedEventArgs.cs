@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2018 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -43,12 +43,20 @@ namespace TableDependency.SqlClient.EventArgs
         public SqlRecordChangedEventArgs(
             MessagesBag messagesBag,
             IModelToTableMapper<T> mapper,
-            IEnumerable<TableColumnInfo> userInterestedColumns,            
+            IEnumerable<TableColumnInfo> userInterestedColumns,
             string server,
             string database,
             string sender,
             CultureInfo cultureInfo,
-            bool includeOldValues) : base(messagesBag, mapper, userInterestedColumns, server, database, sender, cultureInfo, includeOldValues)
+            bool includeOldValues) : base(
+                messagesBag,
+                mapper,
+                userInterestedColumns,
+                server,
+                database,
+                sender,
+                cultureInfo,
+                includeOldValues)
         {
         }
 
@@ -58,14 +66,9 @@ namespace TableDependency.SqlClient.EventArgs
 
             if (entityPropertyInfo.PropertyType.GetTypeInfo().IsEnum)
             {
-                foreach (var fInfo in entityPropertyInfo.PropertyType.GetFields(BindingFlags.Public | BindingFlags.Static))
-                {
-                    var underlyingType = Enum.GetUnderlyingType(entityPropertyInfo.PropertyType);
-                    var stringValue = Encoding.Unicode.GetString(message);
-                    var value = Convert.ChangeType(stringValue, underlyingType);
-                    var enumVal = fInfo.GetRawConstantValue();
-                    if (value == enumVal) return enumVal;
-                }
+                var stringValue = Encoding.Unicode.GetString(message);
+                var value = Enum.Parse(entityPropertyInfo.PropertyType, stringValue);
+                return value.GetHashCode();
             }
 
             if (entityPropertyInfo.PropertyType == typeof(byte[])) return message;
