@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency
+// TableDependency, SqlTableDependency - Release 8.5.2
 // Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
