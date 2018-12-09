@@ -36,8 +36,7 @@ Now create SqlTableDependency instance passing the connection string and table n
 ```C#
 public class Program
 {
- private static string _con = 
-  "data source=.; initial catalog=MyDB; integrated security=True";
+ private static string _con = "data source=.; initial catalog=MyDB; integrated security=True";
    
  public static void Main()
  {
@@ -50,13 +49,10 @@ public class Program
   mapper.AddMapping(c => c.Name, "First Name");
 
   // Here - as second parameter - we pass table name: 
-  // this is necessary only if the model name is 
-  // different from table name (in our case we have
-  // Customer vs Customers). 
+  // this is necessary only if the model name is different from table name 
+  // (in our case we have Customer vs Customers). 
   // If needed, you can also specifiy schema name.
-  using (var dep = new SqlTableDependency<Customer>(
-   _con, 
-   tableName: "Customers", mapper: mapper))
+  using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
   {
    dep.OnChanged += Changed;
    dep.Start();
@@ -68,9 +64,7 @@ public class Program
   } 
  }
 
- public static void Changed(
-  object sender, 
-  RecordChangedEventArgs<Customer> e)
+ public static void Changed(object sender, RecordChangedEventArgs<Customer> e)
  {
   var changedEntity = e.Entity;
       
