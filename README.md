@@ -1,5 +1,5 @@
 # Monitor and receive notifications on record table change
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE) [![Release](https://img.shields.io/badge/Release-8.5.1%20August%2021%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET%20Framework-%3E%3D%204.5.1-ff69b4.svg)](#) [![.NET Core](https://img.shields.io/badge/.NET%20Core-%3E%3D2.0-yellow.svg)](#)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE) [![Release](https://img.shields.io/badge/Release-8.5.2%20Dec.%2009%2C%202018-orange.svg)](#) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET%20Framework-%3E%3D%204.5.1-ff69b4.svg)](#) [![.NET Core](https://img.shields.io/badge/.NET%20Core-%3E%3D2.0-yellow.svg)](#)
 
 **SqlTableDependency** is a high-level C# component used to audit, monitor and receive notifications on SQL Server's record table changes. 
 For any record table change, as insert, update or delete operation, a notification **containing values for the record changed** is delivered to SqlTableDependency. This notification contains insert, update or delete record values.
@@ -24,9 +24,9 @@ We now define a C# model mapping table columns we are interested: these properti
 ```C#
 public class Customer
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Surname { get; set; }
+ public int Id { get; set; }
+ public string Name { get; set; }
+ public string Surname { get; set; }
 }
 ```
 Model properties can have different name from table columns. We'll see later how to establish a mapping between model properties and table columns with different name.
@@ -36,40 +36,43 @@ Now create SqlTableDependency instance passing the connection string and table n
 ```C#
 public class Program
 {
-   private static string _con= "data source=.; initial catalog=MyDB; integrated security=True";
+ private static string _con = "data source=.; initial catalog=MyDB; integrated security=True";
    
-   public static void Main()
-   {
-       // The mapper object is used to map model properties that do not have a corresponding table column name.
-       // In case all properties of your model have same name of table columns, you can avoid to use the mapper.
-       var mapper = new ModelToTableMapper<Customer>();
-       mapper.AddMapping(c => c.Surname, "Second Name");
-       mapper.AddMapping(c => c.Name, "First Name");
+ public static void Main()
+ {
+  // The mapper object is used to map model properties 
+  // that do not have a corresponding table column name.
+  // In case all properties of your model have same name 
+  // of table columns, you can avoid to use the mapper.
+  var mapper = new ModelToTableMapper<Customer>();
+  mapper.AddMapping(c => c.Surname, "Second Name");
+  mapper.AddMapping(c => c.Name, "First Name");
 
-       // Here - as second parameter - we pass table name: this is necessary only if the model name is 
-       // different from table name (in our case we have Customer vs Customers). 
-       // If needed, you can also specifiy schema name.
-       using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
-       {
-           dep.OnChanged += Changed;
-           dep.Start();
+  // Here - as second parameter - we pass table name: 
+  // this is necessary only if the model name is different from table name 
+  // (in our case we have Customer vs Customers). 
+  // If needed, you can also specifiy schema name.
+  using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
+  {
+   dep.OnChanged += Changed;
+   dep.Start();
 
-           Console.WriteLine("Press a key to exit");
-           Console.ReadKey();
+   Console.WriteLine("Press a key to exit");
+   Console.ReadKey();
 
-           dep.Stop();
-        }
-   }
+   dep.Stop();
+  } 
+ }
 
-   public static void Changed(object sender, RecordChangedEventArgs<Customer> e)
-   {
-      var changedEntity = e.Entity;
+ public static void Changed(object sender, RecordChangedEventArgs<Customer> e)
+ {
+  var changedEntity = e.Entity;
       
-      Console.WriteLine("DML operation: " + e.ChangeType);
-      Console.WriteLine("ID: " + changedEntity.Id);
-      Console.WriteLine("Name: " + changedEntity.Name);
-      Console.WriteLine("Surame: " + changedEntity.Surname);
-   }
+  Console.WriteLine("DML operation: " + e.ChangeType);
+  Console.WriteLine("ID: " + changedEntity.Id);
+  Console.WriteLine("Name: " + changedEntity.Name);
+  Console.WriteLine("Surame: " + changedEntity.Surname);
+ }
 }
 ```
 
