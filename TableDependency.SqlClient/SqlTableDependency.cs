@@ -243,19 +243,6 @@ namespace TableDependency.SqlClient
             return !string.IsNullOrWhiteSpace(schemaNameFromDataAnnotation) ? schemaNameFromDataAnnotation : "dbo";
         }
 
-        protected virtual int GetSchemaId()
-        {
-            using (var sqlConnection = new SqlConnection(_connectionString))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"SELECT [schema_id] FROM [sys].[schemas] WITH (NOLOCK) WHERE [name] = '{_schemaName}'";
-                    return (int)sqlCommand.ExecuteScalar();
-                }
-            }
-        }
-
         protected virtual SqlServerVersion GetSqlServerVersion()
         {
             var sqlConnection = new SqlConnection(_connectionString);
@@ -634,7 +621,7 @@ namespace TableDependency.SqlClient
                     $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable EXCEPT SELECT [RowNumber],{sBuilderColumns} FROM @deletedTable";
             }
 
-            if (IncludeOldValues)
+            if (this.IncludeOldValues)
             {
                 comma = new Separator(2, ",");
                 sBuilderColumns = new StringBuilder();
