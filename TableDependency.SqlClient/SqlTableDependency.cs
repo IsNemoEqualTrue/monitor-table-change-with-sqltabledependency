@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency - Release 8.5.2
+// TableDependency, SqlTableDependency
 // Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -24,7 +24,6 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#region Usings
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -51,12 +50,10 @@ using TableDependency.SqlClient.Messages;
 using TableDependency.SqlClient.Resources;
 using TableDependency.SqlClient.Utilities;
 
-#endregion
-
 namespace TableDependency.SqlClient
 {
     /// <summary>
-    /// SqlTableDependency class.
+    /// SqlTableDependency class: monitor SQL Server table record changes and notify it.
     /// </summary>
     public class SqlTableDependency<T> : TableDependency<T> where T : class, new()
     {

@@ -1,5 +1,5 @@
 ﻿#region License
-// TableDependency, SqlTableDependency - Release 8.5.2
+// TableDependency, SqlTableDependency
 // Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
@@ -316,7 +316,7 @@ namespace TableDependency.SqlClient.Base
             }
         }
 
-        virtual protected void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
+        protected virtual void WriteTraceMessage(TraceLevel traceLevel, string message, Exception exception = null)
         {
             try
             {
@@ -333,7 +333,7 @@ namespace TableDependency.SqlClient.Base
             }
             catch
             {
-                // ignored
+                // Intentionally ignored
             }
         }
 
@@ -386,6 +386,9 @@ namespace TableDependency.SqlClient.Base
 
             foreach (var entityPropertyInfo in ModelUtil.GetModelPropertiesInfo<T>())
             {
+                var notMappedAttribute = entityPropertyInfo.GetCustomAttribute(typeof(NotMappedAttribute));
+                if (notMappedAttribute != null) continue;
+
                 var propertyMappedTo = _mapper?.GetMapping(entityPropertyInfo);
                 var propertyName = propertyMappedTo ?? entityPropertyInfo.Name;
 
@@ -396,7 +399,7 @@ namespace TableDependency.SqlClient.Base
                     {
                         if (tableColumnsListFiltered.Any(ci => string.Equals(ci.Name, tableColumn.Name, StringComparison.OrdinalIgnoreCase)))
                         {
-                            throw new ModelToTableMapperException("Model with columns having same name.");
+                            throw new ModelToTableMapperException("Your model specify a [Column] attributed Name that has same name of another model property.");
                         }
 
                         tableColumnsListFiltered.Add(tableColumn);
@@ -517,7 +520,7 @@ namespace TableDependency.SqlClient.Base
                 }
                 catch
                 {
-                    // ignored
+                    // Intentionally ignored
                 }
             }
         }
@@ -534,7 +537,7 @@ namespace TableDependency.SqlClient.Base
                 }
                 catch
                 {
-                    // ignored
+                    // Intentionally ignored
                 }
             }
         }
@@ -551,7 +554,7 @@ namespace TableDependency.SqlClient.Base
                 }
                 catch
                 {
-                    // ignored
+                    // Intentionally ignored
                 }
             }
         }
