@@ -36,7 +36,8 @@ Now create SqlTableDependency instance passing the connection string and table n
 ```C#
 public class Program
 {
- private static string _con = "data source=.; initial catalog=MyDB; integrated security=True";
+ private static string _con = "data source=.; initial catalog=MyDB;" + 
+                              "integrated security=True";
    
  public static void Main()
  {
@@ -52,15 +53,16 @@ public class Program
   // this is necessary only if the model name is different from table name 
   // (in our case we have Customer vs Customers). 
   // If needed, you can also specifiy schema name.
-  using (var dep = new SqlTableDependency<Customer>(_con, tableName: "Customers", mapper: mapper))
+  var std = new SqlTableDependency<Customer>(_con, "Customers", mapper);
+  using (var d = new SqlTableDependency<Customer>(_con, "Customers", mapper);)
   {
-   dep.OnChanged += Changed;
-   dep.Start();
+   d.OnChanged += Changed;
+   d.Start();
 
    Console.WriteLine("Press a key to exit");
    Console.ReadKey();
 
-   dep.Stop();
+   d.Stop();
   } 
  }
 
