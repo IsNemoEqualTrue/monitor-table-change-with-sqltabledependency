@@ -52,7 +52,7 @@ public class Program
   // this is necessary only if the model name is different from table name 
   // (in our case we have Customer vs Customers). 
   // If needed, you can also specifiy schema name.
-  using (var dep = new SqlTableDependency<Customer>(_con, "Customers", mapper));
+  using (var dep = new SqlTableDependency<Customer>(_con, "Customers", mapper: mapper));
   {
    dep.OnChanged += Changed;
    dep.Start();
