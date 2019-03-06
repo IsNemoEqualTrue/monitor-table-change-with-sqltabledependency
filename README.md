@@ -130,7 +130,7 @@ In any case, when the application exits abruptly – that is by not calling the 
 
 There is a common scenario that could trigger the watchdog: debugging. During development, you often spend several minutes inside the debugger before you move on to the next step. Please make sure to increase `watchDogTimeOut` when you debug an application, otherwise you will experience an unexpected destruction of database objects in the middle of your debugging activity.
 
-#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Audit record table change requirements 
+#### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Audit record table change requirements and info
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions / .NET CORE 2.0 or latest versions.
 * When database connection has been lost, there is no way to re-connect SqlTableDependency instance to its queue. A new instance of SqlTableDependency is needed to get record table change notifications again.
