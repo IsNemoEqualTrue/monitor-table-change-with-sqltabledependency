@@ -133,6 +133,7 @@ There is a common scenario that could trigger the watchdog: debugging. During de
 #### ![alt text](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/if_exclamation-red_46014.png) Audit record table change requirements 
 * SQL Server 2008 R2 or latest versions (**please see note about Compatibility Level and Database Version**).
 * .NET Framewrok 4.5.1 or latest versions / .NET CORE 2.0 or latest versions.
+* When database connection has been lost, there is no way to re-connect SqlTableDependency instance to its queue. A new instance of SqlTableDependency is needed to get record table change notifications again.
 * Windows service using SqlTableDependency **must not goes to SLEEP mode or IDLE state**. Sleep mode blocks SqlTableDependency code and this result in running the database watch dog that drops all SqlTableDependency's db objects (please see https://stackoverflow.com/questions/6302185/how-to-prevent-windows-from-entering-idle-state).
 * Database Backup and Restore: restoring SqlTableDependency's db objects, it does not work.
 
