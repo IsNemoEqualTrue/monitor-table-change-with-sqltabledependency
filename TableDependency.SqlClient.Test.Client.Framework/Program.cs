@@ -24,7 +24,7 @@ namespace TableDependency.SqlClient.Test.Client.Framework
                 Console.Clear();
                 
                 Console.Write("TableDependency, SqlTableDependency");
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(" (.NET Framework)");
                 Console.ForegroundColor = originalForegroundColor;
                 Console.WriteLine("Copyright (c) 2015-2019 Christian Del Bianco.");
@@ -48,15 +48,15 @@ namespace TableDependency.SqlClient.Test.Client.Framework
             var mapper = new ModelToTableMapper<Product>();
             mapper.AddMapping(c => c.Expiring, "ExpiringDate");
 
-            // Define WHERE filter specifing the WHERE condition
-            // We also pass the mapper defined above as last contructor's parameter
+            // Define WHERE filter condition
             Expression<Func<Product, bool>> expression = p => (p.CategoryId == (int)CategorysEnum.Food || p.CategoryId == (int)CategorysEnum.Drink) && p.Quantity <= 10;
             ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Product>(expression, mapper);
 
             using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, includeOldValues: true, filter: whereCondition))
             {
-                dep.OnChanged += Changed;
+                dep.OnChanged += OnChanged;
                 dep.OnError += OnError;
+                dep.OnStatusChanged += OnStatusChanged;
                 dep.Start();
 
                 Console.WriteLine();
@@ -68,13 +68,24 @@ namespace TableDependency.SqlClient.Test.Client.Framework
 
         private static void OnError(object sender, ErrorEventArgs e)
         {
-            Console.Clear();
+            Console.WriteLine(Environment.NewLine);
 
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(e.Message);
             Console.WriteLine(e.Error?.Message);
+            Console.ResetColor();
         }
 
-        private static void Changed(object sender, RecordChangedEventArgs<Product> e)
+        private static void OnStatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            Console.WriteLine(Environment.NewLine);
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"SqlTableDependency Status = {e.Status.ToString()}");
+            Console.ResetColor();
+        }
+
+        private static void OnChanged(object sender, RecordChangedEventArgs<Product> e)
         {
             Console.WriteLine(Environment.NewLine);
 

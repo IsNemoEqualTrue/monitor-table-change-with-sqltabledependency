@@ -112,6 +112,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealTypesTest.cs" />
     <Compile Include="RowVersionTypeTest.cs" />
+    <Compile Include="StatusLostConnectionTest.cs" />
     <Compile Include="StatusTest.cs" />
     <Compile Include="TableNameFromModelClassNameAndUpdateOfTest.cs" />
     <Compile Include="TableWithSpacesTest.cs" />
