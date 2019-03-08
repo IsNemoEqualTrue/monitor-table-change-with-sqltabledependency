@@ -69,15 +69,15 @@ namespace TableDependency.SqlClient
         #region Properties
 
         /// <summary>
-        /// Gets or sets a value indicating whether activate database loging and event viewer loging.
+        /// Gets or sets a value indicating whether activate database logging and event viewer logging.
         /// </summary>
         /// <remarks>
         /// Only a member of the sysadmin fixed server role or a user with ALTER TRACE permissions can use it.
         /// </remarks>
         /// <value>
-        /// <c>true</c> if [activate database loging]; otherwise, <c>false</c>.
+        /// <c>true</c> if [activate database logging]; otherwise, <c>false</c>.
         /// </value>
-        public bool ActivateDatabaseLoging { get; set; }
+        public bool ActivateDatabaseLogging { get; set; }
 
         /// <summary>
         /// Specifies the owner of the service to the specified database user.
@@ -521,7 +521,7 @@ namespace TableDependency.SqlClient
                         string.Join(", ", this.GetDmlTriggerType(_dmlTriggerType)),
                         this.CreateWhereCondifition(),
                         this.PrepareTriggerLogScript(),
-                        this.ActivateDatabaseLoging ? " WITH LOG" : string.Empty,
+                        this.ActivateDatabaseLogging ? " WITH LOG" : string.Empty,
                         columnsForExceptTable,
                         columnsForDeletedTable);
 
@@ -555,7 +555,7 @@ namespace TableDependency.SqlClient
 
         protected virtual string PrepareTriggerLogScript()
         {
-            if (this.ActivateDatabaseLoging == false) return string.Empty;
+            if (this.ActivateDatabaseLogging == false) return string.Empty;
 
             return
                 Environment.NewLine + Environment.NewLine + "DECLARE @LogMessage VARCHAR(255);" + Environment.NewLine +
@@ -566,13 +566,13 @@ namespace TableDependency.SqlClient
         protected virtual string PrepareScriptProcedureQueueActivation(string dropAllScript)
         {
             var script = string.Format(SqlScripts.CreateProcedureQueueActivation, _dataBaseObjectsNamingConvention, dropAllScript, _schemaName);
-            return this.ActivateDatabaseLoging ? script : this.RemoveLogOperations(script);
+            return this.ActivateDatabaseLogging ? script : this.RemoveLogOperations(script);
         }
 
         protected virtual string PrepareScriptDropAll(string dropMessages)
         {
             var script = string.Format(SqlScripts.ScriptDropAll, _dataBaseObjectsNamingConvention, dropMessages, _schemaName);
-            return this.ActivateDatabaseLoging ? script : this.RemoveLogOperations(script);
+            return this.ActivateDatabaseLogging ? script : this.RemoveLogOperations(script);
         }
 
         protected virtual string RemoveLogOperations(string source)
