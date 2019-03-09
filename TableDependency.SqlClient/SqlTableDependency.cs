@@ -603,18 +603,21 @@ namespace TableDependency.SqlClient
 
             var insertedAndDeletedTableVariable =
                 $"INSERT INTO @deletedTable SELECT {sBuilderColumns} FROM DELETED" + Environment.NewLine +
-                $"INSERT INTO @insertedTable SELECT {sBuilderColumns} FROM INSERTED" + Environment.NewLine + Environment.NewLine;
+                this.Spacer(12) +
+                $"INSERT INTO @insertedTable SELECT {sBuilderColumns} FROM INSERTED" + Environment.NewLine;
 
             if (interestedColumns.Any(tableColumn => string.Equals(tableColumn.Type.ToLowerInvariant(), "timestamp", StringComparison.OrdinalIgnoreCase) || string.Equals(tableColumn.Type.ToLowerInvariant(), "rowversion", StringComparison.OrdinalIgnoreCase)))
             {
                 insertIntoExceptStatement =
                     insertedAndDeletedTableVariable +
+                    this.Spacer(12) +
                     $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable";
             }
             else
             {
                 insertIntoExceptStatement =
                     insertedAndDeletedTableVariable +
+                    this.Spacer(12) +
                     $"INSERT INTO @exceptTable SELECT [RowNumber],{sBuilderColumns} FROM @insertedTable EXCEPT SELECT [RowNumber],{sBuilderColumns} FROM @deletedTable";
             }
 
@@ -631,8 +634,8 @@ namespace TableDependency.SqlClient
 
             var insertIntoModifiedRecordsTable = 
                 insertIntoExceptStatement + Environment.NewLine + Environment.NewLine +
-                $"INSERT INTO @modifiedRecordsTable {Environment.NewLine}" +
-                $"SELECT {sBuilderColumns} FROM @exceptTable e {whereCondifition}";
+                this.Spacer(12) +
+                $"INSERT INTO @modifiedRecordsTable SELECT {sBuilderColumns} FROM @exceptTable e {whereCondifition}";
 
             return insertIntoModifiedRecordsTable;
         }

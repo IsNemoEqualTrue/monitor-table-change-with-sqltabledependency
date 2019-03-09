@@ -87,17 +87,13 @@ BEGIN
     END
 
     SELECT @rowsToProcess = COUNT(1) FROM @modifiedRecordsTable    
-    IF @rowsToProcess < 1 RETURN
-    SET @currentRow = 0
 
     BEGIN TRY
-        WHILE @currentRow < @rowsToProcess
+        WHILE @rowsToProcess > 0
         BEGIN
-            SET @currentRow = @currentRow + 1
-
             SELECT	{6}
             FROM	@modifiedRecordsTable
-            WHERE	[RowNumber] = @currentRow
+            WHERE	[RowNumber] = @rowsToProcess
                 
             IF @dmlType = '{10}' 
             BEGIN
@@ -112,7 +108,9 @@ BEGIN
             IF @dmlType = '{12}'
             BEGIN
                 {9}
-            END            
+            END
+
+            SET @rowsToProcess = @rowsToProcess - 1
         END{15}
     END TRY
     BEGIN CATCH

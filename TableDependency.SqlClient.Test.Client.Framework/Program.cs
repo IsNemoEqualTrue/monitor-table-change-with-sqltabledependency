@@ -49,10 +49,11 @@ namespace TableDependency.SqlClient.Test.Client.Framework
             mapper.AddMapping(c => c.Expiring, "ExpiringDate");
 
             // Define WHERE filter condition
-            Expression<Func<Product, bool>> expression = p => (p.CategoryId == (int)CategorysEnum.Food || p.CategoryId == (int)CategorysEnum.Drink) && p.Quantity <= 10;
-            ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Product>(expression, mapper);
+            // Expression<Func<Product, bool>> expression = p => (p.CategoryId == (int)CategorysEnum.Food || p.CategoryId == (int)CategorysEnum.Drink) && p.Quantity <= 10;
+            // ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Product>(expression, mapper);
 
-            using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, includeOldValues: true, filter: whereCondition))
+            //using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, includeOldValues: true, filter: whereCondition))
+            using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper))
             {
                 dep.OnChanged += OnChanged;
                 dep.OnError += OnError;

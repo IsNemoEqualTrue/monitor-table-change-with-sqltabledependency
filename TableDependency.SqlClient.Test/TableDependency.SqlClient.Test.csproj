@@ -99,6 +99,7 @@
     <Compile Include="Models\ConversationEndpoint.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="ModelWithAnnotationUsedWithCunstructorParameterTest.cs" />
+    <Compile Include="MultiDmlOperationsOrderTest.cs" />
     <Compile Include="MultiDmlOperationsTest.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTest1.cs" />
     <Compile Include="NoChangesDuringFirstThreeMinutesTest2.cs" />

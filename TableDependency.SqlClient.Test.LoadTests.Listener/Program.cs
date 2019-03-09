@@ -20,7 +20,7 @@ namespace TableDependency.SqlClient.Test.LoadTests.Listener
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = "IF OBJECT_ID('[LoadTest]', 'U') IS NOT NULL DROP TABLE [dbo].[LoadTest]";
+                    sqlCommand.CommandText = "DROP TABLE [dbo].[LoadTest]";
                     sqlCommand.ExecuteNonQuery();
                     sqlCommand.CommandText = "CREATE TABLE [LoadTest] ([Id] [int], [FirstName] nvarchar(50), [SecondName] nvarchar(50))";
                     sqlCommand.ExecuteNonQuery();
