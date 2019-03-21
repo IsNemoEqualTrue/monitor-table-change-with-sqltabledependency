@@ -63,6 +63,7 @@
     <Compile Include="ComputedColumnTest.cs" />
     <Compile Include="CultureInfoTest.cs" />
     <Compile Include="DataAnnotationNotMappedTest2.cs" />
+    <Compile Include="StopAndStartTest.cs" />
     <Compile Include="DataAnnotationTest01.cs" />
     <Compile Include="DataAnnotationTest02.cs" />
     <Compile Include="DataAnnotationTest03.cs" />
