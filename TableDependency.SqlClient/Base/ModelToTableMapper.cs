@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -108,7 +109,14 @@ namespace TableDependency.SqlClient.Base
         /// <returns></returns>
         public string GetMapping(PropertyInfo propertyInfo)
         {
-            return _mappings.ContainsKey(propertyInfo) ? _mappings[propertyInfo] : null;
+            if (_mappings.Any(p => p.Key.Name == propertyInfo.Name))
+            {
+                return _mappings.First(p => p.Key.Name == propertyInfo.Name).Value;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
