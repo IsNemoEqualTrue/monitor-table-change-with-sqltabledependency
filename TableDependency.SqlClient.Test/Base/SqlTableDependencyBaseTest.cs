@@ -32,8 +32,8 @@ namespace TableDependency.SqlClient.Test.Base
 {
     public abstract class SqlTableDependencyBaseTest
     {
-        protected static readonly string ConnectionStringForTestUser = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
-        protected static readonly string ConnectionStringForSa = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
+        protected static readonly string ConnectionStringForTestUser = ConfigurationManager.ConnectionStrings["VM SqlServer2008 Test_User"].ConnectionString;
+        protected static readonly string ConnectionStringForSa = ConfigurationManager.ConnectionStrings["VM SQLServer2008 sa"].ConnectionString;
 
         protected bool AreAllDbObjectDisposed(string naming)
         {
@@ -43,15 +43,15 @@ namespace TableDependency.SqlClient.Test.Base
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.objects WITH (NOLOCK) WHERE name = N'tr_{naming}_Sender'";
-                    var triggerExistis = Convert.ToInt32(sqlCommand.ExecuteScalar());
+                    var triggerExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{naming}_Updated'";
-                    var messageExistis = Convert.ToInt32(sqlCommand.ExecuteScalar());
+                    var messageExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.objects WITH (NOLOCK) WHERE name = N'{naming}_QueueActivationSender'";
-                    var procedureExistis1 = Convert.ToInt32(sqlCommand.ExecuteScalar());
+                    var procedureExists1 = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
-                    return triggerExistis == 0 && messageExistis == 0 && procedureExistis1 == 0;
+                    return triggerExists == 0 && messageExists == 0 && procedureExists1 == 0;
                 }
             }
         }
