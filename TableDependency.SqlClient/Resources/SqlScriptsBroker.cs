@@ -67,6 +67,14 @@ BEGIN
 	DECLARE @deletedTable TABLE ([RowNumber] INT IDENTITY(1, 1), {18})
     DECLARE @insertedTable TABLE ([RowNumber] INT IDENTITY(1, 1), {18})
     {5}
+
+    DECLARE @conversationHandlerExists INT
+    SELECT @conversationHandlerExists = COUNT(*) FROM sys.conversation_endpoints WHERE conversation_handle = '{19}';
+    IF @conversationHandlerExists = 0
+    BEGIN
+        DROP TRIGGER [tr_{0}_Sender];
+        RETURN
+    END
     
     IF NOT EXISTS(SELECT 1 FROM INSERTED)
     BEGIN

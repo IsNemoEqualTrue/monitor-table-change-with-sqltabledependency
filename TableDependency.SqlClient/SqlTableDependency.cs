@@ -349,15 +349,20 @@ namespace TableDependency.SqlClient
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
-
-                using (var sqlCommand = sqlConnection.CreateCommand())
+                using (var sqlTransaction = sqlConnection.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
-                    var dropAllScript = this.PrepareScriptDropAll(dropMessages);
+                    using (var sqlCommand = sqlConnection.CreateCommand())
+                    {
+                        var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
+                        var dropAllScript = this.PrepareScriptDropAll(dropMessages);
 
-                    sqlCommand.CommandType = CommandType.Text;
-                    sqlCommand.CommandText = dropAllScript;
-                    sqlCommand.ExecuteNonQuery();
+                        sqlCommand.Transaction = sqlTransaction;
+                        sqlCommand.CommandType = CommandType.Text;
+                        sqlCommand.CommandText = dropAllScript;
+                        sqlCommand.ExecuteNonQuery();
+
+                        sqlTransaction.Commit();
+                    }
                 }
             }
 
@@ -523,7 +528,8 @@ namespace TableDependency.SqlClient
                         this.PrepareTriggerLogScript(),
                         this.ActivateDatabaseLogging ? " WITH LOG" : string.Empty,
                         columnsForExceptTable,
-                        columnsForDeletedTable);
+                        columnsForDeletedTable,
+                        this.ConversationHandle);
 
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {_dataBaseObjectsNamingConvention} created.");
@@ -909,10 +915,10 @@ namespace TableDependency.SqlClient
             {
                 foreach (var permission in Enum.GetValues(typeof(SqlServerRequiredPermission)))
                 {
-                    var permissionToCkeck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
-                    if (privilegesTable.Rows.All(r => !string.Equals(r.PermissionType, permissionToCkeck, StringComparison.OrdinalIgnoreCase)))
+                    var permissionToCheck = EnumUtil.GetDescriptionFromEnumValue((SqlServerRequiredPermission)permission);
+                    if (privilegesTable.Rows.All(r => !string.Equals(r.PermissionType, permissionToCheck, StringComparison.OrdinalIgnoreCase)))
                     {
-                        throw new UserWithMissingPermissionException(permissionToCkeck);
+                        throw new UserWithMissingPermissionException(permissionToCheck);
                     }
                 }
             }
@@ -994,7 +1000,7 @@ namespace TableDependency.SqlClient
 
                         if (messagesBag.Status == MessagesBagStatus.Collecting)
                         {
-                            throw new MessageMisalignedException("Received a number of message lower than expected.");
+                            throw new MessageMisalignedException("Received a number of messages lower than expected.");
                         }
 
                         if (messagesBag.Status == MessagesBagStatus.Ready)
