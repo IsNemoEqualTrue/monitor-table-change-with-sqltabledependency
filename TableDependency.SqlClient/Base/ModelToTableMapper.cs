@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -26,7 +26,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -83,8 +82,8 @@ namespace TableDependency.SqlClient.Base
                 return this;
             }
 
-            var unarUnaryExpressionyExp = expression.Body as UnaryExpression;
-            if (unarUnaryExpressionyExp?.Operand is MemberExpression memberExpressionByOperator)
+            var unaryExpression = expression.Body as UnaryExpression;
+            if (unaryExpression?.Operand is MemberExpression memberExpressionByOperator)
             {
                 _mappings[(PropertyInfo)memberExpressionByOperator.Member] = columnName;
                 return this;
@@ -109,14 +108,7 @@ namespace TableDependency.SqlClient.Base
         /// <returns></returns>
         public string GetMapping(PropertyInfo propertyInfo)
         {
-            if (_mappings.Any(p => p.Key.Name == propertyInfo.Name))
-            {
-                return _mappings.First(p => p.Key.Name == propertyInfo.Name).Value;
-            }
-            else
-            {
-                return null;
-            }
+            return _mappings.Any(p => p.Key.Name == propertyInfo.Name) ? _mappings.First(p => p.Key.Name == propertyInfo.Name).Value : null;
         }
 
         /// <summary>

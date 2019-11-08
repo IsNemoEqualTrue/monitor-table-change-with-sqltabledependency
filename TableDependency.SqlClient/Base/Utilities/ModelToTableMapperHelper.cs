@@ -1,6 +1,6 @@
 #region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation

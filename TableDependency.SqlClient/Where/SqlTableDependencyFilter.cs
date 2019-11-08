@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency, SqlTableDependencyFilter
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -228,13 +228,11 @@ namespace TableDependency.SqlClient.Where
 
             if (m.Method.Name == "Substring")
             {
-                int intResult;
-
                 _whereConditionBuilder.Append("SUBSTRING(");
                 this.Visit(m.Object);
 
                 var startParameter = (ConstantExpression)m.Arguments[0];
-                if (!int.TryParse(startParameter?.Value.ToString(), out intResult)) throw new ArgumentNullException();
+                if (!int.TryParse(startParameter?.Value.ToString(), out int intResult)) throw new ArgumentNullException();
                 _whereConditionBuilder.Append(", " + intResult);
 
                 var lenParameter = (ConstantExpression)m.Arguments[1];
@@ -428,16 +426,14 @@ namespace TableDependency.SqlClient.Where
 
         protected override Expression VisitMember(MemberExpression m)
         {
-            var constantExpression = m.Expression as ConstantExpression;
-            if (constantExpression != null)
+            if (m.Expression is ConstantExpression constantExpression)
             {
                 var lambda = Expression.Lambda(m);
                 var fn = lambda.Compile();
                 return this.Visit(Expression.Constant(fn.DynamicInvoke(null), m.Type));
             }
 
-            var subMemberExpression = m.Expression as MemberExpression;
-            if (subMemberExpression != null)
+            if (m.Expression is MemberExpression subMemberExpression)
             {
                 throw new NotSupportedException("Cannot manage complex properties");
             }

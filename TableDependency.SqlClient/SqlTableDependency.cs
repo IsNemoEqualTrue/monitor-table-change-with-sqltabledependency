@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -377,7 +377,7 @@ namespace TableDependency.SqlClient
             if (sqlVersion < SqlServerVersion.SqlServer2008) throw new SqlServerVersionNotSupportedException(sqlVersion);
         }
 
-        protected virtual string CreateWhereCondifition(bool prependSpace = false)
+        protected virtual string CreateWhereCondition(bool prependSpace = false)
         {
             var where = string.Empty;
 
@@ -524,7 +524,7 @@ namespace TableDependency.SqlClient
                         ChangeType.Update,
                         ChangeType.Delete,
                         string.Join(", ", this.GetDmlTriggerType(_dmlTriggerType)),
-                        this.CreateWhereCondifition(),
+                        this.CreateWhereCondition(),
                         this.PrepareTriggerLogScript(),
                         this.ActivateDatabaseLogging ? " WITH LOG" : string.Empty,
                         columnsForExceptTable,
@@ -601,7 +601,7 @@ namespace TableDependency.SqlClient
         {
             string insertIntoExceptStatement;
 
-            var whereCondifition = this.CreateWhereCondifition();
+            var whereCondition = this.CreateWhereCondition();
 
             var comma = new Separator(2, ",");
             var sBuilderColumns = new StringBuilder();
@@ -641,7 +641,7 @@ namespace TableDependency.SqlClient
             var insertIntoModifiedRecordsTable = 
                 insertIntoExceptStatement + Environment.NewLine + Environment.NewLine +
                 this.Spacer(12) +
-                $"INSERT INTO @modifiedRecordsTable SELECT {sBuilderColumns} FROM @exceptTable e {whereCondifition}";
+                $"INSERT INTO @modifiedRecordsTable SELECT {sBuilderColumns} FROM @exceptTable e {whereCondition}";
 
             return insertIntoModifiedRecordsTable;
         }
@@ -801,12 +801,12 @@ namespace TableDependency.SqlClient
         protected virtual string PrepareSendConversation(ChangeType dmlType, IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
             var sendList = userInterestedColumns
-                .Select(insterestedColumn =>
+                .Select(interestedColumn =>
                 {
-                    var sendStatement = this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                    var sendStatement = this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}] ({this.ConvertValueByType(userInterestedColumns, interestedColumn)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
                     if (IncludeOldValues)
                     {
-                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, insterestedColumn, IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{insterestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, interestedColumn, IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
                     }
 
                     return sendStatement;
@@ -821,26 +821,26 @@ namespace TableDependency.SqlClient
 
         protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
-            var result = string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)} = [{insterestedColumn.Name}]"));
-            if (IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(insterestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, insterestedColumn.Name)}_old = [{insterestedColumn.Name}_old]"));
+            var result = string.Join(", ", userInterestedColumns.Select(interestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)} = [{interestedColumn.Name}]"));
+            if (IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(interestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old = [{interestedColumn.Name}_old]"));
 
             return result;
         }
 
         protected virtual string PrepareDeclareVariableStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns)
         {
-            var colonne = (from insterestedColumn in interestedColumns
-                           let variableType = $"{insterestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(insterestedColumn.Size)
+            var columnsList = (from interestedColumn in interestedColumns
+                           let variableType = $"{interestedColumn.Type.ToLowerInvariant()}" + (string.IsNullOrWhiteSpace(interestedColumn.Size)
                            ? string.Empty
-                           : $"({insterestedColumn.Size})")
-                           select this.DeclareStatement(interestedColumns, insterestedColumn, variableType)).ToList();
+                           : $"({interestedColumn.Size})")
+                           select this.DeclareStatement(interestedColumns, interestedColumn, variableType)).ToList();
 
-            return string.Join(Environment.NewLine + this.Spacer(4), colonne);
+            return string.Join(Environment.NewLine + this.Spacer(4), columnsList);
         }
 
-        protected virtual string DeclareStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns, TableColumnInfo insterestedColumn, string variableType)
+        protected virtual string DeclareStatement(IReadOnlyCollection<TableColumnInfo> interestedColumns, TableColumnInfo interestedColumn, string variableType)
         {
-            var variableName = this.SanitizeVariableName(interestedColumns, insterestedColumn.Name);
+            var variableName = this.SanitizeVariableName(interestedColumns, interestedColumn.Name);
 
             var declare = $"DECLARE {variableName} {variableType.ToLowerInvariant()}";
             if (IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
@@ -961,11 +961,11 @@ namespace TableDependency.SqlClient
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
-            var unqueueMessageNumber = _userInterestedColumns.Count() * (IncludeOldValues ? 2 : 1) + 2;
+            var messageNumber = _userInterestedColumns.Count() * (IncludeOldValues ? 2 : 1) + 2;
 
-            var waitforSqlScript =
+            var waitForSqlScript =
                 $"BEGIN CONVERSATION TIMER ('{this.ConversationHandle.ToString().ToUpper()}') TIMEOUT = " + timeOutWatchDog + ";" +
-                $"WAITFOR (RECEIVE TOP({unqueueMessageNumber}) [message_type_name], [message_body] FROM [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver]), TIMEOUT {timeOut * 1000};";
+                $"WAITFOR (RECEIVE TOP({messageNumber}) [message_type_name], [message_body] FROM [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Receiver]), TIMEOUT {timeOut * 1000};";
 
             this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Started);
 
@@ -981,7 +981,7 @@ namespace TableDependency.SqlClient
                     {
                         messagesBag.Reset();
 
-                        using (var sqlCommand = new SqlCommand(waitforSqlScript, sqlConnection))
+                        using (var sqlCommand = new SqlCommand(waitForSqlScript, sqlConnection))
                         {
                             sqlCommand.CommandTimeout = 0;
                             this.WriteTraceMessage(TraceLevel.Verbose, "Executing WAITFOR command.");

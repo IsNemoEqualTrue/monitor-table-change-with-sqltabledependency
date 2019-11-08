@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -48,16 +48,14 @@ namespace TableDependency.SqlClient.Base
             {
                 foreach (var expression in expressions)
                 {
-                    var memberExpression = expression.Body as MemberExpression;
-                    if (memberExpression != null)
+                    if (expression.Body is MemberExpression memberExpression)
                     {
                         _updateOfList.Add((PropertyInfo)memberExpression.Member);
                     }
                     else
                     {
-                        var unarUnaryExpressionyExp = expression.Body as UnaryExpression;
-                        var memberExpressionByOperator = unarUnaryExpressionyExp?.Operand as MemberExpression;
-                        if (memberExpressionByOperator != null)
+                        var unaryExpression = expression.Body as UnaryExpression;
+                        if (unaryExpression?.Operand is MemberExpression memberExpressionByOperator)
                         {
                             _updateOfList.Add((PropertyInfo)memberExpressionByOperator.Member);
                         }

@@ -27,7 +27,7 @@ namespace TableDependency.SqlClient.Test.Client.Core
                 Console.ForegroundColor = ConsoleColor.Blue;
                 Console.WriteLine(" (.NET Core)");
                 Console.ForegroundColor = originalForegroundColor;
-                Console.WriteLine("Copyright (c) 2015-2019 Christian Del Bianco.");
+                Console.WriteLine("Copyright (c) 2015-2020 Christian Del Bianco.");
                 Console.WriteLine("All rights reserved." + Environment.NewLine);
                 Console.WriteLine("**********************************************************************************************");
                 Console.WriteLine("Choose connection string:");
@@ -45,6 +45,7 @@ namespace TableDependency.SqlClient.Test.Client.Core
             if (consoleKeyInfo.Key == ConsoleKey.F4) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 sa"].ConnectionString;
             if (consoleKeyInfo.Key == ConsoleKey.F5) connectionString = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
 
+            // Mapper for DB columns not matching Model's columns
             var mapper = new ModelToTableMapper<Product>();
             mapper.AddMapping(c => c.Expiring, "ExpiringDate");
 
@@ -52,11 +53,13 @@ namespace TableDependency.SqlClient.Test.Client.Core
             Expression<Func<Product, bool>> expression = p => (p.CategoryId == (int)CategorysEnum.Food || p.CategoryId == (int)CategorysEnum.Drink) && p.Quantity <= 10;
             ITableDependencyFilter whereCondition = new SqlTableDependencyFilter<Product>(expression, mapper);
 
+            // As table name (Products) does not match model name (Product), its definition is needed.
             using (var dep = new SqlTableDependency<Product>(connectionString, "Products", mapper: mapper, includeOldValues: true, filter: whereCondition))
             {
                 dep.OnChanged += Changed;
                 dep.OnError += OnError;
                 dep.OnStatusChanged += OnStatusChanged;
+
                 dep.Start();
 
                 Console.WriteLine();

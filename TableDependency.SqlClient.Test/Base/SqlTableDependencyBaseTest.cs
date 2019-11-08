@@ -1,6 +1,6 @@
 ﻿#region License
 // TableDependency, SqlTableDependency
-// Copyright (c) 2015-2019 Christian Del Bianco. All rights reserved.
+// Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -32,8 +32,8 @@ namespace TableDependency.SqlClient.Test.Base
 {
     public abstract class SqlTableDependencyBaseTest
     {
-        protected static readonly string ConnectionStringForTestUser = ConfigurationManager.ConnectionStrings["VM SqlServer2008 Test_User"].ConnectionString;
-        protected static readonly string ConnectionStringForSa = ConfigurationManager.ConnectionStrings["VM SQLServer2008 sa"].ConnectionString;
+        protected static readonly string ConnectionStringForTestUser = ConfigurationManager.ConnectionStrings["SqlServer2008 Test_User"].ConnectionString;
+        protected static readonly string ConnectionStringForSa = ConfigurationManager.ConnectionStrings["SQLServer2008 sa"].ConnectionString;
 
         protected bool AreAllDbObjectDisposed(string naming)
         {
