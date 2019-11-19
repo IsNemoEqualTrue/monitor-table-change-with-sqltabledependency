@@ -225,8 +225,8 @@ namespace TableDependency.SqlClient
                 return tableName.Replace("[", string.Empty).Replace("]", string.Empty);
             }
 
-            var tableNameFromDataAnotation = this.GetTableNameFromDataAnnotation();
-            return !string.IsNullOrWhiteSpace(tableNameFromDataAnotation) ? tableNameFromDataAnotation : typeof(T).Name;
+            var tableNameFromDataAnnotation = this.GetTableNameFromDataAnnotation();
+            return !string.IsNullOrWhiteSpace(tableNameFromDataAnnotation) ? tableNameFromDataAnnotation : typeof(T).Name;
         }
 
         protected override string GetSchemaName(string schemaName)
