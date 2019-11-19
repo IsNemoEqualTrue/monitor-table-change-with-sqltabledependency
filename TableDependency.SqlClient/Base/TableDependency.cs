@@ -482,7 +482,7 @@ namespace TableDependency.SqlClient.Base
             return ((TableAttribute)attribute)?.Name;
         }
 
-        protected abstract string GetSchemaName(string schimaName);
+        protected abstract string GetSchemaName(string schemaName);
 
         protected virtual string GetSchemaNameFromDataAnnotation()
         {
