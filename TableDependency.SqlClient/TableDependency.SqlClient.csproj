@@ -5,7 +5,7 @@
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Version>8.5.5</Version>
 		<TargetFrameworks>net451;netstandard2.0;netcoreapp2.0</TargetFrameworks>
-		<Copyright>Christian Del Bianco © 2015-2019</Copyright>
+		<Copyright>Christian Del Bianco © 2015-2020</Copyright>
 		<PackageLicenseUrl>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE</PackageLicenseUrl>
 		<Description>SqlTableDependency is a high-level implementation to access table record change notifications from SQL Server. This class allows you to detect changes on a database table. Every change will send a notification messages contains values for the updated, inserted or deleted record, avoid you to execute a further select to update your application data. If you want to use record change notifications without paying attention to the underlying Service Broker infrastructure, the SqlTableDependency class is your choice. The SqlTableDependency class represents a notification dependency between an application and a SQL Server Table. When you use SqlTableDependency to get notifications, this componenet provides the low-level implementation creating the Queue and Service Broker. In this way SqlTableDependency class provides access to notifications without knowing anything about the underlying Service Broker infrastructure. Once a record change happens, SqlTableDependency's event subscribers are notified.</Description>
 		<PackageReleaseNotes>https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Release-Notes</PackageReleaseNotes>
