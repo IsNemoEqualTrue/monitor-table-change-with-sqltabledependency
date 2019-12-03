@@ -225,7 +225,6 @@ namespace TableDependency.SqlClient.Base
 
             if (_task != null)
             {
-                Trace.TraceInformation("Already called Start() method.");
                 return;
             }
 
