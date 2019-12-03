@@ -353,7 +353,16 @@ namespace TableDependency.SqlClient
                 {
                     using (var sqlCommand = sqlConnection.CreateCommand())
                     {
-                        var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
+                        var dropMessages = string.Join(Environment.NewLine, _processableMessages.Select((pm, index) => 
+                        { 
+                            if (index > 0)
+                            {
+                                return this.Spacer(8) + string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm);
+                            }
+
+                            return string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm);
+                        }));
+
                         var dropAllScript = this.PrepareScriptDropAll(dropMessages);
 
                         sqlCommand.Transaction = sqlTransaction;
@@ -491,7 +500,12 @@ namespace TableDependency.SqlClient
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Service broker {_dataBaseObjectsNamingConvention}_Receiver created.");
 
                     // Activation Store Procedure
-                    var dropMessages = string.Join(Environment.NewLine, processableMessages.Select(pm => string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm)));
+                    var dropMessages = string.Join(Environment.NewLine, processableMessages.Select((pm, index) => 
+                    { 
+                        if (index > 0) return this.Spacer(8) + string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm);
+                        return string.Format("IF EXISTS (SELECT * FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{0}') DROP MESSAGE TYPE [{0}];", pm); 
+                    }));
+
                     var dropAllScript = this.PrepareScriptDropAll(dropMessages);
                     sqlCommand.CommandText = this.PrepareScriptProcedureQueueActivation(dropAllScript);
                     sqlCommand.ExecuteNonQuery();
@@ -958,6 +972,8 @@ namespace TableDependency.SqlClient
             int timeOut,
             int timeOutWatchDog)
         {
+            var beginConversationTimerRunning = false;
+
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
@@ -988,6 +1004,8 @@ namespace TableDependency.SqlClient
 
                             using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                             {
+                                beginConversationTimerRunning = true;
+
                                 while (sqlDataReader.Read())
                                 {
                                     var message = new Message(sqlDataReader.GetSqlString(0).Value, sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlBytes(1).Value);
@@ -1034,6 +1052,13 @@ namespace TableDependency.SqlClient
                 this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StopDueToError);
                 if (cancellationToken.IsCancellationRequested == false) this.NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
+            }
+            finally
+            {
+                if (!beginConversationTimerRunning)
+                {
+                    this.DropDatabaseObjects();
+                }
             }
         }
     }
