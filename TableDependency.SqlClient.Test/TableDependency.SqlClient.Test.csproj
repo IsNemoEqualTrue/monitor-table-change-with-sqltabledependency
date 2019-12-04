@@ -64,6 +64,7 @@
     <Compile Include="ComputedColumnTest.cs" />
     <Compile Include="CultureInfoTest.cs" />
     <Compile Include="DataAnnotationNotMappedTest2.cs" />
+    <Compile Include="Inheritance\SqlTableDependencyTest.cs" />
     <Compile Include="Issue146Test.cs" />
     <Compile Include="StopAndStartTest.cs" />
     <Compile Include="DataAnnotationTest01.cs" />
@@ -172,6 +173,7 @@
     <Content Include="Scripts\Monolog.sql" />
     <Content Include="Scripts\QueryEndpoints.sql" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

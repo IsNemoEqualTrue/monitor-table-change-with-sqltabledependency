@@ -5,8 +5,8 @@ namespace TableDependency.SqlClient.Exceptions
 {
     public class QueueContainingErrorMessageException : TableDependencyException
     {
-        protected internal QueueContainingErrorMessageException()
-            : base($"Queue containig a '{SqlMessageTypes.ErrorType}' message.")
-        { }
+        public QueueContainingErrorMessageException() : base($"Queue containig a '{SqlMessageTypes.ErrorType}' message.")
+        { 
+        }
     }
 }

@@ -153,10 +153,12 @@ namespace TableDependency.SqlClient
         /// <param name="timeOut">The WAITFOR timeout in seconds.</param>
         /// <param name="watchDogTimeOut">The WATCHDOG timeout in seconds.</param>
         /// <returns></returns>
-        /// <exception cref="NoSubscriberException"></exception>
-        /// <exception cref="NoSubscriberException"></exception>
         public override void Start(int timeOut = 120, int watchDogTimeOut = 180)
         {
+            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
+            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new WatchDogTimeOutException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
+            if (_task != null) return;
+
             if (this.OnChanged == null) throw new NoSubscriberException();
 
             var onChangedSubscribedList = this.OnChanged?.GetInvocationList();
@@ -165,8 +167,8 @@ namespace TableDependency.SqlClient
 
             this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.Starting);
 
-            base.Start(timeOut, watchDogTimeOut);
-
+            _disposed = false;
+            _processableMessages = this.CreateDatabaseObjects(timeOut, watchDogTimeOut);
             _cancellationTokenSource = new CancellationTokenSource();
 
             _task = Task.Factory.StartNew(() =>
@@ -180,6 +182,26 @@ namespace TableDependency.SqlClient
                 _cancellationTokenSource.Token);
 
             this.WriteTraceMessage(TraceLevel.Info, $"Waiting for receiving {_tableName}'s records change notifications.");
+        }
+
+        /// <summary>
+        /// Stops monitoring table's content changes.
+        /// </summary>
+        public override void Stop()
+        {
+            if (_task != null)
+            {
+                _cancellationTokenSource.Cancel(true);
+                _task?.Wait();
+            }
+
+            _task = null;
+
+            this.DropDatabaseObjects();
+
+            _disposed = true;
+
+            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
         }
 
         #endregion
@@ -203,7 +225,7 @@ namespace TableDependency.SqlClient
                 _database,
                 _dataBaseObjectsNamingConvention,
                 base.CultureInfo,
-                IncludeOldValues);
+                this.IncludeOldValues);
         }
 
         protected override string GetDataBaseName()
@@ -415,7 +437,7 @@ namespace TableDependency.SqlClient
             var processableMessages = new List<string>();
             var tableColumns = userInterestedColumns as IList<TableColumnInfo> ?? userInterestedColumns.ToList();
 
-            var columnsForModifiedRecordsTable = this.PrepareColumnListForTableVariable(tableColumns, IncludeOldValues);
+            var columnsForModifiedRecordsTable = this.PrepareColumnListForTableVariable(tableColumns, this.IncludeOldValues);
             var columnsForExceptTable = this.PrepareColumnListForTableVariable(tableColumns, false);
             var columnsForDeletedTable = this.PrepareColumnListForTableVariable(tableColumns, false);
 
@@ -455,7 +477,7 @@ namespace TableDependency.SqlClient
                         this.WriteTraceMessage(TraceLevel.Verbose, $"Message {message} created.");
                         processableMessages.Add(message);
 
-                        if (IncludeOldValues)
+                        if (this.IncludeOldValues)
                         {
                             message = $"{_dataBaseObjectsNamingConvention}/{userInterestedColumn.Name}/old";
                             sqlCommand.CommandText = $"CREATE MESSAGE TYPE [{message}] VALIDATION = NONE;";
@@ -551,6 +573,11 @@ namespace TableDependency.SqlClient
                     // Associate Activation Store Procedure to sender queue
                     sqlCommand.CommandText = $"ALTER QUEUE [{_schemaName}].[{_dataBaseObjectsNamingConvention}_Sender] WITH ACTIVATION (PROCEDURE_NAME = [{_schemaName}].[{_dataBaseObjectsNamingConvention}_QueueActivationSender], MAX_QUEUE_READERS = 1, EXECUTE AS {this.QueueExecuteAs.ToUpper()}, STATUS = ON);";
                     sqlCommand.ExecuteNonQuery();
+
+                    // Run the watch-dog
+                    sqlCommand.CommandText = $"BEGIN CONVERSATION TIMER ('{this.ConversationHandle.ToString().ToUpper()}') TIMEOUT = " + watchDogTimeOut + ";";
+                    sqlCommand.ExecuteNonQuery();
+                    this.WriteTraceMessage(TraceLevel.Verbose, "Watch dog started.");
 
                     // Persist all objects
                     transaction.Commit();
@@ -694,7 +721,7 @@ namespace TableDependency.SqlClient
             {
                 var column = $"[{c.Name}]";
 
-                if (IncludeOldValues)
+                if (this.IncludeOldValues)
                 {
                     column += ", NULL";
                 }
@@ -818,9 +845,9 @@ namespace TableDependency.SqlClient
                 .Select(interestedColumn =>
                 {
                     var sendStatement = this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)} IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}] ({this.ConvertValueByType(userInterestedColumns, interestedColumn)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
-                    if (IncludeOldValues)
+                    if (this.IncludeOldValues)
                     {
-                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, interestedColumn, IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
+                        sendStatement += Environment.NewLine + this.Spacer(16) + $"IF {this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old IS NOT NULL BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] ({this.ConvertValueByType(userInterestedColumns, interestedColumn, this.IncludeOldValues)})" + Environment.NewLine + this.Spacer(16) + "END" + Environment.NewLine + this.Spacer(16) + "ELSE BEGIN" + Environment.NewLine + this.Spacer(20) + $";SEND ON CONVERSATION '{this.ConversationHandle}' MESSAGE TYPE [{_dataBaseObjectsNamingConvention}/{interestedColumn.Name}/old] (0x)" + Environment.NewLine + this.Spacer(16) + "END";
                     }
 
                     return sendStatement;
@@ -836,7 +863,7 @@ namespace TableDependency.SqlClient
         protected virtual string PrepareSelectForSetVariables(IReadOnlyCollection<TableColumnInfo> userInterestedColumns)
         {
             var result = string.Join(", ", userInterestedColumns.Select(interestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)} = [{interestedColumn.Name}]"));
-            if (IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(interestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old = [{interestedColumn.Name}_old]"));
+            if (this.IncludeOldValues) result += ", " + string.Join(", ", userInterestedColumns.Select(interestedColumn => $"{this.SanitizeVariableName(userInterestedColumns, interestedColumn.Name)}_old = [{interestedColumn.Name}_old]"));
 
             return result;
         }
@@ -857,7 +884,7 @@ namespace TableDependency.SqlClient
             var variableName = this.SanitizeVariableName(interestedColumns, interestedColumn.Name);
 
             var declare = $"DECLARE {variableName} {variableType.ToLowerInvariant()}";
-            if (IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
+            if (this.IncludeOldValues) declare += $", {variableName}_old {variableType.ToLowerInvariant()}";
 
             return declare;
         }
@@ -972,12 +999,10 @@ namespace TableDependency.SqlClient
             int timeOut,
             int timeOutWatchDog)
         {
-            var beginConversationTimerRunning = false;
-
             this.WriteTraceMessage(TraceLevel.Verbose, "Get in WaitForNotifications.");
 
             var messagesBag = this.CreateMessagesBag(this.Encoding, _processableMessages);
-            var messageNumber = _userInterestedColumns.Count() * (IncludeOldValues ? 2 : 1) + 2;
+            var messageNumber = _userInterestedColumns.Count() * (this.IncludeOldValues ? 2 : 1) + 2;
 
             var waitForSqlScript =
                 $"BEGIN CONVERSATION TIMER ('{this.ConversationHandle.ToString().ToUpper()}') TIMEOUT = " + timeOutWatchDog + ";" +
@@ -1004,8 +1029,6 @@ namespace TableDependency.SqlClient
 
                             using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
                             {
-                                beginConversationTimerRunning = true;
-
                                 while (sqlDataReader.Read())
                                 {
                                     var message = new Message(sqlDataReader.GetSqlString(0).Value, sqlDataReader.IsDBNull(1) ? null : sqlDataReader.GetSqlBytes(1).Value);
@@ -1052,13 +1075,6 @@ namespace TableDependency.SqlClient
                 this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StopDueToError);
                 if (cancellationToken.IsCancellationRequested == false) this.NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
-            }
-            finally
-            {
-                if (!beginConversationTimerRunning)
-                {
-                    this.DropDatabaseObjects();
-                }
             }
         }
     }

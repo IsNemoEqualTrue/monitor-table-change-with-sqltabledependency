@@ -47,7 +47,6 @@ namespace TableDependency.SqlClient.Test
             }
         }
 
-
         [TestCategory("SqlServer")]
         [TestMethod]
         public void Test()

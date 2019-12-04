@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.SqlClient.Base;
 using TableDependency.SqlClient.Test.Base;
+using TableDependency.SqlClient.Test.Inheritance;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -64,14 +65,20 @@ namespace TableDependency.SqlClient.Test
             var mapper = new ModelToTableMapper<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>();
             mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
 
-            var tableDependency = new SqlTableDependency<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>(ConnectionStringForTestUser, includeOldValues: true, tableName: TableName, mapper: mapper);
+            var tableDependency = new SqlTableDependencyTest<DatabaseObjectAutoCleanUpAfterHugeInsertsTestSqlServerModel>(
+                ConnectionStringForTestUser, 
+                includeOldValues: true, 
+                tableName: TableName, 
+                mapper: mapper,
+                stopWithoutDisposing: true);
+
             tableDependency.OnChanged += (o, args) => { };
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
             Thread.Sleep(5000);
 
-            tableDependency.StopWithoutDisposing();
+            tableDependency.Stop();
 
             Thread.Sleep(1000);
 

@@ -5,10 +5,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.SqlClient.Base.EventArgs;
 using TableDependency.SqlClient.Test.Base;
+using TableDependency.SqlClient.Test.Inheritance;
 
 namespace TableDependency.SqlClient.Test
 {
-#if DEBUG
     [TestClass]
     public class DatabaseObjectCleanUpTest : SqlTableDependencyBaseTest
     {
@@ -55,14 +55,18 @@ namespace TableDependency.SqlClient.Test
         [TestMethod]
         public void Test()
         {
-            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpSqlServerModel>(ConnectionStringForTestUser, tableName: TableName);
+            var tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpSqlServerModel>(
+                ConnectionStringForTestUser, 
+                tableName: TableName,
+                stopWithoutDisposing: true);
+
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
             var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
 
             Thread.Sleep(10000);
 
-            tableDependency.StopWithoutDisposing();
+            tableDependency.Stop();
 
             Thread.Sleep(4 * 60 * 1000);
             Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
@@ -73,5 +77,4 @@ namespace TableDependency.SqlClient.Test
         {
         }
     }
-#endif
 }

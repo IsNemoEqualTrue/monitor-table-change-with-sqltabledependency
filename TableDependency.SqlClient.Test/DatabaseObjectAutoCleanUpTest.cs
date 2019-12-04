@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
-
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.SqlClient.Base;
+using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Test.Inheritance;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -45,20 +47,6 @@ namespace TableDependency.SqlClient.Test
             }
         }
 
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = sqlConnection.CreateCommand())
-                {
-                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]";
-                    sqlCommand.ExecuteNonQuery();
-                }
-            }
-        }
-
         [ClassCleanup]
         public static void ClassCleanup()
         {
@@ -75,32 +63,184 @@ namespace TableDependency.SqlClient.Test
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void Test()
+        public void TestCollapsingTheAppDomain()
         {
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
             var adevidence = AppDomain.CurrentDomain.Evidence;
             var domain = AppDomain.CreateDomain("RunsInAnotherAppDomain_Check_DatabaseObjectCleanUp", adevidence, domaininfo);
             var otherDomainObject = (RunsInAnotherAppDomainCheckDatabaseObjectCleanUp)domain.CreateInstanceAndUnwrap(typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).Assembly.FullName, typeof(RunsInAnotherAppDomainCheckDatabaseObjectCleanUp).FullName);
             _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
+            Thread.Sleep(1000);
+
+            // Run async task insering 1000 rows in table every 250 milliseconds
+            var task = Task.Factory.StartNew(() => ModifyTableContent());
+
+            // Wait 5 seconds and then collapse the app domain where sqltabledependency is running
             Thread.Sleep(5000);
             AppDomain.Unload(domain);
 
-            SmallModifyTableContent();
-
+            // After 3 minutes, even if the background thread is still inserting data in table, db objects must be removed
             Thread.Sleep(3 * 60 * 1000);
             Assert.IsTrue(base.AreAllDbObjectDisposed(_dbObjectsNaming));
             Assert.IsTrue(base.CountConversationEndpoints(_dbObjectsNaming) == 0);
+
+            // Wait a minute in order to let the task complete and not interfeer with other tests!
+            Thread.Sleep(1 * 60 * 1000);
         }
 
-        private static void SmallModifyTableContent()
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestThrowExceptionInCreateSqlServerDatabaseObjects()
+        {
+            SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = null;
+            string objectNaming = string.Empty;
+
+            try
+            {
+                tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                    ConnectionStringForTestUser, 
+                    tableName: TableName, 
+                    throwExceptionCreateSqlServerDatabaseObjects: true);
+
+                tableDependency.OnChanged += (sender, e) => { };
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();                
+            }
+            catch
+            {
+
+            }
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestThrowExceptionInWaitForNotificationsPoint3()
+        {
+            SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = null;
+            string objectNaming = string.Empty;
+
+            try
+            {
+                tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                    ConnectionStringForTestUser,
+                    tableName: TableName,
+                    throwExceptionInWaitForNotificationsPoint3: true);
+
+                tableDependency.OnChanged += (sender, e) => { };
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();
+            }
+            catch
+            {
+
+            }
+
+            Thread.Sleep(1000 * 60 * 4);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestThrowExceptionInWaitForNotificationsPoint2()
+        {
+            SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = null;
+            string objectNaming = string.Empty;
+
+            try
+            {
+                tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                    ConnectionStringForTestUser,
+                    tableName: TableName,
+                    throwExceptionInWaitForNotificationsPoint2: true);
+
+                tableDependency.OnChanged += (sender, e) => { };
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();
+            }
+            catch
+            {
+
+            }
+
+            Thread.Sleep(1000 * 60 * 4);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestThrowExceptionInWaitForNotificationsPoint1()
+        {
+            SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = null;
+            string objectNaming = string.Empty;
+
+            try
+            {
+                tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                    ConnectionStringForTestUser, 
+                    tableName: TableName, 
+                    throwExceptionInWaitForNotificationsPoint1: true);
+
+                tableDependency.OnChanged += (sender, e) => { };
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();                
+            }
+            catch
+            {
+
+            }
+
+            Thread.Sleep(1000 * 60 * 4);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestStartWitError()
+        {
+            SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = null;
+            string objectNaming = string.Empty;
+
+            try
+            {
+                tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                    ConnectionStringForTestUser, 
+                    tableName: TableName,
+                    throwExceptionBeforeWaitForNotifications: true);
+
+                tableDependency.OnChanged += (sender, e) => { };
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();
+            }
+            catch
+            {
+
+            }
+
+            Thread.Sleep(1000 * 60 * 4);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        private static void ModifyTableContent()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
-                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('allora', 'mah')";
-                    sqlCommand.ExecuteNonQuery();
+                    for (int i = 0; i < 100; i++)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{Guid.NewGuid().ToString()}', 'mah')";
+                        sqlCommand.ExecuteNonQuery();
+
+                        Thread.Sleep(250);
+                    }
                 }
             }
         }

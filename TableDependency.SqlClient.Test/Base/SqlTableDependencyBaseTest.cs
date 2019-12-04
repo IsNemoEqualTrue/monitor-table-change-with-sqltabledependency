@@ -45,13 +45,25 @@ namespace TableDependency.SqlClient.Test.Base
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.objects WITH (NOLOCK) WHERE name = N'tr_{naming}_Sender'";
                     var triggerExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_contracts WITH (NOLOCK) WHERE name = N'{naming}'";
+                    var contectExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
                     sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_message_types WITH (NOLOCK) WHERE name = N'{naming}_Updated'";
                     var messageExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
-                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.objects WITH (NOLOCK) WHERE name = N'{naming}_QueueActivationSender'";
-                    var procedureExists1 = Convert.ToInt32(sqlCommand.ExecuteScalar());
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{naming}_Receiver'";
+                    var receiverQueueExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
 
-                    return triggerExists == 0 && messageExists == 0 && procedureExists1 == 0;
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.service_queues WHERE name = N'{naming}_Sender'";
+                    var senderQueueExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.services WHERE name = N'{naming}_Receiver'";
+                    var serviceExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
+                    sqlCommand.CommandText = $"SELECT COUNT(*) FROM sys.objects WITH (NOLOCK) WHERE name = N'{naming}_QueueActivationSender'";
+                    var procedureExists = Convert.ToInt32(sqlCommand.ExecuteScalar());
+
+                    return serviceExists == 0 && senderQueueExists == 0 && receiverQueueExists == 0 & triggerExists == 0 && messageExists == 0 && procedureExists == 0 && contectExists == 0;
                 }
             }
         }

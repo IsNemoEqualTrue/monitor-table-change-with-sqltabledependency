@@ -215,59 +215,12 @@ namespace TableDependency.SqlClient.Base
         /// </summary>
         /// <param name="timeOut">The WAITFOR timeout in seconds.</param>
         /// <param name="watchDogTimeOut">The WATCHDOG timeout in seconds.</param>
-        /// <returns></returns>
-        /// <exception cref="NoSubscriberException"></exception>
-        /// <exception cref="NoSubscriberException"></exception>
-        public virtual void Start(int timeOut = 120, int watchDogTimeOut = 180)
-        {
-            if (timeOut < 60) throw new ArgumentException("timeOut must be greater or equal to 60 seconds");
-            if (watchDogTimeOut < 60 || watchDogTimeOut < (timeOut + 60)) throw new WatchDogTimeOutException("watchDogTimeOut must be at least 60 seconds bigger then timeOut");
-
-            if (_task != null)
-            {
-                return;
-            }
-
-            _disposed = false;
-            _processableMessages = this.CreateDatabaseObjects(timeOut, watchDogTimeOut);
-        }
+        public abstract void Start(int timeOut = 120, int watchDogTimeOut = 180);
 
         /// <summary>
         /// Stops monitoring table's content changes.
         /// </summary>
-        public virtual void Stop()
-        {
-            if (_task != null)
-            {
-                _cancellationTokenSource.Cancel(true);
-                _task?.Wait();
-            }
-
-            _task = null;
-
-            this.DropDatabaseObjects();
-
-            _disposed = true;
-
-            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
-        }
-
-#if DEBUG
-        public virtual void StopWithoutDisposing()
-        {
-            if (_task != null)
-            {
-                _cancellationTokenSource.Cancel(true);
-                _task?.Wait();
-            }
-
-            _task = null;
-
-            _disposed = true;
-
-            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
-        }
-#endif
+        public abstract void Stop();
 
         #endregion
 
