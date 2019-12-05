@@ -195,10 +195,7 @@ namespace TableDependency.SqlClient
                 _task?.Wait();
             }
 
-            _task = null;
-
-            this.DropDatabaseObjects();
-
+            _task = null;            
             _disposed = true;
 
             this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
@@ -1075,6 +1072,10 @@ namespace TableDependency.SqlClient
                 this.NotifyListenersAboutStatus(onStatusChangedSubscribedList, TableDependencyStatus.StopDueToError);
                 if (cancellationToken.IsCancellationRequested == false) this.NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
+            }
+            finally
+            {
+                this.DropDatabaseObjects();
             }
         }
     }

@@ -25,7 +25,6 @@ namespace TableDependency.SqlClient.Test.Inheritance
         public override event ChangedEventHandler<T> OnChanged;
         public override event StatusEventHandler OnStatusChanged;
 
-        private bool _stopWithoutDisposing;
         private bool _throwExceptionBeforeWaitForNotifications;
         private bool _throwExceptionInWaitForNotificationsPoint1;
         private bool _throwExceptionInWaitForNotificationsPoint2;
@@ -42,14 +41,12 @@ namespace TableDependency.SqlClient.Test.Inheritance
             DmlTriggerType notifyOn = DmlTriggerType.All,
             bool executeUserPermissionCheck = true,
             bool includeOldValues = false,
-            bool stopWithoutDisposing = false,
             bool throwExceptionBeforeWaitForNotifications = false,
             bool throwExceptionInWaitForNotificationsPoint1 = false,
             bool throwExceptionInWaitForNotificationsPoint2 = false,
             bool throwExceptionInWaitForNotificationsPoint3 = false,
             bool throwExceptionCreateSqlServerDatabaseObjects = false) : base(connectionString, tableName, schemaName, mapper, updateOf, filter, notifyOn, executeUserPermissionCheck, includeOldValues)
         {
-            _stopWithoutDisposing = stopWithoutDisposing;
             _throwExceptionBeforeWaitForNotifications = throwExceptionBeforeWaitForNotifications;
             _throwExceptionInWaitForNotificationsPoint1 = throwExceptionInWaitForNotificationsPoint1;
             _throwExceptionInWaitForNotificationsPoint2 = throwExceptionInWaitForNotificationsPoint2;
@@ -336,23 +333,10 @@ namespace TableDependency.SqlClient.Test.Inheritance
                 if (cancellationToken.IsCancellationRequested == false) this.NotifyListenersAboutError(onErrorSubscribedList, exception);
                 this.WriteTraceMessage(TraceLevel.Error, "Exception in WaitForNotifications.", exception);
             }
-        }
-
-        public override void Stop()
-        {
-            if (_task != null)
+            finally
             {
-                _cancellationTokenSource.Cancel(true);
-                _task?.Wait();
+                this.DropDatabaseObjects();
             }
-
-            _task = null;
-
-            if (!_stopWithoutDisposing) this.DropDatabaseObjects();
-
-            _disposed = true;
-
-            this.WriteTraceMessage(TraceLevel.Info, "Stopped waiting for notification.");
         }
     }
 }

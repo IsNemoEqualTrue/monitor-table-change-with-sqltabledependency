@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.SqlClient.Base;
-using TableDependency.SqlClient.Base.EventArgs;
 using TableDependency.SqlClient.Test.Inheritance;
 
 namespace TableDependency.SqlClient.Test
@@ -63,6 +62,36 @@ namespace TableDependency.SqlClient.Test
 
         [TestCategory("SqlServer")]
         [TestMethod]
+        public void TestStopWhileStillInserting()
+        {
+            SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel> tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(
+                ConnectionStringForTestUser,
+                tableName: TableName);
+
+            string objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+
+            tableDependency.OnChanged += (sender, e) => { };
+            objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+            tableDependency.Start();
+
+            Thread.Sleep(1000);
+
+            // Run async tasks insering 1000 rows in table every 250 milliseconds
+            var task1 = Task.Factory.StartNew(() => ModifyTableContent());
+            var task2 = Task.Factory.StartNew(() => ModifyTableContent());
+            var task3 = Task.Factory.StartNew(() => ModifyTableContent());
+
+            Thread.Sleep(5000);
+
+            tableDependency.Stop();
+            Thread.Sleep(5000);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
         public void TestCollapsingTheAppDomain()
         {
             var domaininfo = new AppDomainSetup { ApplicationBase = Environment.CurrentDirectory };
@@ -72,8 +101,10 @@ namespace TableDependency.SqlClient.Test
             _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
             Thread.Sleep(1000);
 
-            // Run async task insering 1000 rows in table every 250 milliseconds
-            var task = Task.Factory.StartNew(() => ModifyTableContent());
+            // Run async tasks insering 1000 rows in table every 250 milliseconds
+            var task1 = Task.Factory.StartNew(() => ModifyTableContent());
+            var task2 = Task.Factory.StartNew(() => ModifyTableContent());
+            var task3 = Task.Factory.StartNew(() => ModifyTableContent());
 
             // Wait 5 seconds and then collapse the app domain where sqltabledependency is running
             Thread.Sleep(5000);
@@ -98,13 +129,13 @@ namespace TableDependency.SqlClient.Test
             try
             {
                 tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
-                    ConnectionStringForTestUser, 
-                    tableName: TableName, 
+                    ConnectionStringForTestUser,
+                    tableName: TableName,
                     throwExceptionCreateSqlServerDatabaseObjects: true);
 
                 tableDependency.OnChanged += (sender, e) => { };
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-                tableDependency.Start();                
+                tableDependency.Start();
             }
             catch
             {
@@ -181,13 +212,13 @@ namespace TableDependency.SqlClient.Test
             try
             {
                 tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
-                    ConnectionStringForTestUser, 
-                    tableName: TableName, 
+                    ConnectionStringForTestUser,
+                    tableName: TableName,
                     throwExceptionInWaitForNotificationsPoint1: true);
 
                 tableDependency.OnChanged += (sender, e) => { };
                 objectNaming = tableDependency.DataBaseObjectsNamingConvention;
-                tableDependency.Start();                
+                tableDependency.Start();
             }
             catch
             {
@@ -209,7 +240,7 @@ namespace TableDependency.SqlClient.Test
             try
             {
                 tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
-                    ConnectionStringForTestUser, 
+                    ConnectionStringForTestUser,
                     tableName: TableName,
                     throwExceptionBeforeWaitForNotifications: true);
 

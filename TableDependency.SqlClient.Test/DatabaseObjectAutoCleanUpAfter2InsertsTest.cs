@@ -74,8 +74,7 @@ namespace TableDependency.SqlClient.Test
                 ConnectionStringForTestUser, 
                 includeOldValues: true, 
                 tableName: TableName, 
-                mapper: mapper,
-                stopWithoutDisposing: true);
+                mapper: mapper);
 
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();

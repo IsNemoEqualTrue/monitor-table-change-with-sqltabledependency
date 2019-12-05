@@ -69,8 +69,7 @@ namespace TableDependency.SqlClient.Test
                 ConnectionStringForTestUser, 
                 includeOldValues: true, 
                 tableName: TableName, 
-                mapper: mapper,
-                stopWithoutDisposing: true);
+                mapper: mapper);
 
             tableDependency.OnChanged += (o, args) => { };
             tableDependency.Start();
@@ -96,7 +95,7 @@ namespace TableDependency.SqlClient.Test
                 sqlConnection.Close();
             }
 
-            Thread.Sleep(1000 * 60 * 3);
+            Thread.Sleep(1000 * 60 * 1);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
             Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);

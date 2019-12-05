@@ -57,8 +57,7 @@ namespace TableDependency.SqlClient.Test
         {
             var tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpSqlServerModel>(
                 ConnectionStringForTestUser, 
-                tableName: TableName,
-                stopWithoutDisposing: true);
+                tableName: TableName);
 
             tableDependency.OnChanged += TableDependency_OnChanged;
             tableDependency.Start();
@@ -68,7 +67,7 @@ namespace TableDependency.SqlClient.Test
 
             tableDependency.Stop();
 
-            Thread.Sleep(4 * 60 * 1000);
+            Thread.Sleep(1 * 60 * 1000);
             Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
             Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
