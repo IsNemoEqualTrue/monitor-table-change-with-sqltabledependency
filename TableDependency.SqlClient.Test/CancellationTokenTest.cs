@@ -104,7 +104,7 @@ namespace TableDependency.SqlClient.Test
             listenerSlq.Dispose();
             listenerSlq = null;
 
-            Thread.Sleep(1000 * 30 * 1);
+            Thread.Sleep(1000 * 15 * 1);
             Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
             Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
         }

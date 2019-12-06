@@ -101,7 +101,7 @@ namespace TableDependency.SqlClient.Test
                 t1.Start();
                 t2.Start();
 
-                Thread.Sleep(1000 * 30 * 1);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {
@@ -144,7 +144,7 @@ namespace TableDependency.SqlClient.Test
                 t1.Start();
                 t2.Start();
 
-                Thread.Sleep(1000 * 30 * 1);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {

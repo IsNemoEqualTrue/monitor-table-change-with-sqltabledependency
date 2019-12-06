@@ -78,11 +78,7 @@
     <Compile Include="DataAnnotationTest09.cs" />
     <Compile Include="DataAnnotationNotMappedTest1.cs" />
     <Compile Include="DataAnnotationTest10.cs" />
-    <Compile Include="DatabaseObjectAutoCleanUpAfter2InsertsTest.cs" />
-    <Compile Include="DatabaseObjectAutoCleanUpAfterHugeInsertsTest.cs" />
     <Compile Include="DatabaseObjectAutoCleanUpTest.cs" />
-    <Compile Include="DatabaseObjectCleanUpAfterHugeInsertsTest.cs" />
-    <Compile Include="DatabaseObjectCleanUpTest.cs" />
     <Compile Include="DateTypeTest.cs" />
     <Compile Include="EndpointsStatusTest.cs" />
     <Compile Include="EnumTestSqlServer1.cs" />

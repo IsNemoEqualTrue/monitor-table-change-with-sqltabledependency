@@ -19,7 +19,7 @@ namespace TableDependency.SqlClient.Test
     }
 
     [TestClass]
-    public class NoProblemDurignCommandTimeoutForNoMessagesSqlServer : Base.SqlTableDependencyBaseTest
+    public class DatabaseObjectCleanUpNoProblemDurignCommandTimeoutForNoMessagesSqlServer : Base.SqlTableDependencyBaseTest
     {
         private static string _dbObjectsNaming;
         private static readonly string TableName = typeof(NoProblemDurignCommandTimeoutForNoMessagesSqlServerModel).Name;
@@ -52,8 +52,9 @@ namespace TableDependency.SqlClient.Test
             _dbObjectsNaming = otherDomainObject.RunTableDependency(ConnectionStringForTestUser, tableName: TableName);
             Thread.Sleep(4*60*1000);
             var status = otherDomainObject.GetTableDependencyStatus();
+
             AppDomain.Unload(domain);
-            Thread.Sleep(3*60*1000);
+            Thread.Sleep(3 * 60 * 1000);
 
             Assert.IsTrue(status != TableDependencyStatus.StopDueToError && status != TableDependencyStatus.StopDueToCancellation);
             Assert.IsTrue(base.AreAllDbObjectDisposed(_dbObjectsNaming));

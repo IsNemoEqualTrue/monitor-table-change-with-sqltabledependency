@@ -78,7 +78,7 @@ namespace TableDependency.SqlClient.Test
 
             tableDependency.Stop();
 
-            Thread.Sleep(1000 * 30 * 1);
+            Thread.Sleep(1000 * 15 * 1);
 
             Assert.IsTrue(base.AreAllDbObjectDisposed(naming));
             Assert.IsTrue(base.CountConversationEndpoints(naming) == 0);

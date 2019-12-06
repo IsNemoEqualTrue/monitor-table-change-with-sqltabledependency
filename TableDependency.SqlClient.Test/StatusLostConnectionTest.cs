@@ -13,7 +13,7 @@ using TableDependency.SqlClient.Test.Base;
 namespace TableDependency.SqlClient.Test
 {
     [TestClass]
-    public class StatusLostConnectionTest : Base.SqlTableDependencyBaseTest
+    public class DatabaseObjectCleanUpOnStatusLostConnectionTest : Base.SqlTableDependencyBaseTest
     {
         public class StatusLostConnectionTestModel
         {
@@ -101,14 +101,14 @@ namespace TableDependency.SqlClient.Test
                 Assert.IsTrue(Statuses[TableDependencyStatus.Started]);
                 Assert.IsTrue(Statuses[TableDependencyStatus.WaitingForNotification]);
                 Assert.IsFalse(Statuses[TableDependencyStatus.StopDueToCancellation]);
-
-                Assert.IsTrue(Statuses[TableDependencyStatus.StopDueToError]);           
-                Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.StopDueToError);
             }
             finally
             {
                 this._tableDependency?.Dispose();
             }
+
+            Assert.IsTrue(Statuses[TableDependencyStatus.StopDueToError]);
+            Assert.IsTrue(_tableDependency.Status == TableDependencyStatus.StopDueToError);
         }
 
         private void TableDependency_OnError(object sender, ErrorEventArgs e)

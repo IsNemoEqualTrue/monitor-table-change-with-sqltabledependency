@@ -95,7 +95,7 @@ namespace TableDependency.SqlClient.Test
                 tableDependency.Start();
                 var t = new Task(ModifyTableContent1);
                 t.Start();
-                Thread.Sleep(1000 * 15 * 1);
+                Thread.Sleep(1000 * 10 * 1);
             }
             finally
             {

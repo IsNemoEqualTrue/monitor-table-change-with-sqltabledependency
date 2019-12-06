@@ -110,7 +110,7 @@ namespace TableDependency.SqlClient.Test
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 15 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {
@@ -159,7 +159,7 @@ namespace TableDependency.SqlClient.Test
 
                 var t = new Task(ModifyTableContent);
                 t.Start();
-                Thread.Sleep(1000 * 15 * 1);
+                Thread.Sleep(1000 * 5 * 1);
             }
             finally
             {

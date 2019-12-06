@@ -19,10 +19,10 @@ namespace TableDependency.SqlClient.Test
     }
 
     [TestClass]
-    public class DatabaseObjectAutoCleanUpTest : Base.SqlTableDependencyBaseTest
+    public class DatabaseObjectCleanUpTest : Base.SqlTableDependencyBaseTest
     {
         private static string _dbObjectsNaming;
-        private const string TableName = "DatabaseObjectAutoCleanUpTestTable";
+        private const string TableName = "DatabaseObjectCleanUpTestTable";
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -58,6 +58,107 @@ namespace TableDependency.SqlClient.Test
                     sqlCommand.ExecuteNonQuery();
                 }
             }
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestInsertAfterStop()
+        {
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
+            mapper.AddMapping(c => c.Name, "FIRST name").AddMapping(c => c.Surname, "Second Name");
+
+            var tableDependency = new SqlTableDependency<DatabaseObjectCleanUpTestSqlServerModel>(
+                ConnectionStringForTestUser,
+                includeOldValues: true,
+                tableName: TableName,
+                mapper: mapper);
+
+            tableDependency.OnChanged += (sender, e) => { };
+            tableDependency.Start();
+            var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
+
+            var t = new Task(BigModifyTableContent);
+            t.Start();
+            Thread.Sleep(1000 * 15 * 1);
+
+            tableDependency.Stop();
+
+            SmalModifyTableContent();
+
+            Thread.Sleep(1 * 15 * 1000);
+            Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestCleanUpAfter2InsertsTest()
+        {
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
+            mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
+
+            var tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                ConnectionStringForTestUser,
+                includeOldValues: true,
+                tableName: TableName,
+                mapper: mapper);
+
+            tableDependency.OnChanged += (sender, e) => { }; 
+            tableDependency.Start();
+            var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
+
+            Thread.Sleep(500);
+
+            tableDependency.Stop();
+
+            var t = new Task(ModifyTableContent);
+            t.Start();
+
+            Thread.Sleep(1000 * 15 * 1);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void TestCleanUpAfterHugeInserts()
+        {
+            var mapper = new ModelToTableMapper<DatabaseObjectCleanUpTestSqlServerModel>();
+            mapper.AddMapping(c => c.Name, "First Name").AddMapping(c => c.Surname, "Second Name");
+
+            var tableDependency = new SqlTableDependencyTest<DatabaseObjectCleanUpTestSqlServerModel>(
+                ConnectionStringForTestUser,
+                includeOldValues: true,
+                tableName: TableName,
+                mapper: mapper);
+
+            tableDependency.OnChanged += (o, args) => { };
+            tableDependency.Start();
+            var dbObjectsNaming = tableDependency.DataBaseObjectsNamingConvention;
+
+            Thread.Sleep(5000);
+
+            tableDependency.Stop();
+
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    for (var i = 0; i < 10000; i++)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{i}', '{i}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+                sqlConnection.Close();
+            }
+
+            Thread.Sleep(1000 * 15 * 1);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(dbObjectsNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(dbObjectsNaming) == 0);
         }
 
         [TestCategory("SqlServer")]
@@ -272,6 +373,35 @@ namespace TableDependency.SqlClient.Test
 
                         Thread.Sleep(250);
                     }
+                }
+            }
+        }
+
+        private static void BigModifyTableContent()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    for (var i = 0; i < 100000; i++)
+                    {
+                        sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('{i}', '{i}')";
+                        sqlCommand.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        private static void SmalModifyTableContent()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([First Name], [Second Name]) VALUES ('allora', 'mah')";
+                    sqlCommand.ExecuteNonQuery();
                 }
             }
         }
