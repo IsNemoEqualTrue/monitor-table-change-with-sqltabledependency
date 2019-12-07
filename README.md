@@ -13,7 +13,7 @@ If we want **get alert on record table change** without paying attention to the 
 
 As example, let's assume we are interested to receive record table changes for the following database table:
 
-<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.jpg" />
+<img src="https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/img/rsz_table.png" />
 
 Let's start installing SqlTableDependency using:
 
