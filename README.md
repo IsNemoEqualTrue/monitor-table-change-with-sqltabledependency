@@ -104,7 +104,7 @@ This section reports some use case examples:
 * [Apply filter based on WHERE condition.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Use-case:-Where-filter)
 * [Include old values.](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/wiki/Include-old-values)
 
-### Track record table change under the hood
+### How Track record table change is done
 SqlTableDependency's record change audit, provides the low-level implementation to receive database record table change notifications creating SQL Server triggers, queues and service broker that immediately notifies your application when a record table change happens.
 
 Assuming we want to monitor the Customer table content, we create a SqlTableDependency object specifying the Customer table and the following database objects will be generated:
