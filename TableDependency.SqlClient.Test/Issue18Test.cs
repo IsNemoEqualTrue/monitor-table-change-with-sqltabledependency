@@ -97,7 +97,6 @@ namespace TableDependency.SqlClient.Test
                 tableDependency.Dispose();
             }
 
-
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Id, 1);
             Assert.AreEqual(CheckValues[ChangeType.Insert.ToString()].Price, 123.0001002000000100M);
 

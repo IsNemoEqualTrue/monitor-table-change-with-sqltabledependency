@@ -66,6 +66,7 @@
     <Compile Include="DataAnnotationNotMappedTest2.cs" />
     <Compile Include="Inheritance\SqlTableDependencyTest.cs" />
     <Compile Include="Issue146Test.cs" />
+    <Compile Include="Issue177Test.cs" />
     <Compile Include="StopAndStartTest.cs" />
     <Compile Include="DataAnnotationTest01.cs" />
     <Compile Include="DataAnnotationTest02.cs" />
