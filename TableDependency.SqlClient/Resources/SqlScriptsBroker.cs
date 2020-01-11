@@ -53,7 +53,15 @@ BEGIN
     END
 END";
 
-        public const string CreateTrigger = @"CREATE TRIGGER [tr_{0}_Sender] ON {1} AFTER {13} AS 
+        // Triggers run, by default, under the security context of the principal who caused the trigger to fire.
+        // In order to change this behavior, you'll need to create the trigger using the WITH EXECUTE AS OWNER clause.
+        // Below is an example which shows how that works. WITH EXECUTE AS OWNER allows the trigger to run in the security context of the database owner, 
+        // instead of the principal who is updating the table.
+        // 
+        // EXECUTE AS SELF is equivalent to EXECUTE AS user_name, where the specified user is the person creating or altering the module.
+        public const string CreateTrigger = @"CREATE TRIGGER [tr_{0}_Sender] ON {1} 
+WITH EXECUTE AS SELF
+AFTER {13} AS 
 BEGIN
     SET NOCOUNT ON;
 
