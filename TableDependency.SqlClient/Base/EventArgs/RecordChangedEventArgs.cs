@@ -30,6 +30,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
+using TableDependency.SqlClient.Base.Exceptions;
 using TableDependency.SqlClient.Base.Abstracts;
 using TableDependency.SqlClient.Base.Enums;
 using TableDependency.SqlClient.Base.Messages;
@@ -103,64 +104,72 @@ namespace TableDependency.SqlClient.Base.EventArgs
             var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
             var typeCode = Type.GetTypeCode(propertyType);
 
-            switch (typeCode)
+            try
             {
-                case TypeCode.Boolean:
-                    return bool.Parse(value);
+                switch (typeCode)
+                {
+                    case TypeCode.Boolean:
+                        return bool.Parse(value);
 
-                case TypeCode.Char:
-                    return char.Parse(value);
+                    case TypeCode.Char:
+                        return char.Parse(value);
 
-                case TypeCode.SByte:
-                    return sbyte.Parse(value, base.CultureInfo);
+                    case TypeCode.SByte:
+                        return sbyte.Parse(value, base.CultureInfo);
 
-                case TypeCode.Byte:
-                    return byte.Parse(value, base.CultureInfo);
+                    case TypeCode.Byte:
+                        return byte.Parse(value, base.CultureInfo);
 
-                case TypeCode.Int16:
-                    return short.Parse(value, base.CultureInfo);
+                    case TypeCode.Int16:
+                        return short.Parse(value, base.CultureInfo);
 
-                case TypeCode.UInt16:
-                    return ushort.Parse(value, base.CultureInfo);
+                    case TypeCode.UInt16:
+                        return ushort.Parse(value, base.CultureInfo);
 
-                case TypeCode.Int32:
-                    return int.Parse(value, base.CultureInfo);
+                    case TypeCode.Int32:
+                        return int.Parse(value, base.CultureInfo);
 
-                case TypeCode.UInt32:
-                    return uint.Parse(value, base.CultureInfo);
+                    case TypeCode.UInt32:
+                        return uint.Parse(value, base.CultureInfo);
 
-                case TypeCode.Int64:
-                    return long.Parse(value, base.CultureInfo);
+                    case TypeCode.Int64:
+                        return long.Parse(value, base.CultureInfo);
 
-                case TypeCode.UInt64:
-                    return ulong.Parse(value, base.CultureInfo);
+                    case TypeCode.UInt64:
+                        return ulong.Parse(value, base.CultureInfo);
 
-                case TypeCode.Single:
-                    return float.Parse(value, base.CultureInfo);
+                    case TypeCode.Single:
+                        return float.Parse(value, base.CultureInfo);
 
-                case TypeCode.Double:
-                    return double.Parse(value, base.CultureInfo);
+                    case TypeCode.Double:
+                        return double.Parse(value, base.CultureInfo);
 
-                case TypeCode.Decimal:
-                    return decimal.Parse(value, base.CultureInfo);
+                    case TypeCode.Decimal:
+                        return decimal.Parse(value, base.CultureInfo);
 
-                case TypeCode.DateTime:
-                    return DateTime.Parse(value, base.CultureInfo);
+                    case TypeCode.DateTime:
+                        return DateTime.Parse(value, base.CultureInfo);
 
-                case TypeCode.String:
-                    return value;
+                    case TypeCode.String:
+                        return value;
 
-                case TypeCode.Object:
-                    Guid guid;
-                    if (Guid.TryParse(value, out guid)) return guid;
+                    case TypeCode.Object:
+                        Guid guid;
+                        if (Guid.TryParse(value, out guid)) return guid;
 
-                    TimeSpan timeSpan;
-                    if (TimeSpan.TryParse(value, out timeSpan)) return timeSpan;
+                        TimeSpan timeSpan;
+                        if (TimeSpan.TryParse(value, out timeSpan)) return timeSpan;
 
-                    DateTimeOffset dateTimeOffset;
-                    if (DateTimeOffset.TryParse(value, out dateTimeOffset)) return dateTimeOffset;
+                        DateTimeOffset dateTimeOffset;
+                        if (DateTimeOffset.TryParse(value, out dateTimeOffset)) return dateTimeOffset;
 
-                    break;
+                        break;
+                }
+            }
+            catch
+            {
+                var errorMessage = $"Propery {propertyInfo.Name} cannot be set with db value {value}";
+                throw new NoMatchBetweenModelAndTableColumns(errorMessage);
             }
 
             return null;

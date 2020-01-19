@@ -28,8 +28,8 @@ namespace TableDependency.SqlClient.Base.Exceptions
 {
     public class NoMatchBetweenModelAndTableColumns : TableDependencyException
     {
-        public NoMatchBetweenModelAndTableColumns()
-            : base("Your C# model has no matching property with table columns.")
+        public NoMatchBetweenModelAndTableColumns(string message = null)
+            : base(message ?? "Your C# model has no matching property with table columns.")
         { }
     }
 }

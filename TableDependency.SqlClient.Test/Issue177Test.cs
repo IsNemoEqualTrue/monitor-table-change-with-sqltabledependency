@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using TableDependency.SqlClient.Base.Enums;
 using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Base.Exceptions;
 
 namespace TableDependency.SqlClient.Test
 {
@@ -22,6 +23,7 @@ namespace TableDependency.SqlClient.Test
 
         private static readonly Dictionary<string, Issue177Model> CheckValues = new Dictionary<string, Issue177Model>();
         private static readonly string TableName = typeof(Issue177Model).Name;
+        private static Exception TheError = null;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -61,7 +63,36 @@ namespace TableDependency.SqlClient.Test
 
         [TestCategory("SqlServer")]
         [TestMethod]
-        public void Test()
+        public void Test1()
+        {
+            string objectNaming = string.Empty;
+
+            using (var tableDependency = new SqlTableDependency<Issue177Model>(ConnectionStringForTestUser, tableName: TableName))
+            {
+                tableDependency.OnChanged += TableDependency_Changed;
+                tableDependency.OnError += TableDependency_OnError;
+                objectNaming = tableDependency.DataBaseObjectsNamingConvention;
+                tableDependency.Start();
+
+                Thread.Sleep(5000);
+                var t = new Task(ModifyTableContent1);
+                t.Start();
+
+                Thread.Sleep(1000 * 15 * 1);
+            }
+
+            Thread.Sleep(240000);
+
+            Assert.IsNotNull(TheError);
+            Assert.IsTrue(TheError is NoMatchBetweenModelAndTableColumns);
+
+            Assert.IsTrue(base.AreAllDbObjectDisposed(objectNaming));
+            Assert.IsTrue(base.CountConversationEndpoints(objectNaming) == 0);
+        }
+
+        [TestCategory("SqlServer")]
+        [TestMethod]
+        public void Test2()
         {
             try
             {
@@ -75,7 +106,7 @@ namespace TableDependency.SqlClient.Test
                     tableDependency.Start();
 
                     Thread.Sleep(5000);
-                    var t = new Task(ModifyTableContent);
+                    var t = new Task(ModifyTableContent2);
                     t.Start();
 
                     Thread.Sleep(1000 * 15 * 1);
@@ -101,7 +132,7 @@ namespace TableDependency.SqlClient.Test
 
         private static void TableDependency_OnError(object sender, ErrorEventArgs e)
         {
-            Assert.Fail(e.Error.Message);
+            TheError = e.Error;
         }
 
         private static void TableDependency_Changed(object sender, RecordChangedEventArgs<Issue177Model> e)
@@ -125,7 +156,33 @@ namespace TableDependency.SqlClient.Test
             }
         }
 
-        private static void ModifyTableContent()
+        private static void ModifyTableContent1()
+        {
+            using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
+            {
+                sqlConnection.Open();
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"INSERT INTO [{TableName}] ([Id], [Message]) VALUES ('1234567890123456', 'Cat')";
+                    sqlCommand.ExecuteNonQuery();
+                }
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"UPDATE [{TableName}] SET [Id] = '1234' WHERE [Message] = 'Cat'";
+                    sqlCommand.ExecuteNonQuery();
+                }
+
+                using (var sqlCommand = sqlConnection.CreateCommand())
+                {
+                    sqlCommand.CommandText = $"DELETE FROM [{TableName}]  WHERE [Message] = 'Cat'";
+                    sqlCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static void ModifyTableContent2()
         {
             using (var sqlConnection = new SqlConnection(ConnectionStringForTestUser))
             {

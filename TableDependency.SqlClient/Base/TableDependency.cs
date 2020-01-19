@@ -504,6 +504,10 @@ namespace TableDependency.SqlClient.Base
                 {
                     dlg.GetMethodInfo().Invoke(dlg.Target, new object[] { this, this.GetRecordChangedEventArgs(messagesBag) });
                 }
+                catch (NoMatchBetweenModelAndTableColumns)
+                {
+                    throw;
+                }
                 catch
                 {
                     // Intentionally ignored
