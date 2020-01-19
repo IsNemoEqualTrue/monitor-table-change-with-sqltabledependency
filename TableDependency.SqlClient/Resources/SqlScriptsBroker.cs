@@ -80,7 +80,7 @@ BEGIN
     SELECT @conversationHandlerExists = COUNT(*) FROM sys.conversation_endpoints WHERE conversation_handle = '{19}';
     IF @conversationHandlerExists = 0
     BEGIN
-        DROP TRIGGER [tr_{0}_Sender];
+        {20}
         RETURN
     END
     

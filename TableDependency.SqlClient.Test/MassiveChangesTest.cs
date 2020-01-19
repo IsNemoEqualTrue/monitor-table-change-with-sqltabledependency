@@ -83,7 +83,7 @@ namespace TableDependency.SqlClient.Test
                 var t = new Task(ModifyTableContent);
                 t.Start();
 
-                while (Done == false) Thread.Sleep(1000 * 10 * 1);
+                while (Done == false) Thread.Sleep(1000 * 30 * 1);
             }
             finally
             {

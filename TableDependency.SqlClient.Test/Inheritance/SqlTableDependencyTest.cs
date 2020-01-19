@@ -214,7 +214,8 @@ namespace TableDependency.SqlClient.Test.Inheritance
                         this.ActivateDatabaseLogging ? " WITH LOG" : string.Empty,
                         columnsForExceptTable,
                         columnsForDeletedTable,
-                        this.ConversationHandle);
+                        this.ConversationHandle,
+                        dropAllScript);
 
                     sqlCommand.ExecuteNonQuery();
                     this.WriteTraceMessage(TraceLevel.Verbose, $"Trigger {_dataBaseObjectsNamingConvention} created.");
