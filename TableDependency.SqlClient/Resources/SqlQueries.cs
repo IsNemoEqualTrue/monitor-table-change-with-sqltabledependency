@@ -48,7 +48,7 @@ convert(int, CASE	-- datetime/smalldatetime
 WHEN c.system_type_id IN (40, 41, 42, 43, 58, 61) THEN NULL
 ELSE ODBCSCALE(c.system_type_id, c.scale) END)	AS NUMERIC_SCALE,
 convert(smallint, CASE -- datetime/smalldatetime
-WHEN c.system_type_id IN (40, 41, 42, 43, 58, 61) THEN ODBCSCALE(c.system_type_id, c.scale) END)	AS DATETIME_PRECISION,
+WHEN c.system_type_id IN (40, 41, 42, 43, 58, 61) THEN ODBCSCALE(c.system_type_id, c.scale) END) AS DATETIME_PRECISION,
 convert(sysname, null)	AS CHARACTER_SET_CATALOG,
 convert(sysname, CASE WHEN c.system_type_id IN (35, 167, 175)	-- char/varchar/text
 THEN COLLATIONPROPERTY(c.collation_name, 'sqlcharsetname')

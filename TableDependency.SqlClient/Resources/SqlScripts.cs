@@ -28,7 +28,9 @@ namespace TableDependency.SqlClient.Resources
 {
     public static partial class SqlScripts
     {
-        public const string CreateProcedureQueueActivation = @"CREATE PROCEDURE [{2}].[{0}_QueueActivationSender] AS 
+        public const string CreateProcedureQueueActivation = @"CREATE PROCEDURE [{2}].[{0}_QueueActivationSender] 
+WITH EXECUTE AS SELF
+AS 
 BEGIN 
     SET NOCOUNT ON;
     DECLARE @h AS UNIQUEIDENTIFIER;
