@@ -1,4 +1,4 @@
-This repo is NOT maintained anymore
+******************************* This repo is NOT maintained anymore *******************************
 
 # Monitor and receive notifications on record table change
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/christiandelbianco/monitor-table-change-with-sqltabledependency/blob/master/LICENSE) [![NuGet Badge](https://buildstats.info/nuget/SqlTableDependency)](https://www.nuget.org/packages/SqlTableDependency/) [![Released](https://img.shields.io/badge/Released-%20Jan%2020%2C%202020-orange.svg)](#) [![SQL Server](https://img.shields.io/badge/SQL%20Server-%3E%3D2008R2-RED.svg)](#) [![.NET](https://img.shields.io/badge/.NET%20Framework-%3E%3D%204.5.1-ff69b4.svg)](#) [![.NET Core](https://img.shields.io/badge/.NET%20Core-%3E%3D2.0-yellow.svg)](#)
