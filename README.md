@@ -1,5 +1,8 @@
 ***************************************************************************************************************************
-                                       This repo is NOT maintained anymore
+                                              This repo is NOT maintained anymore
+                                       
+                                        if you have some FIX ready to be implemented,
+                                        please submit the code to me and i will apply
 ***************************************************************************************************************************
 
 # Monitor and receive notifications on record table change
