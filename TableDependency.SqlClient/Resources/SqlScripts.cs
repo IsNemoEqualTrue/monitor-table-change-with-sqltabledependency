@@ -159,7 +159,11 @@ END";
         SELECT @schema_id = schema_id FROM sys.schemas WITH (NOLOCK) WHERE name = N'{2}';
 
         PRINT N'SqlTableDependency: Dropping trigger [{2}].[tr_{0}_Sender].';
-        IF EXISTS (SELECT * FROM sys.triggers WITH (NOLOCK) WHERE object_id = OBJECT_ID(N'[{2}].[tr_{0}_Sender]')) DROP TRIGGER [{2}].[tr_{0}_Sender];
+        IF EXISTS (SELECT * FROM sys.triggers WITH (NOLOCK) WHERE object_id = OBJECT_ID(N'[{2}].[tr_{0}_Sender]'))
+        BEGIN        
+            SELECT 1;
+            {3} 
+        END
 
         PRINT N'SqlTableDependency: Deactivating queue [{2}].[{0}_Sender].';
         IF EXISTS (SELECT * FROM sys.service_queues WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_Sender') EXEC (N'ALTER QUEUE [{2}].[{0}_Sender] WITH ACTIVATION (STATUS = OFF)');
@@ -194,6 +198,14 @@ END";
         {1}
 
         PRINT N'SqlTableDependency: Dropping activation procedure {0}_QueueActivationSender.';
-        IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivationSender') DROP PROCEDURE [{2}].[{0}_QueueActivationSender];";
+        IF EXISTS (SELECT * FROM sys.objects WITH (NOLOCK) WHERE schema_id = @schema_id AND name = N'{0}_QueueActivationSender') DROP PROCEDURE [{2}].[{0}_QueueActivationSender];
+        
+        IF EXISTS (SELECT * FROM sys.triggers WITH (NOLOCK) WHERE object_id = OBJECT_ID(N'[{2}].[tr_{0}_Sender]'))
+        BEGIN        
+            SELECT 1;
+            {4} 
+        END";
+
+
     }
 }
