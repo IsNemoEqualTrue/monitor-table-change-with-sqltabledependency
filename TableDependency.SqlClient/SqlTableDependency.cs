@@ -971,7 +971,23 @@ namespace TableDependency.SqlClient
                 using (var sqlCommand = sqlConnection.CreateCommand())
                 {
                     sqlCommand.CommandText = "SELECT is_broker_enabled FROM sys.databases WITH (NOLOCK) WHERE database_id = db_id();";
-                    if ((bool)sqlCommand.ExecuteScalar() == false) throw new ServiceBrokerNotEnabledException();
+                    if ((bool)sqlCommand.ExecuteScalar() == false)
+                    {
+                        string database;
+                        try
+                        {
+                            database = new SqlConnectionStringBuilder(_connectionString).InitialCatalog;
+                        }
+                        catch
+                        {
+                            database = null;
+                        }
+                        if (!string.IsNullOrEmpty(database))
+                        {
+                            throw new ServiceBrokerNotEnabledException(database);
+                        }
+                        throw new ServiceBrokerNotEnabledException();
+                    }
                 }
             }
         }
