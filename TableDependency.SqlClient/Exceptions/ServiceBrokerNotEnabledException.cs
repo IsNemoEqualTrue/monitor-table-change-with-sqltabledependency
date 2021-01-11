@@ -31,7 +31,11 @@ namespace TableDependency.SqlClient.Exceptions
     public class ServiceBrokerNotEnabledException : TableDependencyException
     {
         protected internal ServiceBrokerNotEnabledException()
-            : base("Service broker not enable. Please activete it using 'ALTER DATABASE MyDatabase SET ENABLE_BROKER' command.")
+            : this("MyDatabase")
+        { }
+
+        protected internal ServiceBrokerNotEnabledException(string database)
+            : base($"Service broker is not enabled. Please activate it using 'ALTER DATABASE {database} SET ENABLE_BROKER' command.")
         { }
     }
 }
