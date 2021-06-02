@@ -1,4 +1,5 @@
 ﻿#region License
+
 // TableDependency, SqlTableDependency
 // Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
@@ -22,7 +23,8 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-#endregion
+
+#endregion License
 
 using System;
 using System.Diagnostics;
@@ -39,16 +41,18 @@ namespace TableDependency.SqlClient.Base.Abstracts
         #region Events
 
         event ErrorEventHandler OnError;
+
         event StatusEventHandler OnStatusChanged;
 
-        #endregion
+        #endregion Events
 
         #region Methods
 
         void Start(int timeOut = 120, int watchDogTimeOut = 180);
+
         void Stop();
 
-        #endregion
+        #endregion Methods
 
         #region Properties
 
@@ -61,7 +65,7 @@ namespace TableDependency.SqlClient.Base.Abstracts
         string TableName { get; }
         string SchemaName { get; }
 
-        #endregion
+        #endregion Properties
     }
 
     public interface ITableDependency<T> : ITableDependency where T : class, new()
@@ -70,6 +74,15 @@ namespace TableDependency.SqlClient.Base.Abstracts
 
         event ChangedEventHandler<T> OnChanged;
 
-        #endregion
+        #endregion Events
+    }
+
+    public interface IDynamicTableDependency : ITableDependency
+    {
+        #region Events
+
+        event ChangedEventHandler OnChanged;
+
+        #endregion Events
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region License
+
 // TableDependency, SqlTableDependency
 // Copyright (c) 2015-2020 Christian Del Bianco. All rights reserved.
 //
@@ -22,11 +23,14 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-#endregion
+
+#endregion License
 
 using TableDependency.SqlClient.Base.EventArgs;
 
 namespace TableDependency.SqlClient.Base.Delegates
 {
+    public delegate void ChangedEventHandler(object sender, DynamicRecordChangedEventArgs e);
+
     public delegate void ChangedEventHandler<T>(object sender, RecordChangedEventArgs<T> e) where T : class, new();
 }
