@@ -328,7 +328,7 @@ namespace TableDependency.SqlClient
             using (var sqlConnection = new SqlConnection(_connectionString))
             {
                 sqlConnection.Open();
-                var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name = N'{_dataBaseObjectsNamingConvention}';", sqlConnection);
+                var sqlCommand = new SqlCommand($"SELECT COUNT(*) FROM sys.service_queues WITH (NOLOCK) WHERE name LIKE N'{_dataBaseObjectsNamingConvention}%';", sqlConnection);
                 result = (int)sqlCommand.ExecuteScalar() > 0;
                 sqlConnection.Close();
             }
