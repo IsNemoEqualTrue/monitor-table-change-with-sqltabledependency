@@ -19,6 +19,7 @@
 		<RepositoryType>GitHub</RepositoryType>
 		<PackageTags>SQL Server dependency notifications record table change</PackageTags>
 		<NeutralLanguage />
+		<PackageVersion>8.5.8.27</PackageVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
