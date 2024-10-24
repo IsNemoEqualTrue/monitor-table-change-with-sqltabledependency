@@ -1025,7 +1025,7 @@ namespace TableDependency.SqlClient
                             sqlCommand.CommandTimeout = 0;
                             this.WriteTraceMessage(TraceLevel.Verbose, "Executing WAITFOR command.");
 
-                            using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
+                            using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
                             {
                                 while (sqlDataReader.Read())
                                 {

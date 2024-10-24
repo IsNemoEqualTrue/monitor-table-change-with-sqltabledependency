@@ -283,7 +283,7 @@ namespace TableDependency.SqlClient.Test.Inheritance
                             sqlCommand.CommandTimeout = 0;
                             this.WriteTraceMessage(TraceLevel.Verbose, "Executing WAITFOR command.");
 
-                            using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken).WithCancellation(cancellationToken))
+                            using (var sqlDataReader = await sqlCommand.ExecuteReaderAsync(cancellationToken))
                             {
                                 if (_throwExceptionInWaitForNotificationsPoint3) throw new Exception();
 
