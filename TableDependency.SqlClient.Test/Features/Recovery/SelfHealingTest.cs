@@ -233,6 +233,26 @@ public sealed class SelfHealingTest(DatabaseFixture databaseFixture) : SqlTableD
     }
 
     [Fact]
+    public async Task CheckDatabaseObjects_DatabaseUnreachable_ReturnsUnhealthyInsteadOfThrowing()
+    {
+        // ARRANGE
+        await using var listener = await StartListenerAsync(persisted: true);
+        await ExecuteAsync($"ALTER LOGIN [{_login}] DISABLE;");
+        await KillListenerSessionsAsync();
+
+        // ACT
+        var exception = await Record.ExceptionAsync(async () => await listener.Dependency.CheckDatabaseObjectsAsync(TestContext.Current.CancellationToken));
+        var health = listener.Dependency.LastObjectsHealth;
+        await ExecuteAsync($"ALTER LOGIN [{_login}] ENABLE;");
+
+        // ASSERT
+        Assert.Null(exception);
+        Assert.NotNull(health);
+        Assert.False(health.IsHealthy);
+        Assert.IsType<SqlException>(health.RepairError);
+    }
+
+    [Fact]
     public async Task CheckDatabaseObjects_AfterStop_DoesNotResurrectObjects()
     {
         // ARRANGE

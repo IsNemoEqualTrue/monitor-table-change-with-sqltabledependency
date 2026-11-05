@@ -440,7 +440,18 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         await _repairLock.WaitAsync(ct);
         try
         {
-            var health = await CheckAndRepairCoreAsync(ct);
+            DatabaseObjectsHealth health;
+            try
+            {
+                health = await CheckAndRepairCoreAsync(ct);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException || !ct.IsCancellationRequested)
+            {
+                // A heartbeat must get an answer during the very outage it exists to report, not an exception it may not catch.
+                LogWarning(exception, "Database objects check for {NamingPrefix} could not run.", (nameof(NamingPrefix), NamingPrefix));
+                health = new DatabaseObjectsHealth(DateTimeOffset.UtcNow, Status is TableDependencyStatus.WaitingForNotification, [], [], exception);
+                LastObjectsHealth = health;
+            }
 
             activity?.SetTag("tabledependency.objects.healthy", health.IsHealthy)
                 .SetTag("tabledependency.objects.issues", health.Issues.Count)
@@ -1468,6 +1479,18 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                     }
                 }
             }
+        }
+        catch (Exception exception) when (ct.IsCancellationRequested)
+        {
+            // Setup or a status handler failed outside the receive try (it reports its own faults), during cancellation.
+            LogDebug("Cancelled during listener setup: {Message}", ("Message", exception.Message));
+            await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
+        }
+        catch (Exception exception)
+        {
+            // A fault outside the receive try (setup, or a status handler) never reaches its catch; it must still stop the
+            // listener the documented way rather than fault the task and escape through StopAsync.
+            await StopDueToErrorAsync(exception);
         }
         finally
         {
