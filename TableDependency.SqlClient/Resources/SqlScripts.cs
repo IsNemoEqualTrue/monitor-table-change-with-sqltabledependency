@@ -271,18 +271,19 @@ END";
     public const string BeginConversationTimer = "BEGIN CONVERSATION TIMER (@handle) TIMEOUT = @timeout;";
 
     // Repair: returns 0 without ALTER on the database, 1 once enabled. NO_WAIT fails at once rather than killing other sessions (never ROLLBACK IMMEDIATE).
-    // 9772 = a broker with the same GUID is already enabled (a restored copy), so a NEW_BROKER is the only way back; it ends this database's conversations.
+    // When another database already runs an enabled broker with this one's ID (a restored copy), ENABLE_BROKER fails with 9772 and
+    // NEW_BROKER is the only way back; it ends this database's conversations. The collision is detected up front because, inside
+    // EXEC, the CATCH sees the trailing 5069 ("ALTER DATABASE statement failed"), not 9772. sys.databases is readable via VIEW ANY DATABASE (public).
     // Issued from master so this session does not itself count against the exclusive access the change needs.
     public const string EnableBroker = @"SET NOCOUNT ON;
 IF ISNULL(HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'ALTER'), 0) <> 1 BEGIN SELECT 0; RETURN; END
 DECLARE @db NVARCHAR(300) = QUOTENAME(DB_NAME());
-BEGIN TRY
-    EXEC (N'USE [master]; ALTER DATABASE ' + @db + N' SET ENABLE_BROKER WITH NO_WAIT;');
-END TRY
-BEGIN CATCH
-    IF ERROR_NUMBER() <> 9772 THROW;
-    EXEC (N'USE [master]; ALTER DATABASE ' + @db + N' SET NEW_BROKER WITH NO_WAIT;');
-END CATCH
+DECLARE @option NVARCHAR(20) = CASE WHEN EXISTS (
+    SELECT 1 FROM sys.databases WITH (NOLOCK)
+    WHERE database_id <> DB_ID() AND is_broker_enabled = 1
+      AND service_broker_guid = (SELECT service_broker_guid FROM sys.databases WITH (NOLOCK) WHERE database_id = DB_ID()))
+    THEN N'NEW_BROKER' ELSE N'ENABLE_BROKER' END;
+EXEC (N'USE [master]; ALTER DATABASE ' + @db + N' SET ' + @option + N' WITH NO_WAIT;');
 SELECT 1;";
 
     // Repair: CreateQueue is IF NOT EXISTS, so a queue switched off (by hand or by poison handling) is switched back on here.

@@ -183,7 +183,7 @@ public sealed class SelfHealingTest(DatabaseFixture databaseFixture) : SqlTableD
         // ARRANGE
         await using var listener = await StartListenerAsync(persisted: true);
         var naming = listener.Dependency.NamingPrefix;
-        await ExecuteAsync($"DROP SERVICE [{naming}_Receiver];");
+        await ExecuteAsync($"DROP SERVICE [{naming}_Sender];");
         var writerFailedBeforeRepair = await Record.ExceptionAsync(() => InsertAsync("before-repair")) is SqlException;
 
         // ACT
@@ -192,7 +192,7 @@ public sealed class SelfHealingTest(DatabaseFixture databaseFixture) : SqlTableD
 
         // ASSERT
         Assert.True(writerFailedBeforeRepair);
-        Assert.Contains(new DatabaseObjectIssue(DatabaseObjectKind.Service, $"{naming}_Receiver", DatabaseObjectProblem.Missing), health.Issues);
+        Assert.Contains(new DatabaseObjectIssue(DatabaseObjectKind.Service, $"{naming}_Sender", DatabaseObjectProblem.Missing), health.Issues);
         Assert.True(health.IsHealthy, string.Join(", ", health.Remaining) + health.RepairError);
         Assert.True(await WaitForDeliveryAsync(listener, "after-repair"), Describe(listener));
     }

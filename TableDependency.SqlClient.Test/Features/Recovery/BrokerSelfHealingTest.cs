@@ -35,7 +35,20 @@ public sealed class BrokerSelfHealingTest(DatabaseFixture databaseFixture) : Sql
         SqlConnection.ClearAllPools();
         foreach (var database in (string[])[_database, CopyDatabase])
             await ExecuteOnMasterAsync($"IF DB_ID(N'{database}') IS NOT NULL BEGIN ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{database}]; END");
-        await ExecuteOnMasterAsync($"IF SUSER_ID(N'{_ownerLogin}') IS NOT NULL DROP LOGIN [{_ownerLogin}]; IF SUSER_ID(N'{_limitedLogin}') IS NOT NULL DROP LOGIN [{_limitedLogin}];");
+        // KILL is asynchronous, so the drop can still see the session for a moment.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await ExecuteOnMasterAsync($"DECLARE @kill NVARCHAR(MAX) = N''; SELECT @kill += N'KILL ' + CONVERT(NVARCHAR(10), session_id) + N';' FROM sys.dm_exec_sessions WHERE login_name IN (N'{_ownerLogin}', N'{_limitedLogin}'); EXEC(@kill);");
+                await ExecuteOnMasterAsync($"IF SUSER_ID(N'{_ownerLogin}') IS NOT NULL DROP LOGIN [{_ownerLogin}]; IF SUSER_ID(N'{_limitedLogin}') IS NOT NULL DROP LOGIN [{_limitedLogin}];");
+                break;
+            }
+            catch (SqlException) when (attempt < 20)
+            {
+                await Task.Delay(500);
+            }
+        }
     }
 
     private string CopyDatabase => $"{_database}_copy";
@@ -85,12 +98,12 @@ public sealed class BrokerSelfHealingTest(DatabaseFixture databaseFixture) : Sql
         await ExecuteOnMasterAsync($"RESTORE DATABASE [{CopyDatabase}] FROM DISK = N'{_database}.bak' WITH {await BuildMoveClauseAsync()}, ENABLE_BROKER;");
         await ExecuteOnMasterAsync($"ALTER LOGIN [{_ownerLogin}] ENABLE;");
 
-        var recovered = await PollUntilAsync(async () => await IsBrokerEnabledAsync() && dependency.Status is TableDependencyStatus.WaitingForNotification,
-            TimeSpan.FromSeconds(120), TestContext.Current.CancellationToken);
+        await PollUntilAsync(() => Task.FromResult(dependency.Status is TableDependencyStatus.WaitingForNotification), TimeSpan.FromSeconds(120), TestContext.Current.CancellationToken);
+        var health = await dependency.CheckDatabaseObjectsAsync(TestContext.Current.CancellationToken);
         await ExecuteAsync($"INSERT INTO [{TableName}] ([Name]) VALUES (N'after-new-broker');");
 
         // ASSERT
-        Assert.True(recovered, $"Statuses: [{string.Join(", ", statuses)}]; broker={await IsBrokerEnabledAsync()}");
+        Assert.True(await IsBrokerEnabledAsync(), $"Statuses: [{string.Join(", ", statuses)}]; remaining=[{string.Join(", ", health.Remaining)}]; error={health.RepairError}");
         Assert.Equal(originalBrokerGuid, await GetBrokerGuidAsync(CopyDatabase));
         Assert.NotEqual(originalBrokerGuid, await GetBrokerGuidAsync(_database));
         Assert.True(await PollUntilAsync(() => Task.FromResult(delivered.Contains("after-new-broker")), TimeSpan.FromSeconds(30), TestContext.Current.CancellationToken));

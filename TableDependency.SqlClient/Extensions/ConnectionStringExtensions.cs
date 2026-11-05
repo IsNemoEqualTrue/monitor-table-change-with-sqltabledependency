@@ -217,6 +217,18 @@ internal static class ConnectionStringExtensions
             return [.. columnsList];
         }
 
+        // Effective right however conferred (grant, role, ownership); NULL from HAS_PERMS_BY_NAME counts as not held.
+        public async Task<bool> HasDatabasePermissionAsync(string permission, CancellationToken ct)
+        {
+            await using var sqlConnection = new SqlConnection(connectionString);
+            await sqlConnection.OpenAsync(ct);
+
+            await using var sqlCommand = sqlConnection.CreateCommand();
+            sqlCommand.CommandText = "SELECT ISNULL(HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', @permission), 0);";
+            sqlCommand.Parameters.AddWithValue("@permission", permission);
+            return await sqlCommand.ExecuteScalarAsync(ct) is 1;
+        }
+
         public async Task<bool> CheckIfDatabaseObjectsExistAsync(string prefix, CancellationToken ct)
         {
             await using var sqlConnection = new SqlConnection(connectionString);

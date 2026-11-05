@@ -103,6 +103,8 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
     // True from the start of the receive loop until its final drop; repair never runs outside it, so it cannot resurrect stopped objects.
     private volatile bool _loopActive;
+    private volatile CancellationTokenSource? _receiveCts;
+    private volatile TaskCompletionSource? _receiveClosed;
     private int _watchdogTimeout;
     private TimeSpan _reconnectTimeout = TimeSpan.FromMinutes(30);
     private const string _startMessageTemplate = "{0}/StartMessage/{1}";
@@ -500,6 +502,15 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
     {
         try
         {
+            if (!await _connectionString.HasDatabasePermissionAsync("ALTER", ct))
+            {
+                LogWarning(null, "Service Broker is disabled on {Database} and this principal lacks ALTER on the database to enable it.", ("Database", _database));
+                return new ServiceBrokerNotEnabledException(_database);
+            }
+
+            // The listener's own WAITFOR session is "another user" to ALTER DATABASE ... NO_WAIT, so let it go first.
+            await ReleaseReceiveConnectionAsync(ct);
+
             // Enabling needs exclusive access, so release our own idle pooled sessions before asking for it.
             await using (var pooled = new SqlConnection(_connectionString))
                 SqlConnection.ClearPool(pooled);
@@ -1261,6 +1272,7 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
             var spinGuard = new SpinGuard(_logger, timeout, watchdogTimeout);
             long? outageStartedAt = null;
             var reconnectDelay = TimeSpan.Zero;
+            Exception? lastException = null;
 
             await NotifyListenersAboutStatus(TableDependencyStatus.Started);
 
@@ -1268,6 +1280,11 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
             {
                 SqlConnection? sqlConnection = null;
                 var dispatching = false;
+
+                // Its own token so a heartbeat can release this connection (to enable the broker) without stopping the listener.
+                using var receiveCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var receiveToken = receiveCts.Token;
+                _receiveCts = receiveCts;
 
                 try
                 {
@@ -1277,7 +1294,7 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                         ?.SetTag("tabledependency.timeout", timeout)
                         .SetTag("tabledependency.watchdogTimeout", watchdogTimeout))
                     {
-                        await sqlConnection.OpenAsync(ct);
+                        await sqlConnection.OpenAsync(receiveToken);
                         LogDebug("Connection opened.");
                         await NotifyListenersAboutStatus(TableDependencyStatus.WaitingForNotification);
                     }
@@ -1307,11 +1324,11 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                                 sqlCommand.Parameters.AddWithValue("@conversationHandle", ConversationHandle);
                             LogDebug("Executing WAITFOR command.");
 
-                            await using var sqlDataReader = await sqlCommand.ExecuteReaderAsync(ct);
+                            await using var sqlDataReader = await sqlCommand.ExecuteReaderAsync(receiveToken);
                             LogDebug("Starting to read.");
-                            while (await sqlDataReader.ReadAsync(ct))
+                            while (await sqlDataReader.ReadAsync(receiveToken))
                             {
-                                var message = new Message(sqlDataReader.GetSqlString(0).Value, await sqlDataReader.IsDBNullAsync(1, ct)
+                                var message = new Message(sqlDataReader.GetSqlString(0).Value, await sqlDataReader.IsDBNullAsync(1, receiveToken)
                                     ? null
                                     : sqlDataReader.GetSqlBytes(1).Value);
 
@@ -1362,7 +1379,7 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                             reconnectDelay = TimeSpan.Zero;
                         }
 
-                        await spinGuard.ThrottleAsync(receivedDataMessage, Stopwatch.GetElapsedTime(iterationStartedAt), ct);
+                        await spinGuard.ThrottleAsync(receivedDataMessage, Stopwatch.GetElapsedTime(iterationStartedAt), receiveToken);
                     }
                 }
                 catch (Exception exception)
@@ -1384,18 +1401,24 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                         return;
                     }
 
-                    outageStartedAt ??= Stopwatch.GetTimestamp();
-                    if (!ReconnectPolicy.ShouldReconnect(exception, dispatching, Stopwatch.GetElapsedTime(outageStartedAt.Value), ReconnectTimeout))
+                    if (receiveCts.IsCancellationRequested)
                     {
-                        // Surface the exception before the terminal status so a subscriber observing StopDueToError already has it.
-                        await NotifyListenersAboutException(exception);
-                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToError);
-                        LogError(exception, "Exception in WaitForNotifications.");
-                        return;
+                        LogInformation("Receive connection released for repair of {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
+                    }
+                    else
+                    {
+                        lastException = exception;
+                        outageStartedAt ??= Stopwatch.GetTimestamp();
+                        if (!ReconnectPolicy.ShouldReconnect(exception, dispatching, Stopwatch.GetElapsedTime(outageStartedAt.Value), ReconnectTimeout))
+                        {
+                            await StopDueToErrorAsync(exception);
+                            return;
+                        }
+
+                        // Not OnException: that event means the listener stopped, and this one is about to try again.
+                        LogWarning(exception, "Receive failed; reconnecting to {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
                     }
 
-                    // Not OnException: that event means the listener stopped, and this one is about to try again.
-                    LogWarning(exception, "Receive failed; reconnecting to {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
                     if (Status is not TableDependencyStatus.Reconnecting)
                         await NotifyListenersAboutStatus(TableDependencyStatus.Reconnecting);
 
@@ -1403,21 +1426,46 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                 }
                 finally
                 {
+                    _receiveCts = null;
                     if (sqlConnection is not null)
                         await sqlConnection.DisposeAsync();
+                    _receiveClosed?.TrySetResult();
                 }
 
-                reconnectDelay = ReconnectPolicy.NextDelay(reconnectDelay);
-                try
+                // Reopen only after a check that actually ran: one that cannot even connect means the database is not back yet,
+                // and reopening then would skip the repair (a disabled broker, say) that the next check would have done.
+                while (true)
                 {
-                    await Task.Delay(reconnectDelay, ct);
-                    await RepairBeforeReconnectAsync(ct);
-                }
-                catch (OperationCanceledException) when (ct.IsCancellationRequested)
-                {
-                    await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
-                    LogInformation("Operation canceled.");
-                    return;
+                    reconnectDelay = ReconnectPolicy.NextDelay(reconnectDelay);
+                    try
+                    {
+                        await Task.Delay(reconnectDelay, ct);
+                        var checkError = await RepairBeforeReconnectAsync(ct);
+                        if (checkError is null)
+                            break;
+
+                        lastException = checkError;
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
+                        LogInformation("Operation canceled.");
+                        return;
+                    }
+
+                    if (_shuttingDown)
+                    {
+                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToProcessShutdown);
+                        LogInformation("Process shutting down; listener stopped.");
+                        return;
+                    }
+
+                    if (outageStartedAt is not null && lastException is not null
+                        && !ReconnectPolicy.ShouldReconnect(lastException, false, Stopwatch.GetElapsedTime(outageStartedAt.Value), ReconnectTimeout))
+                    {
+                        await StopDueToErrorAsync(lastException);
+                        return;
+                    }
                 }
             }
         }
@@ -1441,21 +1489,54 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         }
     }
 
-    // A failed check is not fatal here: the next connection attempt either succeeds or re-enters the backoff.
-    private async Task RepairBeforeReconnectAsync(CancellationToken ct)
+    // Surface the exception before the terminal status so a subscriber observing StopDueToError already has it.
+    private async Task StopDueToErrorAsync(Exception exception)
+    {
+        await NotifyListenersAboutException(exception);
+        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToError);
+        LogError(exception, "Exception in WaitForNotifications.");
+    }
+
+    // Returns why the check could not run (the database is not reachable yet), or null once it ran, whatever it found.
+    private async Task<Exception?> RepairBeforeReconnectAsync(CancellationToken ct)
     {
         await _repairLock.WaitAsync(ct);
         try
         {
             await CheckAndRepairCoreAsync(ct);
+            return null;
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             LogDebug("Health check before reconnect failed: {Message}", ("Message", exception.Message));
+            return exception;
         }
         finally
         {
             _repairLock.Release();
+        }
+    }
+
+    // Caller holds _repairLock, so the loop cannot reopen until the caller is done (its reconnect repair waits on the same lock).
+    private async Task ReleaseReceiveConnectionAsync(CancellationToken ct)
+    {
+        var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _receiveClosed = closed;
+        try
+        {
+            if (_receiveCts is not { } receiveCts)
+                return;
+
+            receiveCts.Cancel();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(30), ct);
+        }
+        catch (Exception exception) when (exception is TimeoutException or ObjectDisposedException)
+        {
+            // The loop closed it between our read and the cancel, or is slow to unwind; the enable below reports any leftover.
+        }
+        finally
+        {
+            _receiveClosed = null;
         }
     }
 
