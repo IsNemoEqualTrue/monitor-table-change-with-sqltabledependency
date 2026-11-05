@@ -80,6 +80,7 @@ public sealed class PersistedListenerRedeliversAfterConnectionDropTest(DatabaseF
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        firstDependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {

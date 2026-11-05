@@ -125,3 +125,18 @@ Non-persisted: on teardown the loop's `finally` currently drops objects; it must
 - `NEW_BROKER` ends every conversation in the database, including ones owned by other apps. Only attempted after `ENABLE_BROKER` fails with 9772, which means the broker is unusable anyway.
 - Hosts that restart on `StopDueToError` will now see it only after `ReconnectTimeout`; release notes must call this out.
 - A DBA who drops the trigger on purpose will see it come back on the next heartbeat while `AutoRepair` is on.
+
+## Review outcome (implemented)
+
+Changes from the design above, and why:
+
+- **Broker re-enable only when permitted.** It is attempted only if `HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'ALTER') = 1`; otherwise `ServiceBrokerNotEnabledException` goes in `RepairError`. It is issued from `master` after clearing the library's own pool, so neither the issuing session nor idle pooled connections block the `NO_WAIT` exclusive lock. Objects are rebuilt even if the broker stays off.
+- **`DatabaseObjectsHealth` reports `Remaining` (re-checked after repair) instead of `Repaired` + `BrokerEnabled`.** `IsHealthy => Listening && Remaining.Count == 0 && RepairError is null`. The old `Issues.Count == Repaired.Count` formula broke when a repair fixed one thing and broke another.
+- **No `Repaired` status.** Status is a state: after a repair it would stay `Repaired` while the loop is waiting. Only `Reconnecting` is added.
+- **Reconnect does not raise `OnException`.** That event means "stopped working". It fires once, with `StopDueToError`, when `ReconnectTimeout` runs out. `TimeSpan.Zero` keeps the pre-10.2 immediate stop.
+- **Retry rule: a `SqlException` raised outside subscriber dispatch.** This replaces "connection Closed/Broken": a dropped receiver queue fails with the connection still `Open` and would have left a dead loop that no heartbeat could revive.
+- **Repair only while the loop runs, under the same lock as the non-persisted final drop.** Otherwise a heartbeat racing `StopAsync` recreates the objects that were just dropped.
+- **Non-persisted dialog.** Reuse it while open. When replacing it, end the old one `WITH CLEANUP` (otherwise its timer later fires the activation drop-all). Publish the new handle only after commit, via a fresh box, so the loop never reads a torn or rolled-back handle.
+- **`ENABLE TRIGGER` and `ALTER QUEUE ... STATUS = ON` always run.** `CREATE OR ALTER TRIGGER` keeps a disabled trigger disabled.
+- **`AutoRepair`/`ReconnectTimeout` live on the class and the builder, not the interface.** Interface default setters would silently drop values. `CheckDatabaseObjectsAsync`/`LastObjectsHealth` are default interface members.
+- **Tests.** The snapshot-revert test was replaced: reverting the shared fixture database would break parallel tests. `Listener_RebuildsObjectsDroppedDuringOutage` disables the login, kills the session and drops the objects, which is the same end state. Every DB test runs under its own login.

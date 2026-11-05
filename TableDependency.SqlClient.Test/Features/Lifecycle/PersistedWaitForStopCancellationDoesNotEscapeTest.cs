@@ -80,6 +80,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {
@@ -122,6 +123,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         bool escaped;
         try
@@ -176,6 +178,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {
@@ -222,6 +225,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {
@@ -267,6 +271,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {
@@ -320,6 +325,7 @@ public sealed class PersistedWaitForStopCancellationDoesNotEscapeTest(DatabaseFi
             tableName: TableName,
             persistentId: persistentId,
             ct: TestContext.Current.CancellationToken);
+        dependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
 
         try
         {

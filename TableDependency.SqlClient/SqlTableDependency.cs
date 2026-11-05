@@ -38,6 +38,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -47,6 +48,7 @@ using System.Xml.Linq;
 using TableDependency.SqlClient.Base.Enums;
 using TableDependency.SqlClient.Base.EventArgs;
 using TableDependency.SqlClient.Base.Exceptions;
+using TableDependency.SqlClient.Base.Health;
 using TableDependency.SqlClient.Base.Interfaces;
 using TableDependency.SqlClient.Base.Messages;
 using TableDependency.SqlClient.Base.Utilities;
@@ -92,7 +94,17 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
     private readonly ILogger? _logger;
     private readonly bool _includeOldEntity;
-    private Guid _conversationHandle;
+
+    // Swapped by repair while the receive loop reads it; a fresh box per write so a reader never sees a torn Guid.
+    private volatile StrongBox<Guid> _conversationHandle = new(Guid.Empty);
+
+    // Serialises check/repair calls with each other, with the loop's reconnect repair, and with the non-persisted final drop.
+    private readonly SemaphoreSlim _repairLock = new(1, 1);
+
+    // True from the start of the receive loop until its final drop; repair never runs outside it, so it cannot resurrect stopped objects.
+    private volatile bool _loopActive;
+    private int _watchdogTimeout;
+    private TimeSpan _reconnectTimeout = TimeSpan.FromMinutes(30);
     private const string _startMessageTemplate = "{0}/StartMessage/{1}";
     private const string _endMessageTemplate = "{0}/EndMessage";
     private readonly Regex _sqlAllowedChars = new(@"^[a-zA-Z]\w*(?: \w+)*$");
@@ -165,6 +177,33 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
     /// Gets the ModelToTableMapper.
     /// </summary>
     public IModelToTableMapper<T>? Mapper { get; private set; }
+
+    /// <summary>
+    /// When true (the default), <see cref="CheckDatabaseObjectsAsync"/> and the reconnect loop rebuild missing or disabled objects while the listener runs.
+    /// When false they only report.
+    /// </summary>
+    public bool AutoRepair { get; set; } = true;
+
+    /// <summary>
+    /// How long the receive loop keeps reconnecting after it loses its connection or its objects before it stops with
+    /// <see cref="TableDependencyStatus.StopDueToError"/>. Default 30 minutes; <see cref="TimeSpan.Zero"/> stops at once (the pre-10.2 behaviour);
+    /// <see cref="Timeout.InfiniteTimeSpan"/> never gives up.
+    /// </summary>
+    public TimeSpan ReconnectTimeout
+    {
+        get => _reconnectTimeout;
+        set => _reconnectTimeout = value >= TimeSpan.Zero || value == Timeout.InfiniteTimeSpan
+            ? value
+            : throw new ArgumentOutOfRangeException(nameof(value), value, "ReconnectTimeout must be zero, positive or Timeout.InfiniteTimeSpan.");
+    }
+
+    public DatabaseObjectsHealth? LastObjectsHealth { get; private set; }
+
+    private Guid ConversationHandle
+    {
+        get => _conversationHandle.Value;
+        set => _conversationHandle = new(value);
+    }
 
     #endregion
 
@@ -338,7 +377,8 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         await NotifyListenersAboutStatus(TableDependencyStatus.Starting);
 
         _processableMessages = [.. BuildProcessableMessagesList()];
-        await CreateDatabaseObjectsAsync(watchdogTimeout, ct);
+        _watchdogTimeout = watchdogTimeout;
+        await CreateDatabaseObjectsAsync(watchdogTimeout, repair: false, ct);
         _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(ct);
         _shuttingDown = false;
         _shutdownSignalRegistrations = RegisterShutdownSignals();
@@ -390,6 +430,134 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
         LogInformation("Disposed table dependency.");
     }
+
+    public async Task<DatabaseObjectsHealth> CheckDatabaseObjectsAsync(CancellationToken ct = default)
+    {
+        using var activity = StartActivity(nameof(CheckDatabaseObjectsAsync));
+
+        await _repairLock.WaitAsync(ct);
+        try
+        {
+            var health = await CheckAndRepairCoreAsync(ct);
+
+            activity?.SetTag("tabledependency.objects.healthy", health.IsHealthy)
+                .SetTag("tabledependency.objects.issues", health.Issues.Count)
+                .SetTag("tabledependency.objects.remaining", health.Remaining.Count);
+
+            return health;
+        }
+        finally
+        {
+            _repairLock.Release();
+        }
+    }
+
+    #endregion
+
+    #region Health
+
+    // Caller holds _repairLock.
+    private async Task<DatabaseObjectsHealth> CheckAndRepairCoreAsync(CancellationToken ct)
+    {
+        var issues = await SelectDatabaseObjectIssuesAsync(ct);
+        var remaining = issues;
+        Exception? repairError = null;
+
+        if (issues.Count > 0)
+        {
+            LogWarning(null, "Database objects {NamingPrefix} unhealthy: {Issues}.", (nameof(NamingPrefix), NamingPrefix), ("Issues", string.Join(", ", issues)));
+
+            // Never repair outside a running loop: after StopAsync the objects were dropped on purpose.
+            if (AutoRepair && _loopActive)
+            {
+                // Broker first: NEW_BROKER ends every conversation, so the object repair below must see that and begin a fresh dialog.
+                if (issues.Any(i => i.Kind is DatabaseObjectKind.Broker))
+                    repairError = await TryEnableBrokerAsync(ct);
+
+                // DDL works with the broker off, so the objects are rebuilt even when it could not be enabled.
+                try
+                {
+                    await CreateDatabaseObjectsAsync(_watchdogTimeout, repair: true, ct);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    repairError ??= exception;
+                    LogError(exception, "Repair of database objects {NamingPrefix} failed.", (nameof(NamingPrefix), NamingPrefix));
+                }
+
+                remaining = await SelectDatabaseObjectIssuesAsync(ct);
+                LogInformation("Database objects {NamingPrefix} repaired: {Issues}.", (nameof(NamingPrefix), NamingPrefix), ("Issues", string.Join(", ", issues.Except(remaining))));
+            }
+        }
+
+        var health = new DatabaseObjectsHealth(DateTimeOffset.UtcNow, Status is TableDependencyStatus.WaitingForNotification, issues, remaining, repairError);
+        LastObjectsHealth = health;
+        return health;
+    }
+
+    // Best effort; returns why the broker is still off, or null once enabled.
+    private async Task<Exception?> TryEnableBrokerAsync(CancellationToken ct)
+    {
+        try
+        {
+            // Enabling needs exclusive access, so release our own idle pooled sessions before asking for it.
+            await using (var pooled = new SqlConnection(_connectionString))
+                SqlConnection.ClearPool(pooled);
+
+            await using var sqlConnection = new SqlConnection(_connectionString);
+            await sqlConnection.OpenAsync(ct);
+            await using var sqlCommand = sqlConnection.CreateCommand();
+            sqlCommand.CommandText = SqlScripts.EnableBroker;
+            sqlCommand.CommandTimeout = 30;
+
+            if (await sqlCommand.ExecuteScalarAsync(ct) is not 1)
+            {
+                LogWarning(null, "Service Broker is disabled on {Database} and this principal lacks ALTER on the database to enable it.", ("Database", _database));
+                return new ServiceBrokerNotEnabledException(_database);
+            }
+
+            LogInformation("Service Broker enabled on {Database}.", ("Database", _database));
+            return null;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            LogError(exception, "Enabling Service Broker on {Database} failed.", ("Database", _database));
+            return exception;
+        }
+    }
+
+    private async Task<List<DatabaseObjectIssue>> SelectDatabaseObjectIssuesAsync(CancellationToken ct)
+    {
+        await using var sqlConnection = new SqlConnection(_connectionString);
+        await sqlConnection.OpenAsync(ct);
+
+        var handle = ConversationHandle;
+        await using var sqlCommand = PrepareCommand(sqlConnection.CreateCommand(), SqlScripts.SelectDatabaseObjectIssues,
+            ("@brokerSchema", DefaultBrokerSchemaName),
+            ("@tableSchema", SchemaName),
+            ("@trigger", $"tr_{NamingPrefix}_Sender"),
+            ("@receiver", $"{NamingPrefix}_Receiver"),
+            ("@sender", $"{NamingPrefix}_Sender"),
+            ("@contract", NamingPrefix),
+            ("@messages", BuildContractMessagesXml()),
+            ("@procedure", $"{NamingPrefix}_QueueActivationSender"),
+            ("@handle", _persisted || handle == Guid.Empty ? null : handle));
+
+        List<DatabaseObjectIssue> issues = [];
+        await using var reader = await sqlCommand.ExecuteReaderAsync(ct);
+        while (await reader.ReadAsync(ct))
+        {
+            issues.Add(new(
+                Enum.Parse<DatabaseObjectKind>(reader.GetString(0)),
+                reader.GetString(1),
+                Enum.Parse<DatabaseObjectProblem>(reader.GetString(2))));
+        }
+
+        return issues;
+    }
+
+    private string BuildContractMessagesXml()
+        => new XElement("m", _processableMessages.Select(message => new XElement("m", message))).ToString(SaveOptions.DisableFormatting);
 
     #endregion
 
@@ -570,15 +738,20 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
     }
 
     // aislop-ignore-next-block complexity/function-too-long -- The ordered DDL transaction must remain inspectable as one unit.
-    private async Task CreateDatabaseObjectsAsync(int watchdogTimeout, CancellationToken ct)
+    // Every step is idempotent, so repair re-runs the whole script; it differs only in tolerating existing objects and reusing a live dialog.
+    private async Task CreateDatabaseObjectsAsync(int watchdogTimeout, bool repair, CancellationToken ct)
     {
         using var activity = StartActivity(nameof(CreateDatabaseObjectsAsync))
-            ?.SetTag("tabledependency.watchdogTimeout", watchdogTimeout);
+            ?.SetTag("tabledependency.watchdogTimeout", watchdogTimeout)
+            .SetTag("tabledependency.repair", repair);
 
-        var dbObjectsExist = await _connectionString.CheckIfDatabaseObjectsExistAsync(NamingPrefix, ct);
-        activity?.SetTag("tabledependency.dbObjectsExist", dbObjectsExist);
-        if (dbObjectsExist && !_persisted)
-            throw new DbObjectsWithSameNameException(NamingPrefix);
+        if (!repair)
+        {
+            var dbObjectsExist = await _connectionString.CheckIfDatabaseObjectsExistAsync(NamingPrefix, ct);
+            activity?.SetTag("tabledependency.dbObjectsExist", dbObjectsExist);
+            if (dbObjectsExist && !_persisted)
+                throw new DbObjectsWithSameNameException(NamingPrefix);
+        }
 
         await using var sqlConnection = new SqlConnection(_connectionString);
         await sqlConnection.OpenAsync(ct);
@@ -596,8 +769,7 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         }
 
         // Contract
-        var contractMessages = new XElement("m", _processableMessages.Select(message => new XElement("m", message))).ToString(SaveOptions.DisableFormatting);
-        await PrepareCommand(sqlCommand, SqlScripts.CreateContract, ("@contract", NamingPrefix), ("@messages", contractMessages)).ExecuteNonQueryAsync(ct);
+        await PrepareCommand(sqlCommand, SqlScripts.CreateContract, ("@contract", NamingPrefix), ("@messages", BuildContractMessagesXml())).ExecuteNonQueryAsync(ct);
         LogDebug("Contract {NamingPrefix} created.", (nameof(NamingPrefix), NamingPrefix));
 
         // Queues (broker schema)
@@ -606,6 +778,9 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
         await PrepareCommand(sqlCommand, SqlScripts.CreateQueue, ("@schema", DefaultBrokerSchemaName), ("@queue", $"{NamingPrefix}_Sender")).ExecuteNonQueryAsync(ct);
         LogDebug("Queue {NamingPrefix}_Sender created.", (nameof(NamingPrefix), NamingPrefix));
+
+        foreach (var queue in (string[])[$"{NamingPrefix}_Receiver", $"{NamingPrefix}_Sender"])
+            await PrepareCommand(sqlCommand, SqlScripts.EnableQueue, ("@schema", DefaultBrokerSchemaName), ("@queue", queue)).ExecuteNonQueryAsync(ct);
 
         // Services
         var authorization = string.IsNullOrWhiteSpace(ServiceAuthorization) ? null : ServiceAuthorization;
@@ -636,15 +811,30 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         await PrepareCommand(sqlCommand, PrepareScriptProcedureQueueActivation(dropAllScript)).ExecuteNonQueryAsync(ct);
         LogDebug("Procedure {NamingPrefix} created.", (nameof(NamingPrefix), NamingPrefix));
 
-        // Begin conversation
+        // Begin conversation. The field is only swapped after commit, so a rolled-back repair leaves the loop on the old handle.
+        var conversationHandle = ConversationHandle;
         if (!_persisted)
         {
-            _conversationHandle = await BeginConversationAsync(sqlCommand, ct);
-            LogDebug("Conversation with handler {ConversationHandle} started.", ("ConversationHandle", _conversationHandle.ToString()));
+            var reuse = repair && conversationHandle != Guid.Empty
+                && await PrepareCommand(sqlCommand, SqlScripts.ConversationIsOpen, ("@handle", conversationHandle)).ExecuteScalarAsync(ct) is 1;
+
+            if (!reuse)
+            {
+                // A replaced dialog left alive would later fire its DialogTimer, whose activation runs the non-persisted drop-all.
+                if (conversationHandle != Guid.Empty)
+                    await PrepareCommand(sqlCommand, SqlScripts.EndConversationWithCleanup, ("@handle", conversationHandle)).ExecuteNonQueryAsync(ct);
+
+                conversationHandle = await BeginConversationAsync(sqlCommand, ct);
+                LogDebug("Conversation with handler {ConversationHandle} started.", ("ConversationHandle", conversationHandle.ToString()));
+            }
         }
 
         // Trigger
-        await CreateTriggerAsync(sqlCommand, ct);
+        await CreateTriggerAsync(sqlCommand, conversationHandle, ct);
+        await PrepareCommand(sqlCommand, SqlScripts.EnableTrigger,
+            ("@schema", SchemaName),
+            ("@trigger", $"tr_{NamingPrefix}_Sender"),
+            ("@table", TableName)).ExecuteNonQueryAsync(ct);
 
         // Associate Activation Store Procedure to sender queue. Quoted names stay distinct from SELF and OWNER keywords.
         var (executeAs, executeAsIsQuoted) = NormalizeQueueExecuteAs(QueueExecuteAs);
@@ -659,11 +849,13 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
         // Run the watch-dog
         if (!_persisted)
         {
-            await PrepareCommand(sqlCommand, SqlScripts.BeginConversationTimer, ("@handle", _conversationHandle), ("@timeout", watchdogTimeout)).ExecuteNonQueryAsync(ct);
+            await PrepareCommand(sqlCommand, SqlScripts.BeginConversationTimer, ("@handle", conversationHandle), ("@timeout", watchdogTimeout)).ExecuteNonQueryAsync(ct);
             LogDebug("Watch dog started.");
         }
 
         await transaction.CommitAsync(ct);
+        if (!_persisted)
+            ConversationHandle = conversationHandle;
         LogInformation("All OK! Database objects ensured with naming {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
 
         if (_persisted)
@@ -681,15 +873,14 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
             ("@farService", $"{NamingPrefix}_Receiver"),
             ("@localService", $"{NamingPrefix}_Sender"));
 
-        if (await sqlCommand.ExecuteScalarAsync(ct) is Guid handle)
-            _conversationHandle = handle;
-        else
-            _conversationHandle = await BeginConversationAsync(sqlCommand, ct);
+        ConversationHandle = await sqlCommand.ExecuteScalarAsync(ct) is Guid handle
+            ? handle
+            : await BeginConversationAsync(sqlCommand, ct);
 
         LogInformation("Using persisted database objects with naming {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
     }
 
-    private async Task CreateTriggerAsync(SqlCommand sqlCommand, CancellationToken ct)
+    private async Task CreateTriggerAsync(SqlCommand sqlCommand, Guid conversationHandle, CancellationToken ct)
     {
         sqlCommand.Parameters.Clear();
 
@@ -722,7 +913,7 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
               + "BEGIN" + Environment.NewLine
               + $"    BEGIN DIALOG CONVERSATION @conversationHandle FROM SERVICE [{NamingPrefix}_Sender] TO SERVICE '{NamingPrefix}_Receiver' ON CONTRACT [{NamingPrefix}] WITH ENCRYPTION = OFF;{Environment.NewLine}"
               + "END"
-            : $"DECLARE @conversationHandle UNIQUEIDENTIFIER = '{_conversationHandle}';{Environment.NewLine}"
+            : $"DECLARE @conversationHandle UNIQUEIDENTIFIER = '{conversationHandle}';{Environment.NewLine}"
               + "IF NOT EXISTS (SELECT 1 FROM sys.conversation_endpoints WHERE conversation_handle = @conversationHandle)" + Environment.NewLine
               + "BEGIN" + Environment.NewLine
               + PrepareScriptDropAll(string.Empty, true) + Environment.NewLine
@@ -1036,13 +1227,13 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
     #region WaitForNotifications
 
-    // aislop-ignore-next-block complexity/function-too-long -- Receive, notification dispatch, and terminal status handling share one connection lifetime.
+    // aislop-ignore-next-block complexity/function-too-long -- Receive, notification dispatch, reconnect and terminal status handling share one loop.
     private async Task WaitForNotificationsAsync(
         int timeout,
         int watchdogTimeout,
         CancellationToken ct)
     {
-        SqlConnection? sqlConnection = null;
+        _loopActive = true;
 
         try
         {
@@ -1067,121 +1258,204 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
                 : "BEGIN CONVERSATION TIMER (@conversationHandle) TIMEOUT = @watchdogTimeout;";
             waitForSqlScript += receiveStatement;
 
-            sqlConnection = new SqlConnection(_connectionString);
-
-            using (StartActivity(nameof(WaitForNotificationsAsync) + "Open database connection", startIndependentTrace: true)
-                ?.SetTag("tabledependency.timeout", timeout)
-                .SetTag("tabledependency.watchdogTimeout", watchdogTimeout))
-            {
-                await NotifyListenersAboutStatus(TableDependencyStatus.Started);
-
-                await sqlConnection.OpenAsync(ct);
-                LogDebug("Connection opened.");
-                await NotifyListenersAboutStatus(TableDependencyStatus.WaitingForNotification);
-            }
-
             var spinGuard = new SpinGuard(_logger, timeout, watchdogTimeout);
+            long? outageStartedAt = null;
+            var reconnectDelay = TimeSpan.Zero;
+
+            await NotifyListenersAboutStatus(TableDependencyStatus.Started);
 
             while (true)
             {
-                var iterationStartedAt = Stopwatch.GetTimestamp();
-                var receivedDataMessage = false;
+                SqlConnection? sqlConnection = null;
+                var dispatching = false;
 
-                // Each WAITFOR gets its own trace to not get one trace in otel. The span closes before any spin backoff below, so a
-                // throttled iteration does not report its delay as WAITFOR duration; closing it also closes the reader, so the
-                // connection is not left mid-fetch while we wait.
-                using (StartActivity(nameof(WaitForNotificationsAsync), startIndependentTrace: true)
-                    ?.SetTag("tabledependency.timeout", timeout)
-                    .SetTag("tabledependency.watchdogTimeout", watchdogTimeout))
+                try
                 {
-                    await using var sqlCommand = sqlConnection.CreateCommand();
-                    sqlCommand.CommandText = waitForSqlScript;
-                    sqlCommand.CommandTimeout = 0;
-                    sqlCommand.Parameters.AddWithValue("@watchdogTimeout", watchdogTimeout);
-                    if (_persisted)
+                    sqlConnection = new SqlConnection(_connectionString);
+
+                    using (StartActivity(nameof(WaitForNotificationsAsync) + "Open database connection", startIndependentTrace: true)
+                        ?.SetTag("tabledependency.timeout", timeout)
+                        .SetTag("tabledependency.watchdogTimeout", watchdogTimeout))
                     {
-                        sqlCommand.Parameters.AddWithValue("@farService", $"{NamingPrefix}_Receiver");
-                        sqlCommand.Parameters.AddWithValue("@localService", $"{NamingPrefix}_Sender");
+                        await sqlConnection.OpenAsync(ct);
+                        LogDebug("Connection opened.");
+                        await NotifyListenersAboutStatus(TableDependencyStatus.WaitingForNotification);
                     }
-                    else
-                        sqlCommand.Parameters.AddWithValue("@conversationHandle", _conversationHandle);
-                    LogDebug("Executing WAITFOR command.");
 
-                    await using var sqlDataReader = await sqlCommand.ExecuteReaderAsync(ct);
-                    LogDebug("Starting to read.");
-                    while (await sqlDataReader.ReadAsync(ct))
+                    while (true)
                     {
-                        var message = new Message(sqlDataReader.GetSqlString(0).Value, await sqlDataReader.IsDBNullAsync(1, ct)
-                            ? null
-                            : sqlDataReader.GetSqlBytes(1).Value);
+                        var iterationStartedAt = Stopwatch.GetTimestamp();
+                        var receivedDataMessage = false;
 
-                        if (message.MessageType.Equals(SqlMessageTypes.ErrorType, StringComparison.OrdinalIgnoreCase))
+                        // Each WAITFOR gets its own trace to not get one trace in otel. The span closes before any spin backoff below, so a
+                        // throttled iteration does not report its delay as WAITFOR duration; closing it also closes the reader, so the
+                        // connection is not left mid-fetch while we wait.
+                        using (StartActivity(nameof(WaitForNotificationsAsync), startIndependentTrace: true)
+                            ?.SetTag("tabledependency.timeout", timeout)
+                            .SetTag("tabledependency.watchdogTimeout", watchdogTimeout))
                         {
-                            if (!_persisted)
-                                throw new QueueContainingErrorMessageException();
+                            await using var sqlCommand = sqlConnection.CreateCommand();
+                            sqlCommand.CommandText = waitForSqlScript;
+                            sqlCommand.CommandTimeout = 0;
+                            sqlCommand.Parameters.AddWithValue("@watchdogTimeout", watchdogTimeout);
+                            if (_persisted)
+                            {
+                                sqlCommand.Parameters.AddWithValue("@farService", $"{NamingPrefix}_Receiver");
+                                sqlCommand.Parameters.AddWithValue("@localService", $"{NamingPrefix}_Sender");
+                            }
+                            else
+                                sqlCommand.Parameters.AddWithValue("@conversationHandle", ConversationHandle);
+                            LogDebug("Executing WAITFOR command.");
 
-                            LogError(new QueueContainingErrorMessageException(), "Service Broker error message received; keeping listener alive.");
-                            messagesBag.Reset();
-                            continue;
+                            await using var sqlDataReader = await sqlCommand.ExecuteReaderAsync(ct);
+                            LogDebug("Starting to read.");
+                            while (await sqlDataReader.ReadAsync(ct))
+                            {
+                                var message = new Message(sqlDataReader.GetSqlString(0).Value, await sqlDataReader.IsDBNullAsync(1, ct)
+                                    ? null
+                                    : sqlDataReader.GetSqlBytes(1).Value);
+
+                                if (message.MessageType.Equals(SqlMessageTypes.ErrorType, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (!_persisted)
+                                        throw new QueueContainingErrorMessageException();
+
+                                    LogError(new QueueContainingErrorMessageException(), "Service Broker error message received; keeping listener alive.");
+                                    messagesBag.Reset();
+                                    continue;
+                                }
+
+                                // Ignore service broker messages
+                                if (message.MessageType.StartsWith("http://schemas.microsoft.com/SQL/ServiceBroker/", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    LogDebug("Ignored system Service Broker message type = {MessageType}.", ("MessageType", message.MessageType));
+                                    continue;
+                                }
+
+                                // Only a data message proves the RECEIVE genuinely returned early. Error and system rows do not: a torn dialog
+                                // can deliver them on every iteration, which would reset the spin guard and leave the loop hammering the queue.
+                                receivedDataMessage = true;
+
+                                messagesBag.AddMessage(message);
+                                LogDebug("Received message type = {MessageType}.", ("MessageType", message.MessageType));
+
+                                if (messagesBag.Status is MessagesBagStatus.Ready)
+                                {
+                                    LogDebug("Message ready to be notified.");
+
+                                    // A fault raised by a subscriber is never retried as a lost connection, even when it is a SqlException.
+                                    dispatching = true;
+                                    await NotifyListenersAboutChange(messagesBag);
+                                    dispatching = false;
+
+                                    LogDebug("Message notified.");
+                                    messagesBag.Reset();
+                                }
+                            }
                         }
 
-                        // Ignore service broker messages
-                        if (message.MessageType.StartsWith("http://schemas.microsoft.com/SQL/ServiceBroker/", StringComparison.OrdinalIgnoreCase))
+                        // The outage only ends once a receive completes, so a connection that opens but cannot RECEIVE keeps counting.
+                        if (outageStartedAt is not null)
                         {
-                            LogDebug("Ignored system Service Broker message type = {MessageType}.", ("MessageType", message.MessageType));
-                            continue;
+                            LogInformation("Listener recovered after {OutageSeconds}s.", ("OutageSeconds", (long)Stopwatch.GetElapsedTime(outageStartedAt.Value).TotalSeconds));
+                            outageStartedAt = null;
+                            reconnectDelay = TimeSpan.Zero;
                         }
 
-                        // Only a data message proves the RECEIVE genuinely returned early. Error and system rows do not: a torn dialog
-                        // can deliver them on every iteration, which would reset the spin guard and leave the loop hammering the queue.
-                        receivedDataMessage = true;
-
-                        messagesBag.AddMessage(message);
-                        LogDebug("Received message type = {MessageType}.", ("MessageType", message.MessageType));
-
-                        if (messagesBag.Status is MessagesBagStatus.Ready)
-                        {
-                            LogDebug("Message ready to be notified.");
-                            await NotifyListenersAboutChange(messagesBag);
-                            LogDebug("Message notified.");
-                            messagesBag.Reset();
-                        }
+                        await spinGuard.ThrottleAsync(receivedDataMessage, Stopwatch.GetElapsedTime(iterationStartedAt), ct);
                     }
                 }
+                catch (Exception exception)
+                {
+                    using var activity = StartActivity(nameof(WaitForNotificationsAsync), startIndependentTrace: true);
 
-                await spinGuard.ThrottleAsync(receivedDataMessage, Stopwatch.GetElapsedTime(iterationStartedAt), ct);
-            }
-        }
-        catch (Exception exception)
-        {
-            using var activity = StartActivity(nameof(WaitForNotificationsAsync), startIndependentTrace: true);
+                    // Benign only when the listener's own connection went down; a subscriber/mapper fault leaves it usable and still surfaces.
+                    if (ct.IsCancellationRequested)
+                    {
+                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
+                        LogInformation("Operation canceled.");
+                        return;
+                    }
 
-            // Benign only when the listener's own connection went down; a subscriber/mapper fault leaves it usable and still surfaces.
-            if (ct.IsCancellationRequested)
-            {
-                await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
-                LogInformation("Operation canceled.");
-            }
-            else if (_shuttingDown && sqlConnection is { State: ConnectionState.Closed or ConnectionState.Broken })
-            {
-                await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToProcessShutdown);
-                LogInformation("Process shutting down; listener stopped.");
-            }
-            else
-            {
-                // Surface the exception before the terminal status so a subscriber observing StopDueToError already has it.
-                await NotifyListenersAboutException(exception);
-                await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToError);
-                LogError(exception, "Exception in WaitForNotifications.");
+                    if (_shuttingDown && sqlConnection is { State: ConnectionState.Closed or ConnectionState.Broken })
+                    {
+                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToProcessShutdown);
+                        LogInformation("Process shutting down; listener stopped.");
+                        return;
+                    }
+
+                    outageStartedAt ??= Stopwatch.GetTimestamp();
+                    if (!ReconnectPolicy.ShouldReconnect(exception, dispatching, Stopwatch.GetElapsedTime(outageStartedAt.Value), ReconnectTimeout))
+                    {
+                        // Surface the exception before the terminal status so a subscriber observing StopDueToError already has it.
+                        await NotifyListenersAboutException(exception);
+                        await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToError);
+                        LogError(exception, "Exception in WaitForNotifications.");
+                        return;
+                    }
+
+                    // Not OnException: that event means the listener stopped, and this one is about to try again.
+                    LogWarning(exception, "Receive failed; reconnecting to {NamingPrefix}.", (nameof(NamingPrefix), NamingPrefix));
+                    if (Status is not TableDependencyStatus.Reconnecting)
+                        await NotifyListenersAboutStatus(TableDependencyStatus.Reconnecting);
+
+                    messagesBag.Reset();
+                }
+                finally
+                {
+                    if (sqlConnection is not null)
+                        await sqlConnection.DisposeAsync();
+                }
+
+                reconnectDelay = ReconnectPolicy.NextDelay(reconnectDelay);
+                try
+                {
+                    await Task.Delay(reconnectDelay, ct);
+                    await RepairBeforeReconnectAsync(ct);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    await NotifyListenersAboutStatus(TableDependencyStatus.StopDueToCancellation);
+                    LogInformation("Operation canceled.");
+                    return;
+                }
             }
         }
         finally
         {
-            if (sqlConnection is not null)
-                await sqlConnection.DisposeAsync();
+            _loopActive = false;
 
+            // Under the repair lock, so an in-flight heartbeat repair finishes first and cannot recreate what this drops.
             if (!_persisted)
-                await DropDatabaseObjectsAsync();
+            {
+                await _repairLock.WaitAsync();
+                try
+                {
+                    await DropDatabaseObjectsAsync();
+                }
+                finally
+                {
+                    _repairLock.Release();
+                }
+            }
+        }
+    }
+
+    // A failed check is not fatal here: the next connection attempt either succeeds or re-enters the backoff.
+    private async Task RepairBeforeReconnectAsync(CancellationToken ct)
+    {
+        await _repairLock.WaitAsync(ct);
+        try
+        {
+            await CheckAndRepairCoreAsync(ct);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            LogDebug("Health check before reconnect failed: {Message}", ("Message", exception.Message));
+        }
+        finally
+        {
+            _repairLock.Release();
         }
     }
 
@@ -1266,6 +1540,9 @@ public sealed class SqlTableDependency<T> : ITableDependency<T> where T : class,
 
     private void LogInformation(string message, params (string Name, object? Value)[] values)
         => Telemetry.Log(_logger, LogLevel.Information, null, message, values);
+
+    private void LogWarning(Exception? exception, string message, params (string Name, object? Value)[] values)
+        => Telemetry.Log(_logger, LogLevel.Warning, exception, message, values);
 
     private void LogError(Exception exception, string message, params (string Name, object? Value)[] values)
         => Telemetry.Log(_logger, LogLevel.Error, exception, message, values);

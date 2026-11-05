@@ -86,6 +86,7 @@ public class StatusLostConnectionTest(DatabaseFixture databaseFixture) : SqlTabl
             mapper.AddMapping(c => c.Name, "FIRST name");
             mapper.AddMapping(c => c.Surname, "Second Name");
             _tableDependency = await SqlTableDependency<StatusLostConnectionTestModel>.CreateSqlTableDependencyAsync(DependencyConnectionString, tableName: TableName, mapper: mapper, ct: TestContext.Current.CancellationToken);
+            _tableDependency.ReconnectTimeout = TimeSpan.Zero; // asserts the immediate stop, not the reconnect
             _tableDependency.OnChanged += TableDependency_Changed;
             _tableDependency.OnStatusChanged += TableDependency_OnStatusChanged;
             _tableDependency.OnExceptionAsync = TableDependency_OnExceptionAsync; // Test using async exception handling

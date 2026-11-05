@@ -219,6 +219,21 @@ dep.OnChanged += _ => { };
 await dep.StartAsync(waitForStop: true, ct: ct);
 ``` 
 
+#### Monitoring and self-healing
+A listener can outlive the objects it depends on: a snapshot revert or restore, or someone dropping or disabling the trigger, a queue, a service or the activation procedure.
+Two mechanisms recover without restarting the process:
+
+- **Reconnect.** If the listener's receive fails (killed session, failover, a broker object missing under it), it reports `TableDependencyStatus.Reconnecting`, backs off 1s doubling to 60s, repairs objects and resumes. After `ReconnectTimeout` (default 30 minutes; `TimeSpan.Zero` restores the old immediate stop; `Timeout.InfiniteTimeSpan` never gives up) it stops with `OnException` + `StopDueToError` as before. A fault thrown by your own handler is never retried.
+- **Heartbeat check.** The library does not poll. Call `CheckDatabaseObjectsAsync` from your heartbeat. It reports missing or disabled objects and, while `AutoRepair` is `true` (the default) and the listener is running, rebuilds them. It never repairs after `StopAsync`.
+
+```C#
+var health = await dependency.CheckDatabaseObjectsAsync(ct);
+if (!health.IsHealthy)
+    logger.LogError("Listener unhealthy: {Issues} (still broken: {Remaining}) {Error}", health.Issues, health.Remaining, health.RepairError);
+```
+
+Object repair needs no rights beyond those `StartAsync` already checks. If Service Broker is disabled (typical after a restore or snapshot revert), repair re-enables it, but only when the principal holds `ALTER` on the database. It uses `ENABLE_BROKER WITH NO_WAIT`, so it never kills other sessions: if anyone else is connected it fails, reports `RepairError`, and the next attempt tries again. If the database is a restored copy whose broker ID is already in use (error 9772), it falls back to `NEW_BROKER`, which ends every conversation in that database. Without `ALTER`, the broker shows up in `Remaining` with a `ServiceBrokerNotEnabledException` until someone enables it. The objects are rebuilt either way.
+
 #### Create a builder that can be used with dependency injection
 ```C#
 internal class MyBuilder

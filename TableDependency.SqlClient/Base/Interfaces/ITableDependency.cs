@@ -33,6 +33,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TableDependency.SqlClient.Base.Enums;
 using TableDependency.SqlClient.Base.EventArgs;
+using TableDependency.SqlClient.Base.Health;
 
 namespace TableDependency.SqlClient.Base.Interfaces;
 
@@ -110,6 +111,11 @@ public interface ITableDependency<T> : IAsyncDisposable where T : class, new()
     /// </summary>
     public string TableName { get; }
 
+    /// <summary>
+    /// The most recent <see cref="CheckDatabaseObjectsAsync"/> result, or null before the first call.
+    /// </summary>
+    public DatabaseObjectsHealth? LastObjectsHealth => null;
+
     #endregion Properties
 
     #region Methods
@@ -133,6 +139,13 @@ public interface ITableDependency<T> : IAsyncDisposable where T : class, new()
     /// Only use if you want to remove persistent objects that have been created
     /// </summary>
     public Task DropDatabaseObjectsAsync();
+
+    /// <summary>
+    /// Checks the database objects the listener depends on and, when repair is enabled and the listener is running, rebuilds any that are missing or disabled.
+    /// Call it from the host's heartbeat; the library does not poll on its own.
+    /// </summary>
+    public Task<DatabaseObjectsHealth> CheckDatabaseObjectsAsync(CancellationToken ct = default)
+        => throw new NotSupportedException($"{GetType().Name} does not support database object health checks.");
 
     #endregion Methods
 }

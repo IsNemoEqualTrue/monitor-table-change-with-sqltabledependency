@@ -27,6 +27,7 @@
 #endregion
 
 using Microsoft.Extensions.Logging;
+using System;
 using System.Globalization;
 using System.Text;
 using System.Threading;
@@ -55,6 +56,8 @@ public abstract class SqlTableDependencyBuilder<T>(string connectionString) : IT
     public bool? ActivateDatabaseLogging { get; protected set; }
     public string? ServiceAuthorization { get; protected set; }
     public string? QueueExecuteAs { get; protected set; }
+    public bool? AutoRepair { get; protected set; }
+    public TimeSpan? ReconnectTimeout { get; protected set; }
 
     public async Task<ITableDependency<T>> BuildAsync(ILogger? logger = null, CancellationToken ct = default)
     {
@@ -66,6 +69,8 @@ public abstract class SqlTableDependencyBuilder<T>(string connectionString) : IT
         tableDependency.ActivateDatabaseLogging = ActivateDatabaseLogging ?? tableDependency.ActivateDatabaseLogging;
         tableDependency.ServiceAuthorization = ServiceAuthorization ?? tableDependency.ServiceAuthorization;
         tableDependency.QueueExecuteAs = QueueExecuteAs ?? tableDependency.QueueExecuteAs;
+        tableDependency.AutoRepair = AutoRepair ?? tableDependency.AutoRepair;
+        tableDependency.ReconnectTimeout = ReconnectTimeout ?? tableDependency.ReconnectTimeout;
 
         return tableDependency;
     }

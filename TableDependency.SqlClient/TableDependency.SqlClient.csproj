@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>10.1.9</Version>
+		<Version>10.2.0</Version>
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<Copyright>Christian Del Bianco © 2015-2020</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

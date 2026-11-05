@@ -36,5 +36,6 @@ public enum TableDependencyStatus
     WaitingForNotification,
     StopDueToCancellation,
     StopDueToError,
-    StopDueToProcessShutdown
+    StopDueToProcessShutdown,
+    Reconnecting
 }
